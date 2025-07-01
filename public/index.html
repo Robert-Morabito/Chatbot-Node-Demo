@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatBot Interface</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <!-- Model Info Modal -->
+    <div id="model-info-modal" class="modal">
+        <div class="modal-content">
+            <div id="partid">
+                Loading participant ID...
+            </div>
+            <h2 id="model-title">About GPT-4</h2>
+            <div id="model-description" class="model-description">
+                Loading model information...
+            </div>
+            <button id="continue-btn" class="continue-btn">Continue</button>
+        </div>
+    </div>
+
+    <!-- Main Application Container -->
+    <div class="app-container">
+        <!-- Sidebar for conversation history -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <button id="new-chat-btn" class="new-chat-btn">
+                    <span class="plus-icon">+</span>
+                    New Chat
+                </button>
+                <button id="sidebar-toggle" class="sidebar-toggle">☰</button>
+            </div>
+            
+            <div class="conversation-list" id="conversation-list">
+                <!-- Conversations will be dynamically added here -->
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="theme-toggle">
+                    <input type="checkbox" id="theme-switch" class="theme-checkbox">
+                    <label for="theme-switch" class="theme-label">
+                        <span class="theme-icon-dark">🌙</span>
+                        <span class="theme-icon-light">☀️</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="main-content">
+            <!-- Header Section -->
+            <div class="header">
+                <button id="mobile-sidebar-toggle" class="mobile-sidebar-toggle">☰</button>
+                <h1 id="bot-name" class="bot-name">Connected to GPT-4</h1>
+                <div class="header-actions">
+                    <div class="participant-display" id="participant-display">
+                        <span style="font-size: 12px; color: var(--text-secondary-dark); margin-right: 8px;">ID:</span>
+                        <span style="font-family: monospace; font-weight: bold; color: var(--user-msg-bg-dark);" id="header-participant-id">------</span>
+                    </div>
+                    <button id="save-chat-btn" class="save-btn" title="Save Current Chat">💾</button>
+                </div>
+            </div>
+
+            <!-- Chat Container -->
+            <div id="chat-container" class="chat-container">
+                <div id="messages" class="messages">
+                    <!-- Welcome message -->
+                    <div class="welcome-message">
+                        <div class="welcome-content">
+                            <h2>Welcome to ChatBot</h2>
+                            <p>Start a conversation with <strong id="welcome-model-name">GPT-4</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <div class="input-container">
+                    <textarea id="message-input" class="message-input" placeholder="Type your message..." rows="1"></textarea>
+                    <button id="send-btn" class="send-btn" title="Send message">
+                        <span class="send-icon">➤</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="chat.js"></script>
+</body>
+</html>

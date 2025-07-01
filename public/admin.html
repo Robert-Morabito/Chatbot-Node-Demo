@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Participant Data</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .participant { 
+            margin: 10px 0; 
+            padding: 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            background: #f9f9f9; 
+        }
+        .participant-id { 
+            font-size: 18px; 
+            font-weight: bold; 
+            color: #2196f3; 
+            font-family: monospace; 
+        }
+        .conversation-count { 
+            color: #666; 
+            font-size: 14px; 
+        }
+        .timestamp { 
+            color: #888; 
+            font-size: 12px; 
+        }
+        .search { 
+            margin: 20px 0; 
+            padding: 10px; 
+            width: 300px; 
+            font-size: 16px; 
+        }
+    </style>
+</head>
+<body>
+    <h1>📋 Participant Data</h1>
+    
+    <input type="text" class="search" id="searchInput" placeholder="Search by Participant ID..." onkeyup="filterParticipants()">
+    
+    <div id="participants">Loading...</div>
+    
+    <script>
+        let allParticipants = [];
+        
+        async function loadParticipants() {
+            try {
+                // This would need a new API endpoint that lists all saved files
+                const response = await fetch('/api/participants/list');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allParticipants = data.participants;
+                    renderParticipants(allParticipants);
+                }
+            } catch (error) {
+                document.getElementById('participants').innerHTML = 
+                    '<p style="color: red;">Error loading participant data. Check if chatlogs exist.</p>';
+            }
+        }
+        
+        function renderParticipants(participants) {
+            const container = document.getElementById('participants');
+            
+            if (participants.length === 0) {
+                container.innerHTML = '<p>No participants found.</p>';
+                return;
+            }
+            
+            const html = participants.map(p => `
+                <div class="participant">
+                    <div class="participant-id">Participant: ${p.participantId}</div>
+                    <div class="conversation-count">
+                        ${p.totalConversations} conversations, ${p.totalMessages} messages
+                    </div>
+                    <div class="timestamp">
+                        Completed: ${new Date(p.timestamp).toLocaleString()}
+                    </div>
+                    <div style="margin-top: 10px;">
+                        Model: ${p.displayedModel} (actually ${p.actualModel})
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+        
+        function filterParticipants() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allParticipants.filter(p => 
+                p.participantId.toLowerCase().includes(searchTerm)
+            );
+            renderParticipants(filtered);
+        }
+        
+        loadParticipants();
+    </script>
+</body>
+</html>
