@@ -22,7 +22,7 @@ router.post('/stream', async (req, res) => {
         
         // Validate request
         if (!messages || !Array.isArray(messages) || messages.length === 0) {
-            return res.status(400).json({ error: 'Messages array is required' });
+            return res.status(400).json({ error: 'Messages array is required.' });
         }
         
         if (!model) {
