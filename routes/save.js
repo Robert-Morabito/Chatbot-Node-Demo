@@ -11,9 +11,8 @@ const router = express.Router();
 
 const githubStorage = new GitHubStorage();
 
-// Ensure local backup directory exists
-const backupDir = path.join(__dirname, '..', 'data', 'participants');
-await fs.ensureDir(backupDir);
+// Use /tmp for Vercel serverless
+const backupDir = '/tmp/participants';
 
 router.post('/', async (req, res) => {
     try {
@@ -38,29 +37,40 @@ router.post('/', async (req, res) => {
             }
         };
         
-        // Always save local backup first
-        const backupFileName = `chatlog_${participantId}_${sessionId}.json`;
-        const backupPath = path.join(backupDir, backupFileName);
-        await fs.writeJson(backupPath, chatData, { spaces: 2 });
-        console.log(`💾 Local backup saved: ${backupFileName}`);
+        // Always try to save local backup first
+        let backupResult = null;
+        try {
+            await fs.ensureDir(backupDir);
+            const backupFileName = `chatlog_${participantId}_${sessionId}.json`;
+            const backupPath = path.join(backupDir, backupFileName);
+            await fs.writeJson(backupPath, chatData, { spaces: 2 });
+            console.log(`💾 Local backup saved: ${backupFileName}`);
+            backupResult = backupFileName;
+        } catch (error) {
+            console.error('Local backup failed:', error);
+        }
         
         // Try to save to GitHub
         let githubResult = null;
         try {
             githubResult = await githubStorage.saveParticipantData(participantId, sessionId, chatData);
         } catch (error) {
-            console.error('GitHub save failed, but local backup exists:', error);
+            console.error('GitHub save failed:', error);
         }
         
-        // Mark session as completed
-        await markSessionCompleted(sessionId);
+        // Mark session as completed (don't fail if this doesn't work)
+        try {
+            await markSessionCompleted(sessionId);
+        } catch (error) {
+            console.error('Mark session completed failed:', error);
+        }
         
-        console.log(`✅ Participant ${participantId} study completed`);
+        console.log(`✅ Participant ${participantId} study data processed`);
         
         res.json({
             success: true,
             participantId,
-            localBackup: backupFileName,
+            localBackup: backupResult,
             githubStorage: githubResult,
             message: 'Study data saved successfully'
         });

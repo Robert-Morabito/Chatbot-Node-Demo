@@ -1,13 +1,16 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const configFile = path.join(__dirname, '..', 'data', 'model-configurations.json');
+const configFile = path.join('/tmp', 'model-configurations.json');
 
 export async function markSessionCompleted(sessionId) {
     try {
+        // Check if file exists, return null if not (don't error)
+        if (!await fs.pathExists(configFile)) {
+            console.log(`Configuration file not found for session ${sessionId}`);
+            return null;
+        }
+        
         const data = await fs.readJson(configFile);
         
         const session = data.sessions[sessionId];

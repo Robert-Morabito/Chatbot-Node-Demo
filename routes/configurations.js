@@ -7,13 +7,12 @@ const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const configFile = path.join(__dirname, '..', 'data', 'model-configurations.json');
+// Use /tmp for Vercel serverless
+const configFile = path.join('/tmp', 'model-configurations.json');
 
 // Initialize configurations file
 async function initializeConfigurations() {
     try {
-        await fs.ensureDir(path.dirname(configFile));
-        
         if (!await fs.pathExists(configFile)) {
             const initialData = {
                 configurations: {
@@ -35,36 +34,40 @@ async function initializeConfigurations() {
                     lastUpdated: new Date().toISOString()
                 }
             };
-            
+
             await fs.writeJson(configFile, initialData, { spaces: 2 });
             console.log('🔧 Initialized model configurations');
         }
     } catch (error) {
         console.error('Error initializing configurations:', error);
-        throw error;
+        // Don't throw error in serverless environment
     }
 }
 
-// Get next available configuration (atomic assignment)
+// Get next available configuration (with fallback)
 async function getNextConfiguration() {
     try {
+        // Initialize if file doesn't exist
+        await initializeConfigurations();
+
         const data = await fs.readJson(configFile);
-        
+
         // Find configuration with lowest completion count
         let nextConfig = null;
         let minCompletions = Infinity;
-        
+
         for (const config of Object.values(data.configurations)) {
             if (config.isActive && config.completedSessions < minCompletions) {
                 minCompletions = config.completedSessions;
                 nextConfig = config;
             }
         }
-        
-        return nextConfig;
+
+        return nextConfig || data.configurations["1"]; // Fallback
     } catch (error) {
         console.error('Error getting next configuration:', error);
-        throw error;
+        // Return default configuration
+        return { id: 1, displayedModel: "GPT-4", actualModel: "gpt-4-turbo", completedSessions: 0, targetSessions: 12, isActive: true };
     }
 }
 
@@ -73,15 +76,15 @@ async function assignConfiguration() {
     try {
         const data = await fs.readJson(configFile);
         const config = await getNextConfiguration();
-        
+
         if (!config) {
             throw new Error('No available configurations');
         }
-        
+
         // Generate session info
         const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const participantId = generateParticipantId();
-        
+
         // Record session
         data.sessions[sessionId] = {
             sessionId,
@@ -93,20 +96,20 @@ async function assignConfiguration() {
             completed: false,
             completedAt: null
         };
-        
+
         // Update metadata
         data.metadata.lastUpdated = new Date().toISOString();
-        
+
         await fs.writeJson(configFile, data, { spaces: 2 });
-        
+
         console.log(`🎯 Assigned config ${config.id} to participant ${participantId}`);
-        
+
         return {
             sessionId,
             participantId,
             configuration: config
         };
-        
+
     } catch (error) {
         console.error('Error assigning configuration:', error);
         throw error;
@@ -117,31 +120,31 @@ async function assignConfiguration() {
 async function markSessionCompleted(sessionId) {
     try {
         const data = await fs.readJson(configFile);
-        
+
         const session = data.sessions[sessionId];
         if (!session) {
             throw new Error('Session not found');
         }
-        
+
         if (!session.completed) {
             // Mark session complete
             session.completed = true;
             session.completedAt = new Date().toISOString();
-            
+
             // Increment configuration completion count
             const configId = session.configurationId.toString();
             if (data.configurations[configId]) {
                 data.configurations[configId].completedSessions += 1;
             }
-            
+
             // Update metadata
             data.metadata.lastUpdated = new Date().toISOString();
-            
+
             await fs.writeJson(configFile, data, { spaces: 2 });
-            
+
             console.log(`✅ Completed session ${sessionId} for config ${session.configurationId}`);
         }
-        
+
         return session;
     } catch (error) {
         console.error('Error marking session completed:', error);
@@ -166,7 +169,7 @@ function generateParticipantId() {
 router.get('/assign', async (req, res) => {
     try {
         const assignment = await assignConfiguration();
-        
+
         res.json({
             success: true,
             sessionId: assignment.sessionId,
@@ -179,9 +182,9 @@ router.get('/assign', async (req, res) => {
         });
     } catch (error) {
         console.error('Configuration assignment error:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Failed to assign configuration',
-            details: error.message 
+            details: error.message
         });
     }
 });
@@ -193,22 +196,22 @@ router.get('/assign', async (req, res) => {
 router.post('/complete', async (req, res) => {
     try {
         const { sessionId } = req.body;
-        
+
         if (!sessionId) {
             return res.status(400).json({ error: 'Session ID required' });
         }
-        
+
         const session = await markSessionCompleted(sessionId);
-        
+
         res.json({
             success: true,
             session: session
         });
     } catch (error) {
         console.error('Configuration completion error:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Failed to mark session completed',
-            details: error.message 
+            details: error.message
         });
     }
 });
@@ -220,7 +223,7 @@ router.post('/complete', async (req, res) => {
 router.get('/status', async (req, res) => {
     try {
         const data = await fs.readJson(configFile);
-        
+
         const status = {
             configurations: data.configurations,
             totalSessions: Object.keys(data.sessions).length,
@@ -228,16 +231,16 @@ router.get('/status', async (req, res) => {
             activeSessions: Object.values(data.sessions).filter(s => !s.completed).length,
             metadata: data.metadata
         };
-        
+
         res.json({
             success: true,
             status: status
         });
     } catch (error) {
         console.error('Status error:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Failed to get status',
-            details: error.message 
+            details: error.message
         });
     }
 });
