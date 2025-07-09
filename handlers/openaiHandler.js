@@ -2,12 +2,14 @@ import OpenAI from 'openai';
 
 export class OpenAIHandler {
     constructor(apiKey) {
-        this.apiKey = apiKey;
+        if (!apiKey) {
+            throw new Error('OpenAI API key is required');
+        }
+        
         this.client = new OpenAI({
-            apiKey: this.apiKey,
+            apiKey: apiKey,
         });
         
-        // Model name mapping
         this.modelMapping = {
             'GPT-4': 'gpt-4-turbo',
             'GPT-4o': 'gpt-4o', 
@@ -17,9 +19,6 @@ export class OpenAIHandler {
         };
     }
 
-    /**
-     * Convert conversation history to OpenAI format
-     */
     formatMessages(messages) {
         return messages.map(msg => ({
             role: msg.sender === 'User' ? 'user' : 'assistant',
@@ -27,44 +26,65 @@ export class OpenAIHandler {
         }));
     }
 
-    /**
-     * Handle streaming chat completion
-     */
-    async* chatStream(conversation, model) {
+    async generateImage(prompt, options = {}) {
+        const {
+            model = "dall-e-3",
+            size = "1024x1024", 
+            quality = "standard",
+            n = 1
+        } = options;
+
+        console.log('🎨 [OpenAI] Generating image with DALL-E-3');
+        console.log('📝 [OpenAI] Prompt:', prompt);
+
         try {
-            const messages = this.formatMessages(conversation);
-            const actualModel = this.modelMapping[model] || model;
+            const response = await this.client.images.generate({
+                model: model,
+                prompt: prompt,
+                n: n,
+                size: size,
+                quality: quality
+            });
+
+            console.log('✅ [OpenAI] Image generated successfully');
             
-            console.log(`🤖 Starting OpenAI stream for model: ${actualModel}`);
-            
-            const requestConfig = {
-                model: actualModel,
-                messages: messages,
-                stream: true,
+            return {
+                success: true,
+                url: response.data[0].url,
+                revisedPrompt: response.data[0].revised_prompt || prompt
             };
-            
-            // Special handling for o1 models
-            if (actualModel.startsWith('o1')) {
-                requestConfig.max_completion_tokens = 5000;
-            } else {
-                requestConfig.max_tokens = 800;
-                requestConfig.temperature = 0.7;
-            }
-            
-            const stream = await this.client.chat.completions.create(requestConfig);
-            
+
+        } catch (error) {
+            console.error('❌ [OpenAI] Image generation error:', error);
+            throw error;
+        }
+    }
+
+    async* streamChat(messages, model) {
+        const actualModel = this.modelMapping[model] || model;
+        console.log('💬 [OpenAI] Starting chat stream with model:', actualModel);
+
+        try {
+            const stream = await this.client.chat.completions.create({
+                model: actualModel,
+                messages: this.formatMessages(messages),
+                stream: true,
+                ...(actualModel.startsWith('o1') 
+                    ? { max_completion_tokens: 5000 }
+                    : { max_tokens: 800, temperature: 0.7 }
+                )
+            });
+
             let fullResponse = '';
             
             for await (const chunk of stream) {
                 const delta = chunk.choices[0]?.delta;
                 
                 if (delta?.content) {
-                    const content = delta.content;
-                    fullResponse += content;
-                    
+                    fullResponse += delta.content;
                     yield {
                         type: 'content',
-                        content: content,
+                        content: delta.content,
                         fullContent: fullResponse
                     };
                 }
@@ -72,51 +92,19 @@ export class OpenAIHandler {
                 if (chunk.choices[0]?.finish_reason) {
                     yield {
                         type: 'done',
-                        content: '',
                         fullContent: fullResponse,
                         finishReason: chunk.choices[0].finish_reason
                     };
-                    break;
                 }
             }
-            
         } catch (error) {
-            console.error('OpenAI Stream Error:', error);
+            console.error('❌ [OpenAI] Chat stream error:', error);
             yield {
                 type: 'error',
-                content: '',
-                fullContent: '',
-                error: error.message || 'An error occurred while processing your request.'
+                error: error.message
             };
         }
     }
 
-    /**
-     * Non-streaming chat completion (fallback)
-     */
-    async chat(conversation, model) {
-        try {
-            const messages = this.formatMessages(conversation);
-            const actualModel = this.modelMapping[model] || model;
-            
-            const requestConfig = {
-                model: actualModel,
-                messages: messages,
-            };
-            
-            if (actualModel.startsWith('o1')) {
-                requestConfig.max_completion_tokens = 5000;
-            } else {
-                requestConfig.max_tokens = 800;
-                requestConfig.temperature = 0.7;
-            }
-            
-            const response = await this.client.chat.completions.create(requestConfig);
-            return response.choices[0].message.content;
-            
-        } catch (error) {
-            console.error('OpenAI Chat Error:', error);
-            throw new Error(`OpenAI API Error: ${error.message}`);
-        }
-    }
+    // Remove the duplicate chatStreamTextOnly method - just use streamChat
 }

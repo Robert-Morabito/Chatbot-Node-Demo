@@ -34,6 +34,12 @@ class ChatApp {
             }
         };
 
+        this.imageContext = {
+            lastPrompt: null,
+            lastImageUrl: null,
+            conversationHasImage: false
+        };
+
         // Add this to your constructor if it's not there:
         this.welcomeState = {
             currentStep: 0,
@@ -417,7 +423,7 @@ class ChatApp {
         this.setupTextareaAutoResize();
         this.setupAdvancedAnimations();
         this.initializeBehaviorTracking();
-        
+
         // Finish button is already in HTML, just ensure it's visible
         this.setupFinishButton();
     }
@@ -559,63 +565,6 @@ class ChatApp {
         setTimeout(() => this.getLLMResponse(), 500);
     }
 
-    renderMessage(msgInfo, autoScroll = true) {
-        const messagesContainer = document.getElementById('messages');
-
-        // Create message element
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${msgInfo.sender.toLowerCase()}`;
-        messageDiv.dataset.msgId = msgInfo.msg_id;
-
-        // Create icon
-        const iconImg = document.createElement('img');
-        iconImg.className = 'message-icon';
-        iconImg.alt = msgInfo.sender;
-        iconImg.src = msgInfo.sender === 'User' ? 'images/user.png' : 'images/gpt.png';
-
-        // Create message content
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'message-content';
-
-        // Render content with markdown for bot messages, plain text for user messages
-        if (msgInfo.sender === 'Bot') {
-            // Use marked.js to parse markdown
-            contentDiv.innerHTML = marked.parse(msgInfo.content, {
-                breaks: true, // Convert line breaks to <br>
-                gfm: true,    // GitHub Flavored Markdown
-                sanitize: false // Allow HTML (be careful in production)
-            });
-        } else {
-            // User messages stay as plain text
-            contentDiv.textContent = msgInfo.content;
-        }
-
-        // Add edit button for user messages
-        if (msgInfo.sender === 'User') {
-            const editBtn = document.createElement('button');
-            editBtn.className = 'edit-btn';
-            editBtn.textContent = '✎';
-            editBtn.title = 'Edit message';
-            editBtn.onclick = () => this.editMessage(msgInfo.msg_id);
-            contentDiv.appendChild(editBtn);
-        }
-
-        // Assemble message
-        messageDiv.appendChild(iconImg);
-        messageDiv.appendChild(contentDiv);
-        messagesContainer.appendChild(messageDiv);
-
-        // Store reference
-        this.msgWidgets[msgInfo.msg_id] = {
-            element: messageDiv,
-            info: msgInfo
-        };
-
-        if (autoScroll) {
-            this.scrollToBottom();
-        }
-    }
-
     showTypingIndicator() {
         const messagesContainer = document.getElementById('messages');
 
@@ -655,17 +604,211 @@ class ChatApp {
         }
     }
 
+    renderMessage(msgInfo, autoScroll = true) {
+        const messagesContainer = document.getElementById('messages');
+
+        // Create message element
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${msgInfo.sender.toLowerCase()}`;
+        messageDiv.dataset.msgId = msgInfo.msg_id;
+
+        // Create icon
+        const iconImg = document.createElement('img');
+        iconImg.className = 'message-icon';
+        iconImg.alt = msgInfo.sender;
+        iconImg.src = msgInfo.sender === 'User' ? 'images/user.png' : 'images/gpt.png';
+
+        // Create message content
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+
+        // Render content with markdown for bot messages, plain text for user messages
+        if (msgInfo.sender === 'Bot') {
+            // Use marked.js to parse markdown
+            contentDiv.innerHTML = marked.parse(msgInfo.content, {
+                breaks: true, // Convert line breaks to <br>
+                gfm: true,    // GitHub Flavored Markdown
+                sanitize: false // Allow HTML (be careful in production)
+            });
+
+            // Add click handlers for images
+            this.setupImageClickHandlers(contentDiv);
+        } else {
+            // User messages stay as plain text
+            contentDiv.textContent = msgInfo.content;
+        }
+
+        // Add edit button for user messages
+        if (msgInfo.sender === 'User') {
+            const editBtn = document.createElement('button');
+            editBtn.className = 'edit-btn';
+            editBtn.textContent = '✎';
+            editBtn.title = 'Edit message';
+            editBtn.onclick = () => this.editMessage(msgInfo.msg_id);
+            contentDiv.appendChild(editBtn);
+        }
+
+        // Assemble message
+        messageDiv.appendChild(iconImg);
+        messageDiv.appendChild(contentDiv);
+        messagesContainer.appendChild(messageDiv);
+
+        // Store reference
+        this.msgWidgets[msgInfo.msg_id] = {
+            element: messageDiv,
+            info: msgInfo
+        };
+
+        if (autoScroll) {
+            this.scrollToBottom();
+        }
+    }
+
+    setupImageClickHandlers(contentDiv) {
+        const images = contentDiv.querySelectorAll('img');
+        images.forEach(img => {
+            img.addEventListener('click', () => this.showImageModal(img.src, img.alt));
+            img.style.cursor = 'pointer';
+            img.title = 'Click to view full size';
+        });
+    }
+
+    showImageModal(imageSrc, altText) {
+        // Remove existing modal if present
+        const existingModal = document.querySelector('.image-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // Create modal
+        const modal = document.createElement('div');
+        modal.className = 'image-modal';
+
+        const img = document.createElement('img');
+        img.src = imageSrc;
+        img.alt = altText || 'Generated image';
+
+        const closeButton = document.createElement('button');
+        closeButton.className = 'close-button';
+        closeButton.innerHTML = '×';
+        closeButton.title = 'Close (Esc)';
+
+        modal.appendChild(img);
+        modal.appendChild(closeButton);
+        document.body.appendChild(modal);
+
+        // Show modal with animation
+        setTimeout(() => modal.classList.add('show'), 10);
+
+        // Close handlers
+        const closeModal = () => {
+            modal.classList.remove('show');
+            setTimeout(() => modal.remove(), 300);
+        };
+
+        closeButton.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        // Keyboard handler
+        const handleKeydown = (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                document.removeEventListener('keydown', handleKeydown);
+            }
+        };
+        document.addEventListener('keydown', handleKeydown);
+    }
+
+    async loadConfiguration() {
+        try {
+            // Pass Prolific ID to get or resume configuration
+            const response = await fetch('/api/configurations/assign', {
+                method: 'GET', // Change to GET since the route expects GET
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.sessionId = data.sessionId;
+                this.configurationId = data.configuration.id;
+
+                // Set up models
+                this.config = {
+                    givenModel: data.configuration.displayedModel,
+                    trueModel: data.configuration.actualModel,
+                    displayName: data.configuration.displayedModel
+                };
+
+                console.log(`🎯 Configuration assigned:`, {
+                    participant: this.participantId,
+                    displayed: this.config.givenModel,
+                    actual: this.config.trueModel,
+                    configId: this.configurationId
+                });
+
+                return true;
+            } else {
+                throw new Error('Failed to get configuration assignment');
+            }
+        } catch (error) {
+            console.error('Error loading configuration:', error);
+            // Fallback to default
+            this.config = {
+                givenModel: 'GPT-4',
+                trueModel: 'gpt-4-turbo',
+                displayName: 'GPT-4'
+            };
+
+            // Generate a fallback session ID
+            this.sessionId = `fallback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            this.configurationId = 1;
+
+            return false;
+        }
+    }
+
     async getLLMResponse() {
         try {
             // Prepare the message data
             const requestData = {
                 messages: this.currentChatlog,
-                model: this.config.trueModel,   // NEW: actual model
-                sessionId: this.sessionId,      // Add session tracking
-                conversationId: this.currentConversationId
+                model: this.config.trueModel,
+                sessionId: this.sessionId,
+                conversationId: this.currentConversationId,
+                // Include image context
+                imageContext: this.imageContext
             };
 
             console.log('🚀 Starting LLM request:', requestData);
+
+            // FRONTEND CHECK - Log what we're sending
+            const lastMessage = this.currentChatlog[this.currentChatlog.length - 1];
+            if (lastMessage && lastMessage.sender === 'User') {
+                const content = lastMessage.content.toLowerCase();
+                const imageKeywords = [
+                    'generate an image', 'create an image', 'draw', 'make a picture',
+                    'generate a picture', 'create a picture', 'image of', 'picture of',
+                    'draw me', 'show me a picture', 'visualize', 'illustrate'
+                ];
+
+                const isImageRequest = imageKeywords.some(keyword => content.includes(keyword));
+                console.log('🎨 Frontend detects image request:', isImageRequest);
+                console.log('📝 Message content:', content);
+
+                // Add the logging here, after lastMessage is defined
+                console.log('🚀 Sending to backend:', {
+                    endpoint: '/api/chat/stream',
+                    lastMessage: lastMessage?.content,
+                    isImageRequest: isImageRequest
+                });
+            }
 
             // Use fetch for streaming
             const response = await fetch('/api/chat/stream', {
@@ -676,8 +819,13 @@ class ChatApp {
                 body: JSON.stringify(requestData)
             });
 
+            console.log('📥 Response status:', response.status);
+            console.log('📥 Response ok:', response.ok);
+
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+                console.error('❌ HTTP Error:', response.status, errorText);
+                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
             }
 
             const reader = response.body.getReader();
@@ -686,6 +834,7 @@ class ChatApp {
             let botMsgId = ++this.messageIdCounter;
             let fullResponse = '';
             let botMessageElement = null;
+            let isImageGeneration = false;
 
             // Remove typing indicator
             this.hideTypingIndicator();
@@ -717,33 +866,60 @@ class ChatApp {
                         if (line.startsWith('data: ')) {
                             try {
                                 const data = JSON.parse(line.slice(6));
+                                console.log('📦 Stream data:', data.type, data);
 
                                 if (data.type === 'content') {
                                     // Update the message content in real-time
                                     fullResponse = data.fullContent;
                                     if (botMessageElement) {
+                                        // Check for image content
+                                        if (fullResponse.includes('![Generated Image]')) {
+                                            console.log('🖼️ Image content detected in response');
+                                            isImageGeneration = true;
+                                        }
+
+                                        if (data.imageUrl) {
+                                            this.imageContext.lastPrompt = data.imagePrompt || data.revisedPrompt;
+                                            this.imageContext.lastImageUrl = data.imageUrl;
+                                            this.imageContext.conversationHasImage = true;
+                                            console.log('🖼️ Updated image context:', this.imageContext);
+                                            console.log('📤 This context will be sent with next request');
+                                        }
+
                                         // Render markdown in real-time
-                                        const tempDiv = document.createElement('div');
-                                        tempDiv.innerHTML = marked.parse(fullResponse, {
+                                        botMessageElement.innerHTML = marked.parse(fullResponse, {
                                             breaks: true,
                                             gfm: true,
                                             sanitize: false
                                         });
 
-                                        // Preserve the edit button if it exists
-                                        const editBtn = botMessageElement.querySelector('.edit-btn');
-                                        botMessageElement.innerHTML = tempDiv.innerHTML;
-                                        if (editBtn) {
-                                            botMessageElement.appendChild(editBtn);
-                                        }
+                                        // Setup image click handlers for new images
+                                        this.setupImageClickHandlers(botMessageElement);
                                     }
 
                                     // Auto-scroll to bottom
                                     this.scrollToBottom();
 
+                                } else if (data.type === 'image_request_detected') {
+                                    console.log('🎨 Server confirmed image request - showing loading');
+                                    isImageGeneration = true;
+
+                                    // Show loading indicator
+                                    if (botMessageElement) {
+                                        botMessageElement.innerHTML = `
+                                            <div class="image-generating">
+                                                <div class="spinner"></div>
+                                                <div class="text">Generating image with DALL-E 3...</div>
+                                            </div>
+                                        `;
+                                    }
+
                                 } else if (data.type === 'done') {
-                                    // Stream completed successfully
                                     console.log('✅ Stream completed:', data.finishReason);
+
+                                    if (isImageGeneration) {
+                                        console.log('🖼️ Image generation flow completed');
+                                    }
 
                                     // Update final message in chatlog
                                     const msgIndex = this.currentChatlog.findIndex(msg => msg.msg_id === botMsgId);
@@ -763,16 +939,14 @@ class ChatApp {
                                     break;
 
                                 } else if (data.type === 'error') {
-                                    // Handle error
                                     console.error('❌ Stream error:', data.error);
                                     if (botMessageElement) {
-                                        botMessageElement.textContent = `Error: ${data.error}`;
-                                        botMessageElement.style.color = '#ef4444';
+                                        botMessageElement.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
                                     }
                                     break;
 
                                 } else if (data.type === 'connected') {
-                                    console.log('🔌 Stream connected for conversation:', data.conversationId);
+                                    console.log('🔌 Stream connected:', data.conversationId);
                                 }
 
                             } catch (parseError) {
@@ -784,8 +958,7 @@ class ChatApp {
             } catch (streamError) {
                 console.error('Stream reading error:', streamError);
                 if (botMessageElement) {
-                    botMessageElement.textContent = 'Error: Failed to receive response';
-                    botMessageElement.style.color = '#ef4444';
+                    botMessageElement.innerHTML = '<span style="color: #ef4444;">Error: Failed to receive response</span>';
                 }
             }
 
@@ -1303,7 +1476,7 @@ class ChatApp {
 
     async handleFinishStudy() {
         console.log('🏁 Finish button clicked');
-        
+
         // Show confirmation dialog
         const confirmed = await this.showFinishConfirmationDialog();
         if (!confirmed) return;
@@ -1394,27 +1567,27 @@ class ChatApp {
             // Create a simple text file with the data
             const jsonContent = JSON.stringify(data, null, 2);
             const filename = `study-data-${this.participantId}-${Date.now()}.json`;
-            
+
             console.log('💾 Creating download:', filename);
-            
+
             // Create a blob and download link
             const blob = new Blob([jsonContent], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
-            
+
             const link = document.createElement('a');
             link.href = url;
             link.download = filename;
             link.style.display = 'none';
-            
+
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
+
             // Clean up the URL
             setTimeout(() => URL.revokeObjectURL(url), 1000);
-            
+
             console.log('✅ Study data downloaded:', filename);
-            
+
         } catch (error) {
             console.error('Error creating download:', error);
             throw error;
@@ -1426,9 +1599,9 @@ class ChatApp {
             const response = await fetch('/api/sessions/complete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     sessionId: this.sessionId,
-                    participantId: this.participantId 
+                    participantId: this.participantId
                 })
             });
 
@@ -1447,10 +1620,10 @@ class ChatApp {
         // Hide finish button to prevent double-clicking
         const finishBtn = document.getElementById('finish-btn');
         if (finishBtn) finishBtn.style.display = 'none';
-        
+
         // Hide loading indicator
         this.hideFinishLoadingIndicator();
-        
+
         // Show completion message
         document.body.innerHTML = `
             <div style="
@@ -1669,10 +1842,13 @@ class ChatApp {
         try {
             // Pass Prolific ID to get or resume configuration
             const response = await fetch('/api/configurations/assign', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prolificId: this.participantId })
+                method: 'GET', // Change to GET since the route expects GET
+                headers: { 'Content-Type': 'application/json' }
             });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
 
             const data = await response.json();
 
@@ -1706,6 +1882,11 @@ class ChatApp {
                 trueModel: 'gpt-4-turbo',
                 displayName: 'GPT-4'
             };
+
+            // Generate a fallback session ID
+            this.sessionId = `fallback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            this.configurationId = 1;
+
             return false;
         }
     }

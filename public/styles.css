@@ -2150,3 +2150,158 @@ body.light-theme {
         width: 100%;
     }
 }
+
+/* Image styling within message content */
+.message-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    margin: 12px 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    display: block;
+}
+
+.light-theme .message-content img {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.message-content img:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.light-theme .message-content img:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Image modal for full-size viewing */
+.image-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.image-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.image-modal img {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.image-modal.show img {
+    transform: scale(1);
+}
+
+.image-modal .close-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease;
+}
+
+.image-modal .close-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Loading indicator for image generation */
+.image-generating {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    margin: 8px 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.light-theme .image-generating {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+.image-generating .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-dark);
+    border-top: 2px solid var(--user-msg-bg-dark);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.light-theme .image-generating .spinner {
+    border-color: var(--border-light);
+    border-top-color: var(--user-msg-bg-light);
+}
+
+.image-generating .text {
+    color: var(--text-secondary-dark);
+    font-style: italic;
+}
+
+.light-theme .image-generating .text {
+    color: var(--text-secondary-light);
+}
+
+/* Image prompt attribution styling */
+.message-content em {
+    font-style: italic;
+    color: var(--text-secondary-dark);
+    font-size: 0.9em;
+}
+
+.light-theme .message-content em {
+    color: var(--text-secondary-light);
+}
+
+/* Responsive image sizing */
+@media (max-width: 768px) {
+    .message-content img {
+        margin: 8px 0;
+        border-radius: 8px;
+    }
+    
+    .image-modal img {
+        max-width: 95%;
+        max-height: 95%;
+    }
+    
+    .image-modal .close-button {
+        top: 10px;
+        right: 10px;
+        width: 35px;
+        height: 35px;
+        font-size: 20px;
+    }
+}

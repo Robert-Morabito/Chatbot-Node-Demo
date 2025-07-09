@@ -11,6 +11,7 @@ import { fileURLToPath } from 'url';
 import { chatRouter } from './routes/chat.js';
 import { saveRouter } from './routes/save.js';
 import { configurationsRouter } from './routes/configurations.js';
+import { modelsRouter } from './routes/models.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,13 +31,22 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api/chat', chatRouter);
 app.use('/api/save', saveRouter);
 app.use('/api/configurations', configurationsRouter);
+app.use('/api/models', modelsRouter);
 
-// Health check
+// Health check with API key validation
 app.get('/api/health', (req, res) => {
+    const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
+    const keyPrefix = process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 7) + '...' : 'not set';
+    
+    console.log('🔍 Health check - OpenAI API Key:', hasOpenAIKey ? 'present' : 'missing');
+    console.log('🔑 Key prefix:', keyPrefix);
+    
     res.json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        uptime: process.uptime() 
+        uptime: process.uptime(),
+        imageGeneration: hasOpenAIKey,
+        apiKeyStatus: hasOpenAIKey ? 'configured' : 'missing'
     });
 });
 
