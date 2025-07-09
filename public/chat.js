@@ -1,5 +1,8 @@
 class ChatApp {
     constructor() {
+        this.participantId = null; // Will be set from Prolific ID
+        this.sessionId = null;
+
         // Initialize properties
         this.conversations = new Map();
         this.currentConversationId = null;
@@ -8,7 +11,6 @@ class ChatApp {
         this.currentTheme = 'dark';
         this.autoSaveTimeout = null;
         this.messageIdCounter = 0;
-
         this.sessionStartTime = Date.now();
 
         this.behaviorMetrics = {
@@ -32,15 +34,17 @@ class ChatApp {
             }
         };
 
+        // Add this to your constructor if it's not there:
+        this.welcomeState = {
+            currentStep: 0,
+            timer: null,
+            timerSeconds: 5,
+            steps: []
+        };
+
         // Track idle time
         this.idleThreshold = 5000; // 5 seconds of no activity = idle
         this.idleCheckInterval = null;
-
-        // Initialize tracking
-        this.initializeBehaviorTracking();
-
-        // Generate simple participant ID
-        this.participantId = this.generateSimpleParticipantId();
 
         // Configuration (can be simplified since we're not doing complex experimental assignment)
         this.config = {
@@ -88,8 +92,317 @@ class ChatApp {
             }
         };
 
+        // Welcome flow state
+        this.welcomeState = {
+            currentStep: 0,
+            timer: null,
+            timerSeconds: 10,
+            steps: []
+        };
+
         // Initialize the app
+        this.showWelcomeFlow();
+    }
+
+    showWelcomeFlow() {
+        // Start with welcome, then load config and show model info, then Prolific ID last
+        this.welcomeState.steps = [
+            {
+                type: 'welcome',
+                title: 'Welcome to the Study',
+                content: `
+                <div class="welcome-instructions">
+                    <h3>Research Study Instructions</h3>
+                    <p><strong>Important:</strong> You must complete the tasks found in the provided 
+                    <a href="#" class="survey-link">Tally survey</a> (update when survey link is made).</p>
+                    <p>The following pages contain important information about the AI model you will be using.</p>
+                    <p><strong>Please read each point carefully</strong> - you will need to wait a few seconds on each page before continuing.</p>
+                </div>
+            `,
+                showTimer: false,
+                showBack: false
+            }
+        ];
+
+        // Load default config and add model steps immediately
+        const modelInfo = this.modelDescriptions[this.config.displayName] || this.modelDescriptions['GPT-4'];
+
+        // Add model intro step
+        this.welcomeState.steps.push({
+            type: 'model-intro',
+            title: 'Welcome to the Study',
+            content: `
+            <div class="model-info-point">
+                <div class="model-header-persistent">
+                    Today you will be using: ${this.config.displayName} (${modelInfo.year})
+                </div>
+                <p>Please read through the following information about this model:</p>
+            </div>
+        `,
+            showTimer: true,
+            showBack: true
+        });
+
+        // Add model description points
+        modelInfo.description.forEach((point, index) => {
+            this.welcomeState.steps.push({
+                type: 'model-point',
+                title: 'Welcome to the Study',
+                content: `
+                <div class="model-info-point">
+                    <div class="point-content">
+                        <p>${point}</p>
+                    </div>
+                    <div class="point-counter">
+                        Point ${index + 1} of ${modelInfo.description.length}
+                    </div>
+                </div>
+            `,
+                showTimer: true,
+                showBack: true
+            });
+        });
+
+        // Add Prolific ID step LAST
+        this.welcomeState.steps.push({
+            type: 'prolific-id',
+            title: 'Welcome to the Study',
+            content: `
+            <div class="prolific-id-section">
+                <h3>Enter Your Prolific ID</h3>
+                <p>Please enter your Prolific ID to begin the study:</p>
+                <input type="text" 
+                       id="prolific-id-input" 
+                       class="prolific-id-input" 
+                       placeholder="Enter your 24-character Prolific ID" 
+                       maxlength="24"
+                       autocomplete="off">
+                <div id="prolific-id-error" class="error-message"></div>
+                <p class="prolific-note">Your Prolific ID should be 24 characters long and contain only letters and numbers.</p>
+            </div>
+        `,
+            showTimer: false,
+            showBack: true
+        });
+
+        // Show modal and setup
+        const modal = document.getElementById('welcome-modal');
+        modal.style.display = 'flex';
+
+        this.setupWelcomeNavigation();
+        this.updateWelcomeContent();
+        this.createProgressDots();
+    }
+
+    handleWelcomeBack() {
+        if (this.welcomeState.currentStep > 0) {
+            // Clear any existing timer
+            this.hideWelcomeTimer();
+
+            this.welcomeState.currentStep--;
+            this.updateWelcomeContent();
+            this.updateProgressDots();
+        }
+    }
+
+    setupWelcomeNavigation() {
+        const continueBtn = document.getElementById('welcome-continue-btn');
+        const backBtn = document.getElementById('welcome-back-btn');
+
+        continueBtn.onclick = () => this.handleWelcomeContinue();
+        backBtn.onclick = () => this.handleWelcomeBack();
+    }
+
+    handleWelcomeContinue() {
+        const currentStep = this.welcomeState.steps[this.welcomeState.currentStep];
+
+        if (currentStep.type === 'prolific-id') {
+            this.handleProlificIdSubmit();
+            return;
+        }
+
+        if (this.welcomeState.currentStep < this.welcomeState.steps.length - 1) {
+            this.welcomeState.currentStep++;
+            this.updateWelcomeContent();
+            this.updateProgressDots();
+        } else {
+            // We're at the last step, close modal and start app
+            document.getElementById('welcome-modal').style.display = 'none';
+            this.init();
+        }
+    }
+
+    async handleProlificIdSubmit() {
+        const input = document.getElementById('prolific-id-input');
+        const prolificId = input.value.trim();
+
+        if (!/^[a-zA-Z0-9]{24}$/.test(prolificId)) {
+            return;
+        }
+
+        this.participantId = prolificId;
+
+        // Load configuration with the Prolific ID
+        await this.loadConfiguration();
+
+        // Close modal and start app
+        document.getElementById('welcome-modal').style.display = 'none';
         this.init();
+    }
+
+    updateWelcomeContent() {
+        const currentStep = this.welcomeState.steps[this.welcomeState.currentStep];
+        const contentEl = document.getElementById('welcome-content');
+        const titleEl = document.getElementById('welcome-title');
+        const continueBtn = document.getElementById('welcome-continue-btn');
+        const backBtn = document.getElementById('welcome-back-btn');
+
+        // Update title
+        titleEl.textContent = currentStep.title;
+
+        // Slide out current content
+        contentEl.classList.remove('active');
+        contentEl.classList.add('slide-out-left');
+
+        setTimeout(() => {
+            // Update content
+            let content = currentStep.content;
+            if (currentStep.type === 'model-intro' || currentStep.type === 'model-point') {
+                const modelInfo = this.modelDescriptions[this.config.displayName] || this.modelDescriptions['GPT-4'];
+                content = content.replace(/\[MODEL_NAME\]/g, this.config.displayName);
+                content = content.replace(/\[MODEL_YEAR\]/g, modelInfo.year);
+            }
+            contentEl.innerHTML = content;
+
+            // Slide in new content
+            contentEl.classList.remove('slide-out-left');
+            contentEl.classList.add('slide-in-right');
+
+            setTimeout(() => {
+                contentEl.classList.remove('slide-in-right');
+                contentEl.classList.add('active');
+            }, 50);
+
+            // Update navigation
+            backBtn.style.display = currentStep.showBack ? 'block' : 'none';
+
+            // Reset continue button
+            continueBtn.disabled = false;
+            continueBtn.textContent = 'Continue';
+            continueBtn.style.display = 'block';
+
+            // Handle timer and continue button
+            if (currentStep.showTimer) {
+                this.startWelcomeTimer();
+            } else {
+                this.hideWelcomeTimer();
+                if (currentStep.type === 'prolific-id') {
+                    this.setupProlificIdValidation();
+                }
+            }
+
+        }, 250);
+    }
+
+    startWelcomeTimer() {
+        const continueBtn = document.getElementById('welcome-continue-btn');
+        const timerContainer = document.querySelector('.welcome-timer-container');
+
+        // Hide continue button and show timer
+        continueBtn.style.display = 'none';
+
+        // Create circular progress if it doesn't exist
+        let circularProgress = timerContainer.querySelector('.circular-progress');
+        if (!circularProgress) {
+            circularProgress = document.createElement('div');
+            circularProgress.className = 'circular-progress';
+            circularProgress.innerHTML = `
+            <svg>
+                <circle class="progress-circle-bg" cx="15" cy="15" r="12"></circle>
+                <circle class="progress-circle" cx="15" cy="15" r="12"></circle>
+            </svg>
+        `;
+            timerContainer.appendChild(circularProgress);
+        }
+
+        const progressCircle = circularProgress.querySelector('.progress-circle');
+
+        // Reset timer
+        this.welcomeState.timerSeconds = 5;
+        progressCircle.style.strokeDashoffset = '75';
+
+        // Start countdown
+        this.welcomeState.timer = setInterval(() => {
+            this.welcomeState.timerSeconds--;
+
+            const progress = ((5 - this.welcomeState.timerSeconds) / 5) * 75;
+            progressCircle.style.strokeDashoffset = 75 - progress;
+
+            if (this.welcomeState.timerSeconds <= 0) {
+                clearInterval(this.welcomeState.timer);
+                this.hideWelcomeTimer();
+                continueBtn.style.display = 'block';
+            }
+        }, 1000);
+    }
+
+    hideWelcomeTimer() {
+        const timerDisplay = document.getElementById('welcome-timer-display');
+        const timerContainer = document.querySelector('.welcome-timer-container');
+        const circularProgress = timerContainer?.querySelector('.circular-progress');
+
+        if (this.welcomeState.timer) {
+            clearInterval(this.welcomeState.timer);
+            this.welcomeState.timer = null;
+        }
+
+        if (timerDisplay) {
+            timerDisplay.style.display = 'none';
+        }
+
+        if (circularProgress) {
+            circularProgress.remove();
+        }
+    }
+
+    createProgressDots() {
+        const container = document.querySelector('.welcome-progress-dots');
+        container.innerHTML = '';
+
+        this.welcomeState.steps.forEach((step, index) => {
+            const dot = document.createElement('div');
+            dot.className = 'progress-dot';
+            if (index === this.welcomeState.currentStep) {
+                dot.classList.add('active');
+            }
+            if (index < this.welcomeState.currentStep) {
+                dot.classList.add('completed');
+            }
+
+            // Add click navigation
+            dot.onclick = () => {
+                if (index <= this.welcomeState.currentStep || index < this.welcomeState.currentStep) {
+                    this.hideWelcomeTimer();
+                    this.welcomeState.currentStep = index;
+                    this.updateWelcomeContent();
+                    this.updateProgressDots();
+                }
+            };
+
+            container.appendChild(dot);
+        });
+    }
+
+    updateProgressDots() {
+        const dots = document.querySelectorAll('.progress-dot');
+        dots.forEach((dot, index) => {
+            dot.classList.remove('active', 'completed');
+            if (index === this.welcomeState.currentStep) {
+                dot.classList.add('active');
+            } else if (index < this.welcomeState.currentStep) {
+                dot.classList.add('completed');
+            }
+        });
     }
 
     async init() {
@@ -97,81 +410,56 @@ class ChatApp {
         await this.loadConfiguration();
 
         // Continue with normal initialization
-        this.showModelInfo();
         this.setupEventListeners();
         this.updateBotName();
         this.createNewConversation();
         this.setupTextareaAutoResize();
         this.setupAdvancedAnimations();
+        this.initializeBehaviorTracking();
     }
 
-    showModelInfo() {
-        const modal = document.getElementById('model-info-modal');
-        const modelTitle = document.getElementById('model-title');
-        const modelDescription = document.getElementById('model-description');
-        const continueBtn = document.getElementById('continue-btn');
-        const partid = document.getElementById('partid');
+    async loadConfiguration() {
+        try {
+            // Pass Prolific ID to get or resume configuration
+            const response = await fetch('/api/configurations/assign', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prolificId: this.participantId })
+            });
 
-        // Get model info
-        const modelInfo = this.modelDescriptions[this.config.displayName] || this.modelDescriptions['GPT-4'];
-        partid.innerHTML =
-            `<div style="background:rgb(207, 223, 233); padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 3px solid #2196f3;">
-            <p style="margin: 0; color: #101010; font-size: 18px;"><strong>📋 Research Study:</strong> Your Participant ID is 
-            <span style="font-weight: bold; color: #2196f3; font-family: monospace; font-size: 16px;">${this.participantId}</span></p>
-            <p style="margin: 5px 0 0 0; font-size: 14px; color: #666;">Please use this ID when prompted in the Google Forms survey found 
-                <a href="https://docs.google.com/forms/d/e/1FAIpQLSeZ82HGcqRGW6aT1J-w2UvDgjShcvMHxeAGIn1S8XtTg2xZRQ/viewform?usp=dialog" target="_blank">here</a>.</p>
-        </div>`;
-        modelTitle.textContent = `Some info about ${this.config.displayName}`;
-        modelDescription.innerHTML = `<h3>Today you will be using: ${this.config.displayName} (${modelInfo.year})</h3>
-        
-        <div style="background: var(--bg-scrollable-window-dark); color: var(--text-dark); padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196f3; text-align: left;">
-            ${modelInfo.description.map(point => `<p style="margin: 8px 0; font-size: 15px;">${point}</p>`).join('')}
-        </div>
-        
-        <p style="font-size: 16px; margin-top: 20px;"><strong>Complete the tasks as described in your research survey. Your conversations will be automatically saved.</strong></p>`;
+            const data = await response.json();
 
-        modal.style.display = 'flex';
+            if (data.success) {
+                this.sessionId = data.sessionId;
+                this.configurationId = data.configuration.id;
 
-        continueBtn.onclick = () => {
-            modal.style.display = 'none';
-            this.updateBotName();
-            this.startTutorial();
-        };
-    }
+                // Set up models
+                this.config = {
+                    givenModel: data.configuration.displayedModel,
+                    trueModel: data.configuration.actualModel,
+                    displayName: data.configuration.displayedModel
+                };
 
-    generateSimpleParticipantId() {
-        // Generate a simple 6-character alphanumeric ID
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        let result = '';
-        for (let i = 0; i < 6; i++) {
-            result += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return result;
-    }
+                console.log(`🎯 Configuration assigned:`, {
+                    participant: this.participantId,
+                    displayed: this.config.givenModel,
+                    actual: this.config.trueModel,
+                    configId: this.configurationId
+                });
 
-    async onClose(event) {
-        // Auto-save before closing
-        if (this.currentConversationId && this.currentChatlog.length > 0) {
-            const conversation = this.conversations.get(this.currentConversationId);
-            if (conversation) {
-                conversation.messages = [...this.currentChatlog];
+                return true;
+            } else {
+                throw new Error('Failed to get configuration assignment');
             }
-
-            // Save to server and mark session as completed
-            try {
-                await this.saveToServer();
-
-                // Mark experimental session as completed
-                if (this.sessionId) {
-                    await fetch('/api/experimental/complete', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ sessionId: this.sessionId })
-                    });
-                }
-            } catch (error) {
-                console.error('Error saving on close:', error);
-            }
+        } catch (error) {
+            console.error('Error loading configuration:', error);
+            // Fallback to default
+            this.config = {
+                givenModel: 'GPT-4',
+                trueModel: 'gpt-4-turbo',
+                displayName: 'GPT-4'
+            };
+            return false;
         }
     }
 
@@ -293,44 +581,6 @@ class ChatApp {
             notification.style.animation = 'slideOut 0.3s ease-out';
             setTimeout(() => notification.remove(), 300);
         }, 3000);
-    }
-
-    async loadExperimentalCondition() {
-        try {
-            const response = await fetch('/api/experimental/assign');
-            const data = await response.json();
-
-            if (data.success) {
-                this.sessionId = data.sessionId;
-                this.experimentalCondition = data.condition;
-
-                // Update config with assigned condition
-                this.config = {
-                    givenModel: data.condition.displayedModel,
-                    trueModel: data.condition.actualModel,
-                    displayName: data.condition.displayName
-                };
-
-                console.log('🧪 Experimental condition assigned:', {
-                    session: this.sessionId,
-                    displayed: this.config.givenModel,
-                    actual: this.config.trueModel
-                });
-
-                return true;
-            } else {
-                throw new Error('Failed to get experimental assignment');
-            }
-        } catch (error) {
-            console.error('Error loading experimental condition:', error);
-            // Fallback to default
-            this.config = {
-                givenModel: 'GPT-4',
-                trueModel: 'gpt-4-turbo',
-                displayName: 'GPT-4'
-            };
-            return false;
-        }
     }
 
     setupEventListeners() {
@@ -617,7 +867,6 @@ class ChatApp {
                 sessionId: this.sessionId,      // Add session tracking
                 conversationId: this.currentConversationId
             };
-
 
             console.log('🚀 Starting LLM request:', requestData);
 
@@ -965,7 +1214,7 @@ class ChatApp {
     async saveToServer() {
         try {
             console.log('🔵 Starting save to server...');
-            
+
             // Calculate final metrics
             const behaviorMetrics = this.calculateFinalMetrics();
 
@@ -1110,6 +1359,7 @@ class ChatApp {
 
             // Try to save with beacon API (works better for page unload)
             try {
+                const behaviorMetrics = this.calculateFinalMetrics();
                 const saveData = {
                     participantId: this.participantId,
                     sessionId: this.sessionId,
@@ -1118,7 +1368,8 @@ class ChatApp {
                         displayedModel: this.config.givenModel,
                         actualModel: this.config.trueModel,
                         configurationId: this.configurationId
-                    }
+                    },
+                    behaviorMetrics: behaviorMetrics
                 };
 
                 // Use sendBeacon for reliable unload saves
@@ -1175,45 +1426,6 @@ class ChatApp {
         document.head.appendChild(style);
     }
 
-    async loadConfiguration() {
-        try {
-            const response = await fetch('/api/configurations/assign');
-            const data = await response.json();
-
-            if (data.success) {
-                this.sessionId = data.sessionId;
-                this.participantId = data.participantId;
-                this.configurationId = data.configuration.id;
-
-                // Set up models
-                this.config = {
-                    givenModel: data.configuration.displayedModel,
-                    trueModel: data.configuration.actualModel,
-                    displayName: data.configuration.displayedModel
-                };
-
-                console.log(`🎯 Configuration assigned:`, {
-                    participant: this.participantId,
-                    displayed: this.config.givenModel,
-                    actual: this.config.trueModel,
-                    configId: this.configurationId
-                });
-
-                return true;
-            } else {
-                throw new Error('Failed to get configuration assignment');
-            }
-        } catch (error) {
-            console.error('Error loading configuration:', error);
-            // Fallback to default
-            this.config = {
-                givenModel: 'GPT-4',
-                trueModel: 'gpt-4-turbo',
-                displayName: 'GPT-4'
-            };
-            return false;
-        }
-    }
     calculateFinalMetrics() {
         const metrics = {
             backspaceCount: this.behaviorMetrics.backspaceCount,
@@ -1246,6 +1458,50 @@ class ChatApp {
         };
 
         return metrics;
+    }
+
+    setupProlificIdValidation() {
+        const input = document.getElementById('prolific-id-input');
+        const continueBtn = document.getElementById('welcome-continue-btn');
+        const errorDiv = document.getElementById('prolific-id-error');
+
+        if (!input || !continueBtn || !errorDiv) return;
+
+        const validateInput = () => {
+            const value = input.value.trim();
+            const isValid = /^[a-zA-Z0-9]{24}$/.test(value);
+
+            if (value.length === 0) {
+                // Empty input - neutral state
+                input.classList.remove('error');
+                errorDiv.classList.remove('show');
+                continueBtn.disabled = true;
+                continueBtn.textContent = 'Continue';
+            } else if (isValid) {
+                // Valid input
+                input.classList.remove('error');
+                errorDiv.classList.remove('show');
+                continueBtn.disabled = false;
+                continueBtn.textContent = 'Start Study';
+            } else {
+                // Invalid input
+                input.classList.add('error');
+                errorDiv.textContent = 'Please enter a valid 24-character Prolific ID';
+                errorDiv.classList.add('show');
+                continueBtn.disabled = true;
+                continueBtn.textContent = 'Continue';
+            }
+        };
+
+        input.addEventListener('input', validateInput);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !continueBtn.disabled) {
+                this.handleProlificIdSubmit();
+            }
+        });
+
+        // Initial validation
+        validateInput();
     }
 }
 
