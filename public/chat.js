@@ -122,7 +122,7 @@ class ChatApp {
                     <p><strong>Important:</strong> You must complete the tasks found in the provided 
                     <a href="#" class="survey-link">Tally survey</a> (update when survey link is made).</p>
                     <p>The following pages contain important information about the AI model you will be using.</p>
-                    <p><strong>Please read each point carefully</strong> - you will need to wait a few seconds on each page before continuing.</p>
+                    <p><strong>Please read each point carefully</strong>
                     <p><strong>When you complete all study tasks:</strong> Click the "Finish" button in the chat interface to download your conversation logs and complete the study. You will then upload these logs to the Tally survey.</p>
                 </div>
             `,
