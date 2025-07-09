@@ -1,0 +1,27 @@
+{
+  "participantId": "TEST123",
+  "sessionId": "test_session_1752028584263",
+  "timestamp": "2025-07-09T02:43:55.933Z",
+  "modelConfig": {
+    "displayedModel": "GPT-4",
+    "actualModel": "gpt-4-turbo"
+  },
+  "conversations": {
+    "1": {
+      "id": "1",
+      "title": "Test Conversation",
+      "messages": [
+        {
+          "sender": "User",
+          "content": "Test message",
+          "timestamp": "2025-07-09T02:36:24.263Z"
+        }
+      ]
+    }
+  },
+  "metadata": {
+    "totalConversations": 1,
+    "totalMessages": 1,
+    "studyCompleted": true
+  }
+}
