@@ -54,6 +54,30 @@ app.use((error, req, res, next) => {
     });
 });
 
+// Test GitHub connection
+app.get('/api/test-github', async (req, res) => {
+    try {
+        const GitHubStorage = (await import('./utils/githubStorage.js')).default;
+        const storage = new GitHubStorage();
+        
+        const testResult = await storage.testConnection();
+        
+        res.json({
+            success: testResult,
+            config: {
+                owner: process.env.GITHUB_OWNER || process.env.VERCEL_GIT_REPO_OWNER,
+                repo: process.env.GITHUB_REPO || process.env.VERCEL_GIT_REPO_SLUG,
+                hasToken: !!process.env.GITHUB_TOKEN
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
 });

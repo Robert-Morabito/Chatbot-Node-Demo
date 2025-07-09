@@ -777,8 +777,10 @@ class ChatApp {
 
     async saveToServer() {
         try {
+            console.log('🔵 Starting save to server...');
+
             const saveData = {
-                participantId: this.participantId, // Add participant ID
+                participantId: this.participantId,
                 conversations: Object.fromEntries(this.conversations),
                 sessionId: `chatbot_${this.participantId}_${Date.now()}`,
                 completedAt: new Date().toISOString(),
@@ -788,21 +790,29 @@ class ChatApp {
                 }
             };
 
+            console.log('📦 Save data prepared:', {
+                participantId: saveData.participantId,
+                conversationCount: Object.keys(saveData.conversations).length,
+                sessionId: saveData.sessionId
+            });
+
             const response = await fetch('/api/save', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(saveData)
             });
 
+            const result = await response.json();
+
             if (response.ok) {
-                const result = await response.json();
-                console.log('💾 Data saved successfully:', result.filename);
+                console.log('✅ Save successful:', result);
                 return result;
             } else {
-                throw new Error('Save failed');
+                console.error('❌ Save failed:', result);
+                throw new Error(result.error || 'Save failed');
             }
         } catch (error) {
-            console.error('Error saving to server:', error);
+            console.error('❌ Error saving to server:', error);
             throw error;
         }
     }
@@ -899,14 +909,15 @@ class ChatApp {
     }
 
     async onClose(event) {
+        // Auto-save before closing
         if (this.currentConversationId && this.currentChatlog.length > 0) {
             const conversation = this.conversations.get(this.currentConversationId);
             if (conversation) {
                 conversation.messages = [...this.currentChatlog];
             }
 
+            // Try to save with beacon API (works better for page unload)
             try {
-                // Save to cloud storage with all required info
                 const saveData = {
                     participantId: this.participantId,
                     sessionId: this.sessionId,
@@ -918,23 +929,17 @@ class ChatApp {
                     }
                 };
 
-                const response = await fetch('/api/save', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(saveData)
-                });
+                // Use sendBeacon for reliable unload saves
+                const blob = new Blob([JSON.stringify(saveData)], { type: 'application/json' });
+                navigator.sendBeacon('/api/save', blob);
 
-                if (response.ok) {
-                    console.log(`✅ Study completed for participant ${this.participantId}`);
-                    return; // Allow normal close
-                } else {
-                    throw new Error('Save failed');
-                }
+                console.log('📤 Beacon save sent');
             } catch (error) {
                 console.error('Error saving on close:', error);
-                const message = `Your study data may not have been saved. Please contact the research team with ID: ${this.participantId}`;
-                event.returnValue = message;
-                return message;
+                // Show warning if save might have failed
+                event.preventDefault();
+                event.returnValue = 'Your data may not be saved. Are you sure you want to leave?';
+                return event.returnValue;
             }
         }
     }
