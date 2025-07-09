@@ -113,6 +113,57 @@ body.light-theme {
     box-shadow: 0 4px 8px rgba(37, 99, 235, 0.4);
 }
 
+/* Finish Button */
+.finish-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    transition: all 0.3s ease;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.finish-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+    background: linear-gradient(135deg, #b91c1c, #991b1b);
+}
+
+.finish-btn:active {
+    transform: translateY(0);
+}
+
+.finish-btn::before {
+    content: '🏁';
+    font-size: 16px;
+}
+
+/* Modal backdrop for confirmations */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 3000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px);
+}
+
 /* Main App Layout */
 .app-container {
     display: flex;
@@ -802,6 +853,121 @@ body.light-theme {
     opacity: 1;
 }
 
+/* Finish Confirmation Modal Styles */
+.finish-confirmation-dialog {
+    background: var(--main-bg-dark);
+    color: var(--text-dark);
+    padding: 30px;
+    border-radius: 12px;
+    max-width: 500px;
+    margin: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border-dark);
+}
+
+.light-theme .finish-confirmation-dialog {
+    background: var(--main-bg-light);
+    color: var(--text-light);
+    border-color: var(--border-light);
+}
+
+.finish-confirmation-dialog h3 {
+    margin: 0 0 20px 0;
+    color: inherit;
+}
+
+.finish-confirmation-dialog p {
+    margin: 15px 0;
+    line-height: 1.5;
+}
+
+.finish-warning {
+    font-weight: bold;
+    color: #f59e0b !important;
+}
+
+.finish-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    margin-top: 25px;
+}
+
+.finish-button {
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.finish-cancel {
+    background: #6b7280;
+    color: white;
+}
+
+.finish-cancel:hover {
+    background: #4b5563;
+}
+
+.finish-confirm {
+    background: #dc2626;
+    color: white;
+}
+
+.finish-confirm:hover {
+    background: #b91c1c;
+}
+
+/* Finish Loading Indicator */
+.finish-loading-indicator {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--main-bg-dark);
+    color: var(--text-dark);
+    padding: 30px;
+    border-radius: 12px;
+    z-index: 3500;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border-dark);
+}
+
+.light-theme .finish-loading-indicator {
+    background: var(--main-bg-light);
+    color: var(--text-light);
+    border-color: var(--border-light);
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--border-dark);
+    border-top: 4px solid var(--user-msg-bg-dark);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px auto;
+}
+
+.light-theme .loading-spinner {
+    border-color: var(--border-light);
+    border-top-color: var(--user-msg-bg-light);
+}
+
+.finish-loading-indicator p {
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Spin animation for loading spinner */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .sidebar {
@@ -844,6 +1010,18 @@ body.light-theme {
     
     .header {
         padding: 12px 16px;
+    }
+
+    /* Responsive finish button */
+    .finish-btn {
+        bottom: 15px;
+        right: 15px;
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+    
+    .finish-btn::before {
+        font-size: 14px;
     }
 }
 

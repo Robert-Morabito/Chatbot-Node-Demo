@@ -117,6 +117,7 @@ class ChatApp {
                     <a href="#" class="survey-link">Tally survey</a> (update when survey link is made).</p>
                     <p>The following pages contain important information about the AI model you will be using.</p>
                     <p><strong>Please read each point carefully</strong> - you will need to wait a few seconds on each page before continuing.</p>
+                    <p><strong>When you complete all study tasks:</strong> Click the "Finish" button in the chat interface to download your conversation logs and complete the study. You will then upload these logs to the Tally survey.</p>
                 </div>
             `,
                 showTimer: false,
@@ -328,7 +329,7 @@ class ChatApp {
         const progressCircle = circularProgress.querySelector('.progress-circle');
 
         // Reset timer
-        this.welcomeState.timerSeconds = 5;
+        this.welcomeState.timerSeconds = 1;
         progressCircle.style.strokeDashoffset = '75';
 
         // Start countdown
@@ -416,221 +417,17 @@ class ChatApp {
         this.setupTextareaAutoResize();
         this.setupAdvancedAnimations();
         this.initializeBehaviorTracking();
+        
+        // Finish button is already in HTML, just ensure it's visible
+        this.setupFinishButton();
     }
 
-    async loadConfiguration() {
-        try {
-            // Pass Prolific ID to get or resume configuration
-            const response = await fetch('/api/configurations/assign', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prolificId: this.participantId })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                this.sessionId = data.sessionId;
-                this.configurationId = data.configuration.id;
-
-                // Set up models
-                this.config = {
-                    givenModel: data.configuration.displayedModel,
-                    trueModel: data.configuration.actualModel,
-                    displayName: data.configuration.displayedModel
-                };
-
-                console.log(`🎯 Configuration assigned:`, {
-                    participant: this.participantId,
-                    displayed: this.config.givenModel,
-                    actual: this.config.trueModel,
-                    configId: this.configurationId
-                });
-
-                return true;
-            } else {
-                throw new Error('Failed to get configuration assignment');
-            }
-        } catch (error) {
-            console.error('Error loading configuration:', error);
-            // Fallback to default
-            this.config = {
-                givenModel: 'GPT-4',
-                trueModel: 'gpt-4-turbo',
-                displayName: 'GPT-4'
-            };
-            return false;
+    setupFinishButton() {
+        // The button already exists in HTML, just make sure it's visible and functional
+        const finishBtn = document.getElementById('finish-btn');
+        if (finishBtn) {
+            finishBtn.style.display = 'flex'; // Ensure it's visible
         }
-    }
-
-    initializeBehaviorTracking() {
-        // Track backspaces and keystrokes
-        document.addEventListener('keydown', (e) => {
-            if (document.activeElement.id === 'message-input') {
-                this.updateActivity();
-
-                if (e.key === 'Backspace') {
-                    this.behaviorMetrics.backspaceCount++;
-                }
-
-                // Track typing patterns
-                if (!this.behaviorMetrics.typingPatterns.typingStartTime) {
-                    this.behaviorMetrics.typingPatterns.typingStartTime = Date.now();
-                }
-                this.behaviorMetrics.typingPatterns.totalKeystrokes++;
-            }
-        });
-
-        // Disable copy/paste
-        document.addEventListener('paste', (e) => {
-            if (document.activeElement.id === 'message-input') {
-                e.preventDefault();
-                this.showNotification('Paste is disabled for this study', 'warning');
-                return false;
-            }
-        });
-
-        document.addEventListener('copy', (e) => {
-            if (document.activeElement.id === 'message-input' &&
-                window.getSelection().toString().length > 0) {
-                e.preventDefault();
-                this.showNotification('Copy is disabled for this study', 'warning');
-                return false;
-            }
-        });
-
-        // Also disable context menu on input
-        document.getElementById('message-input').addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            return false;
-        });
-
-        // Track idle time
-        this.startIdleTracking();
-
-        // Track page visibility changes
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                this.behaviorMetrics.idleStartTime = Date.now();
-            } else {
-                this.updateIdleTime();
-            }
-        });
-    }
-
-    updateActivity() {
-        const now = Date.now();
-        const timeSinceLastActivity = now - this.behaviorMetrics.lastUserActivity;
-
-        if (timeSinceLastActivity > this.idleThreshold) {
-            this.behaviorMetrics.totalIdleTime += timeSinceLastActivity;
-        }
-
-        this.behaviorMetrics.lastUserActivity = now;
-    }
-
-    updateIdleTime() {
-        const idleDuration = Date.now() - this.behaviorMetrics.idleStartTime;
-        if (idleDuration > this.idleThreshold) {
-            this.behaviorMetrics.totalIdleTime += idleDuration;
-        }
-        this.behaviorMetrics.idleStartTime = Date.now();
-    }
-
-    startIdleTracking() {
-        // Check for idle every second
-        this.idleCheckInterval = setInterval(() => {
-            const timeSinceLastActivity = Date.now() - this.behaviorMetrics.lastUserActivity;
-            if (timeSinceLastActivity > this.idleThreshold) {
-                // User is idle
-                if (!this.behaviorMetrics.currentlyIdle) {
-                    this.behaviorMetrics.currentlyIdle = true;
-                    this.behaviorMetrics.idleStartTime = this.behaviorMetrics.lastUserActivity;
-                }
-            } else {
-                // User is active
-                if (this.behaviorMetrics.currentlyIdle) {
-                    this.behaviorMetrics.currentlyIdle = false;
-                    this.updateIdleTime();
-                }
-            }
-        }, 1000);
-    }
-
-    showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.textContent = message;
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: ${type === 'warning' ? '#ef4444' : '#10b981'};
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            z-index: 2000;
-            animation: slideIn 0.3s ease-out;
-        `;
-
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease-out';
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
-    }
-
-    setupEventListeners() {
-        // Send button and Enter key
-        document.getElementById('send-btn').addEventListener('click', () => this.sendMessage());
-        document.getElementById('message-input').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                this.sendMessage();
-            }
-        });
-
-        // Theme toggle
-        document.getElementById('theme-switch').addEventListener('change', () => this.toggleTheme());
-
-        // New chat button
-        document.getElementById('new-chat-btn').addEventListener('click', () => this.createNewConversation());
-
-        // Save chat button (manual save)
-        document.getElementById('save-chat-btn').addEventListener('click', () => this.manualSave());
-
-        // Sidebar toggles
-        document.getElementById('sidebar-toggle').addEventListener('click', () => this.toggleSidebar());
-        document.getElementById('mobile-sidebar-toggle').addEventListener('click', () => this.toggleMobileSidebar());
-
-        // Window close event
-        window.addEventListener('beforeunload', (e) => this.onClose(e));
-
-        // Click outside sidebar on mobile
-        document.addEventListener('click', (e) => this.handleOutsideClick(e));
-    }
-
-    setupTextareaAutoResize() {
-        const textarea = document.getElementById('message-input');
-        textarea.addEventListener('input', () => {
-            textarea.style.height = 'auto';
-            textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
-        });
-    }
-
-    updateBotName() {
-        // Update main title (clean, no participant ID)
-        document.getElementById('bot-name').textContent = `Connected to ${this.config.displayName}`;
-
-        // Update participant ID in header
-        document.getElementById('header-participant-id').textContent = this.participantId;
-
-        // Update other elements
-        document.getElementById('welcome-model-name').textContent = this.config.displayName;
-        document.title = `${this.config.displayName} - Study ${this.participantId}`;
     }
 
     createNewConversation() {
@@ -1502,6 +1299,415 @@ class ChatApp {
 
         // Initial validation
         validateInput();
+    }
+
+    async handleFinishStudy() {
+        console.log('🏁 Finish button clicked');
+        
+        // Show confirmation dialog
+        const confirmed = await this.showFinishConfirmationDialog();
+        if (!confirmed) return;
+
+        try {
+            // First, ensure all conversations are saved locally
+            if (this.currentConversationId && this.currentChatlog.length > 0) {
+                const conversation = this.conversations.get(this.currentConversationId);
+                if (conversation) {
+                    conversation.messages = [...this.currentChatlog];
+                }
+            }
+
+            // Calculate final metrics
+            const behaviorMetrics = this.calculateFinalMetrics();
+
+            // Prepare data for download
+            const exportData = {
+                participantId: this.participantId,
+                sessionId: this.sessionId,
+                completedAt: new Date().toISOString(),
+                modelConfig: {
+                    displayedModel: this.config.givenModel,
+                    actualModel: this.config.trueModel,
+                    configurationId: this.configurationId
+                },
+                conversations: Object.fromEntries(this.conversations),
+                behaviorMetrics: behaviorMetrics,
+                studyVersion: "1.0"
+            };
+
+            console.log('📦 Export data prepared:', exportData);
+
+            // Show loading indicator
+            this.showFinishLoadingIndicator();
+
+            // Download the data as a JSON file
+            await this.downloadConversationData(exportData);
+
+            // Save to server (same as onClose)
+            await this.saveToServer();
+
+            // Mark session as completed on server
+            await this.markSessionCompleted();
+
+            // Close the application
+            this.closeApplication();
+
+        } catch (error) {
+            console.error('Error finishing study:', error);
+            alert('There was an error completing the study. Please try again or contact support.');
+            this.hideFinishLoadingIndicator();
+        }
+    }
+
+    showFinishConfirmationDialog() {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('finish-confirmation-modal');
+            modal.style.display = 'flex';
+
+            // Store the resolve function so we can call it from button handlers
+            this.finishDialogResolve = resolve;
+        });
+    }
+
+    hideFinishConfirmationDialog(confirmed) {
+        const modal = document.getElementById('finish-confirmation-modal');
+        modal.style.display = 'none';
+
+        if (this.finishDialogResolve) {
+            this.finishDialogResolve(confirmed);
+            this.finishDialogResolve = null;
+        }
+    }
+
+    showFinishLoadingIndicator() {
+        const indicator = document.getElementById('finish-loading-indicator');
+        indicator.style.display = 'block';
+    }
+
+    hideFinishLoadingIndicator() {
+        const indicator = document.getElementById('finish-loading-indicator');
+        indicator.style.display = 'none';
+    }
+
+    async downloadConversationData(data) {
+        try {
+            // Create a simple text file with the data
+            const jsonContent = JSON.stringify(data, null, 2);
+            const filename = `study-data-${this.participantId}-${Date.now()}.json`;
+            
+            console.log('💾 Creating download:', filename);
+            
+            // Create a blob and download link
+            const blob = new Blob([jsonContent], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.style.display = 'none';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Clean up the URL
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            
+            console.log('✅ Study data downloaded:', filename);
+            
+        } catch (error) {
+            console.error('Error creating download:', error);
+            throw error;
+        }
+    }
+
+    async markSessionCompleted() {
+        try {
+            const response = await fetch('/api/sessions/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    sessionId: this.sessionId,
+                    participantId: this.participantId 
+                })
+            });
+
+            if (!response.ok) {
+                console.warn('Failed to mark session as completed on server');
+            } else {
+                console.log('✅ Session marked as completed');
+            }
+        } catch (error) {
+            console.warn('Error marking session complete:', error);
+            // Don't throw - this is not critical for the user experience
+        }
+    }
+
+    closeApplication() {
+        // Hide finish button to prevent double-clicking
+        const finishBtn = document.getElementById('finish-btn');
+        if (finishBtn) finishBtn.style.display = 'none';
+        
+        // Hide loading indicator
+        this.hideFinishLoadingIndicator();
+        
+        // Show completion message
+        document.body.innerHTML = `
+            <div style="
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                background: var(--main-bg-dark);
+                color: var(--text-dark);
+                text-align: center;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            ">
+                <div>
+                    <h1 style="color: #10b981; margin-bottom: 20px;">✅ Study Completed!</h1>
+                    <p style="font-size: 18px; margin-bottom: 15px;">
+                        Thank you for participating. Your data has been downloaded.
+                    </p>
+                    <p style="color: #9ca3af;">
+                        Please upload the downloaded file to the Tally survey to complete your submission.
+                    </p>
+                    <p style="color: #9ca3af; margin-top: 20px; font-size: 14px;">
+                        You may now close this window.
+                    </p>
+                </div>
+            </div>
+        `;
+
+        // Attempt to close the window after a delay
+        setTimeout(() => {
+            try {
+                window.close();
+            } catch (error) {
+                console.log('Could not auto-close window');
+            }
+        }, 3000);
+    }
+
+    updateBotName() {
+        // Update main title (clean, no participant ID)
+        document.getElementById('bot-name').textContent = `Connected to ${this.config.displayName}`;
+
+        // Update participant ID in header
+        document.getElementById('header-participant-id').textContent = this.participantId;
+
+        // Update other elements
+        document.getElementById('welcome-model-name').textContent = this.config.displayName;
+        document.title = `${this.config.displayName} - Study ${this.participantId}`;
+    }
+
+    initializeBehaviorTracking() {
+        // Track backspaces and keystrokes
+        document.addEventListener('keydown', (e) => {
+            if (document.activeElement.id === 'message-input') {
+                this.updateActivity();
+
+                if (e.key === 'Backspace') {
+                    this.behaviorMetrics.backspaceCount++;
+                }
+
+                // Track typing patterns
+                if (!this.behaviorMetrics.typingPatterns.typingStartTime) {
+                    this.behaviorMetrics.typingPatterns.typingStartTime = Date.now();
+                }
+                this.behaviorMetrics.typingPatterns.totalKeystrokes++;
+            }
+        });
+
+        // Disable copy/paste
+        document.addEventListener('paste', (e) => {
+            if (document.activeElement.id === 'message-input') {
+                e.preventDefault();
+                this.showNotification('Paste is disabled for this study', 'warning');
+                return false;
+            }
+        });
+
+        document.addEventListener('copy', (e) => {
+            if (document.activeElement.id === 'message-input' &&
+                window.getSelection().toString().length > 0) {
+                e.preventDefault();
+                this.showNotification('Copy is disabled for this study', 'warning');
+                return false;
+            }
+        });
+
+        // Also disable context menu on input
+        document.getElementById('message-input').addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            return false;
+        });
+
+        // Track idle time
+        this.startIdleTracking();
+
+        // Track page visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                this.behaviorMetrics.idleStartTime = Date.now();
+            } else {
+                this.updateIdleTime();
+            }
+        });
+    }
+
+    updateActivity() {
+        const now = Date.now();
+        const timeSinceLastActivity = now - this.behaviorMetrics.lastUserActivity;
+
+        if (timeSinceLastActivity > this.idleThreshold) {
+            this.behaviorMetrics.totalIdleTime += timeSinceLastActivity;
+        }
+
+        this.behaviorMetrics.lastUserActivity = now;
+    }
+
+    updateIdleTime() {
+        const idleDuration = Date.now() - this.behaviorMetrics.idleStartTime;
+        if (idleDuration > this.idleThreshold) {
+            this.behaviorMetrics.totalIdleTime += idleDuration;
+        }
+        this.behaviorMetrics.idleStartTime = Date.now();
+    }
+
+    startIdleTracking() {
+        // Check for idle every second
+        this.idleCheckInterval = setInterval(() => {
+            const timeSinceLastActivity = Date.now() - this.behaviorMetrics.lastUserActivity;
+            if (timeSinceLastActivity > this.idleThreshold) {
+                // User is idle
+                if (!this.behaviorMetrics.currentlyIdle) {
+                    this.behaviorMetrics.currentlyIdle = true;
+                    this.behaviorMetrics.idleStartTime = this.behaviorMetrics.lastUserActivity;
+                }
+            } else {
+                // User is active
+                if (this.behaviorMetrics.currentlyIdle) {
+                    this.behaviorMetrics.currentlyIdle = false;
+                    this.updateIdleTime();
+                }
+            }
+        }, 1000);
+    }
+
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: ${type === 'warning' ? '#ef4444' : '#10b981'};
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 2000;
+            animation: slideIn 0.3s ease-out;
+        `;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    setupTextareaAutoResize() {
+        const textarea = document.getElementById('message-input');
+        textarea.addEventListener('input', () => {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+        });
+    }
+
+    setupEventListeners() {
+        // Send button and Enter key
+        document.getElementById('send-btn').addEventListener('click', () => this.sendMessage());
+        document.getElementById('message-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.sendMessage();
+            }
+        });
+
+        // Theme toggle
+        document.getElementById('theme-switch').addEventListener('change', () => this.toggleTheme());
+
+        // New chat button
+        document.getElementById('new-chat-btn').addEventListener('click', () => this.createNewConversation());
+
+        // Save chat button (manual save)
+        document.getElementById('save-chat-btn').addEventListener('click', () => this.manualSave());
+
+        // Finish button - now references existing HTML element
+        document.getElementById('finish-btn').addEventListener('click', () => this.handleFinishStudy());
+
+        // Finish modal buttons
+        document.getElementById('finish-cancel-btn').addEventListener('click', () => this.hideFinishConfirmationDialog(false));
+        document.getElementById('finish-confirm-btn').addEventListener('click', () => this.hideFinishConfirmationDialog(true));
+
+        // Sidebar toggles
+        document.getElementById('sidebar-toggle').addEventListener('click', () => this.toggleSidebar());
+        document.getElementById('mobile-sidebar-toggle').addEventListener('click', () => this.toggleMobileSidebar());
+
+        // Window close event
+        window.addEventListener('beforeunload', (e) => this.onClose(e));
+
+        // Click outside sidebar on mobile
+        document.addEventListener('click', (e) => this.handleOutsideClick(e));
+    }
+
+    async loadConfiguration() {
+        try {
+            // Pass Prolific ID to get or resume configuration
+            const response = await fetch('/api/configurations/assign', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prolificId: this.participantId })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.sessionId = data.sessionId;
+                this.configurationId = data.configuration.id;
+
+                // Set up models
+                this.config = {
+                    givenModel: data.configuration.displayedModel,
+                    trueModel: data.configuration.actualModel,
+                    displayName: data.configuration.displayedModel
+                };
+
+                console.log(`🎯 Configuration assigned:`, {
+                    participant: this.participantId,
+                    displayed: this.config.givenModel,
+                    actual: this.config.trueModel,
+                    configId: this.configurationId
+                });
+
+                return true;
+            } else {
+                throw new Error('Failed to get configuration assignment');
+            }
+        } catch (error) {
+            console.error('Error loading configuration:', error);
+            // Fallback to default
+            this.config = {
+                givenModel: 'GPT-4',
+                trueModel: 'gpt-4-turbo',
+                displayName: 'GPT-4'
+            };
+            return false;
+        }
     }
 }
 

@@ -40,6 +40,31 @@
         </div>
     </div>
 
+    <!-- Finish Study Button -->
+    <button id="finish-btn" class="finish-btn" aria-label="Finish study and download data">
+        Finish
+    </button>
+
+    <!-- Finish Confirmation Modal (hidden by default) -->
+    <div id="finish-confirmation-modal" class="modal-backdrop" style="display: none;">
+        <div class="finish-confirmation-dialog">
+            <h3>Complete Study</h3>
+            <p>Clicking continue will download your conversation data and close the chat window, completing the study. 
+               Please only do this when all the study tasks have been completed.</p>
+            <p class="finish-warning">Do you wish to continue?</p>
+            <div class="finish-buttons">
+                <button id="finish-cancel-btn" class="finish-button finish-cancel">Cancel</button>
+                <button id="finish-confirm-btn" class="finish-button finish-confirm">Complete Study</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Finish Loading Indicator (hidden by default) -->
+    <div id="finish-loading-indicator" class="finish-loading-indicator" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>Preparing your study data...</p>
+    </div>
+
     <!-- Main Application Container -->
     <div class="app-container">
         <!-- Sidebar for conversation history -->
