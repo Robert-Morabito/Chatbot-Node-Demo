@@ -4,7 +4,7 @@
       "id": 1,
       "displayedModel": "GPT-3.5",
       "actualModel": "gpt-3.5-turbo-0125",
-      "completedSessions": 1,
+      "completedSessions": 0,
       "targetSessions": 12,
       "isActive": true
     },

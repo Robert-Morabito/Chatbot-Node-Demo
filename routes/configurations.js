@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Use /tmp for Vercel serverless
-const configFile = path.join('/tmp', 'model-configurations.json');
+const configFile = path.join('/Chatbot-Node/data', 'model-configurations.json');
 
 // Initialize configurations file
 async function initializeConfigurations() {
