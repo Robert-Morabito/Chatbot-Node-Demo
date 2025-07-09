@@ -14,6 +14,24 @@ class GitHubStorage {
             
             const url = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${fileName}`;
             
+            // First, check if file already exists (to get SHA if updating)
+            let sha = null;
+            try {
+                const checkResponse = await fetch(url, {
+                    headers: {
+                        'Authorization': `token ${this.token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                    }
+                });
+                
+                if (checkResponse.ok) {
+                    const existingFile = await checkResponse.json();
+                    sha = existingFile.sha;
+                }
+            } catch (e) {
+                // File doesn't exist, which is fine for new files
+            }
+            
             const response = await fetch(url, {
                 method: 'PUT',
                 headers: {
@@ -23,7 +41,8 @@ class GitHubStorage {
                 body: JSON.stringify({
                     message: `Add participant data: ${participantId}`,
                     content: encodedContent,
-                    branch: this.branch
+                    branch: this.branch,
+                    ...(sha && { sha }) // Include SHA if updating existing file
                 })
             });
             
@@ -44,9 +63,6 @@ class GitHubStorage {
             
         } catch (error) {
             console.error('GitHub save error:', error);
-            
-            // Fallback: save locally and log the data
-            console.log('PARTICIPANT DATA (save this manually):', JSON.stringify(chatData, null, 2));
             
             return {
                 success: false,
