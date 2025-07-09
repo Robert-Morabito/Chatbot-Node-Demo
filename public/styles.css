@@ -1709,7 +1709,7 @@ body.light-theme {
 /* Welcome Modal Styles - CLEAN VERSION */
 .welcome-modal-content {
     max-width: 650px;
-    max-height: 70vh;
+    max-height: 75vh;
     padding: 30px;
     display: flex;
     flex-direction: column;
