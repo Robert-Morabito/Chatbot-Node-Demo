@@ -1,45 +1,14 @@
-import GitHubStorage from '../../utils/githubStorage.js';
-
-const githubStorage = new GitHubStorage();
-
 export default async function handler(req, res) {
-    if (req.method !== 'POST') {
+    if (req.method !== 'GET') {  // Changed from POST to GET
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
     try {
-        const { prolificId } = req.body;
-
-        if (!prolificId || !/^[a-zA-Z0-9]{24}$/.test(prolificId)) {
-            return res.status(400).json({ error: 'Valid Prolific ID required' });
-        }
-
+        // No need for prolificId from body since it's GET
+        // Just assign the next available configuration
+        
         // Load current configuration state from GitHub
         const configData = await githubStorage.loadConfigurationState();
-
-        // Check if this Prolific ID already has an active session
-        const existingSession = Object.values(configData.sessions).find(
-            session => session.participantId === prolificId && !session.completed
-        );
-
-        if (existingSession) {
-            // Resume existing session
-            const config = configData.configurations[existingSession.configurationId];
-
-            console.log(`🔄 Resuming session for Prolific ID: ${prolificId}`);
-
-            return res.json({
-                success: true,
-                sessionId: existingSession.sessionId,
-                participantId: prolificId,
-                configuration: {
-                    id: config.id,
-                    displayedModel: config.displayedModel,
-                    actualModel: config.actualModel
-                },
-                resumed: true
-            });
-        }
 
         // Find configuration with lowest completion count that hasn't reached target
         let selectedConfig = null;
@@ -64,30 +33,16 @@ export default async function handler(req, res) {
         // Generate session info
         const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-        // Record the session assignment
-        configData.sessions[sessionId] = {
-            sessionId,
-            participantId: prolificId,
-            configurationId: selectedConfig.id,
-            displayedModel: selectedConfig.displayedModel,
-            actualModel: selectedConfig.actualModel,
-            assignedAt: new Date().toISOString(),
-            completed: false
-        };
-
-        // Save updated state back to GitHub
-        await githubStorage.saveConfigurationState(configData);
+        // Don't save session assignment yet - let the client handle participant ID
 
         res.json({
             success: true,
             sessionId,
-            participantId: prolificId,
             configuration: {
                 id: selectedConfig.id,
                 displayedModel: selectedConfig.displayedModel,
                 actualModel: selectedConfig.actualModel
-            },
-            resumed: false
+            }
         });
 
     } catch (error) {

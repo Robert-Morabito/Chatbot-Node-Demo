@@ -723,9 +723,9 @@ class ChatApp {
 
     async loadConfiguration() {
         try {
-            // Pass Prolific ID to get or resume configuration
+            // First get configuration assignment
             const response = await fetch('/api/configurations/assign', {
-                method: 'GET', // Change to GET since the route expects GET
+                method: 'GET',  // This is now GET
                 headers: { 'Content-Type': 'application/json' }
             });
 
@@ -753,6 +753,9 @@ class ChatApp {
                     configId: this.configurationId
                 });
 
+                // Now register the session with participant ID
+                await this.registerSession();
+
                 return true;
             } else {
                 throw new Error('Failed to get configuration assignment');
@@ -771,6 +774,47 @@ class ChatApp {
             this.configurationId = 1;
 
             return false;
+        }
+    }
+
+    // Add this new method to register the session with participant ID
+    async registerSession() {
+        try {
+            const response = await fetch('/api/sessions/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sessionId: this.sessionId,
+                    participantId: this.participantId,
+                    configurationId: this.configurationId
+                })
+            });
+
+            if (!response.ok) {
+                console.warn('Failed to register session');
+            }
+        } catch (error) {
+            console.warn('Session registration error:', error);
+        }
+    }
+
+    async registerSession() {
+        try {
+            const response = await fetch('/api/sessions/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sessionId: this.sessionId,
+                    participantId: this.participantId,
+                    configurationId: this.configurationId
+                })
+            });
+
+            if (!response.ok) {
+                console.warn('Failed to register session');
+            }
+        } catch (error) {
+            console.warn('Session registration error:', error);
         }
     }
 
@@ -1626,39 +1670,33 @@ class ChatApp {
 
         // Show completion message
         document.body.innerHTML = `
-            <div style="
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-                background: var(--main-bg-dark);
-                color: var(--text-dark);
-                text-align: center;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            ">
-                <div>
-                    <h1 style="color: #10b981; margin-bottom: 20px;">✅ Study Completed!</h1>
-                    <p style="font-size: 18px; margin-bottom: 15px;">
-                        Thank you for participating. Your data has been downloaded.
-                    </p>
-                    <p style="color: #9ca3af;">
-                        Please upload the downloaded file to the Tally survey to complete your submission.
-                    </p>
-                    <p style="color: #9ca3af; margin-top: 20px; font-size: 14px;">
-                        You may now close this window.
-                    </p>
-                </div>
+        <div style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: var(--main-bg-dark);
+            color: var(--text-dark);
+            text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        ">
+            <div>
+                <h1 style="color: #10b981; margin-bottom: 20px;">✅ Study Completed!</h1>
+                <p style="font-size: 18px; margin-bottom: 15px;">
+                    Thank you for participating. Your data has been downloaded.
+                </p>
+                <p style="color: #9ca3af;">
+                    Please upload the downloaded file to the Tally survey to complete your submission.
+                </p>
+                <p style="color: #9ca3af; margin-top: 30px; font-size: 14px;">
+                    This window will remain open. You may close it when you're ready.
+                </p>
             </div>
-        `;
+        </div>
+    `;
 
-        // Attempt to close the window after a delay
-        setTimeout(() => {
-            try {
-                window.close();
-            } catch (error) {
-                console.log('Could not auto-close window');
-            }
-        }, 3000);
+        // Remove the window.close() attempt - just let it stay open
+        console.log('Study completed. Window will remain open.');
     }
 
     updateBotName() {

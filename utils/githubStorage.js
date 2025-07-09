@@ -4,7 +4,7 @@ class GitHubStorage {
         this.owner = process.env.GITHUB_OWNER || process.env.VERCEL_GIT_REPO_OWNER;
         this.repo = process.env.GITHUB_REPO || process.env.VERCEL_GIT_REPO_SLUG;
         this.branch = 'main';
-        
+
         console.log('🔧 GitHub Storage initialized:', {
             owner: this.owner,
             repo: this.repo,
@@ -12,6 +12,99 @@ class GitHubStorage {
             tokenPreview: this.token ? `${this.token.substring(0, 8)}...` : 'undefined'
         });
     }
+
+    async loadConfigurationState() {
+        try {
+            const url = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/data/model-configurations.json`;
+
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `token ${this.token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to load configuration: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const content = Buffer.from(data.content, 'base64').toString('utf-8');
+            return JSON.parse(content);
+
+        } catch (error) {
+            console.error('Error loading configuration state:', error);
+            // Return the default configuration structure if load fails
+            return {
+                configurations: {
+                    "1": { id: 1, displayedModel: "GPT-3.5", actualModel: "gpt-3.5-turbo-0125", completedSessions: 0, targetSessions: 12, isActive: true },
+                    // ... rest of configurations
+                },
+                sessions: {},
+                metadata: {
+                    totalConfigurations: 9,
+                    totalTargetSessions: 108,
+                    createdAt: new Date().toISOString(),
+                    lastUpdated: new Date().toISOString()
+                }
+            };
+        }
+    }
+
+    async saveConfigurationState(configData) {
+        try {
+            const fileName = 'data/model-configurations.json';
+            const content = JSON.stringify(configData, null, 2);
+            const encodedContent = Buffer.from(content).toString('base64');
+
+            const url = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${fileName}`;
+
+            // Get current file SHA
+            let sha = null;
+            try {
+                const checkResponse = await fetch(url, {
+                    headers: {
+                        'Authorization': `token ${this.token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                    }
+                });
+
+                if (checkResponse.ok) {
+                    const existingFile = await checkResponse.json();
+                    sha = existingFile.sha;
+                }
+            } catch (e) {
+                console.log('Configuration file does not exist, will create new');
+            }
+
+            // Update the file
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${this.token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.github.v3+json',
+                },
+                body: JSON.stringify({
+                    message: `Update configuration state - ${new Date().toISOString()}`,
+                    content: encodedContent,
+                    branch: this.branch,
+                    ...(sha && { sha })
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to save configuration: ${response.status}`);
+            }
+
+            return true;
+
+        } catch (error) {
+            console.error('Error saving configuration state:', error);
+            throw error;
+        }
+    }
+
 
     async testConnection() {
         try {
@@ -22,11 +115,11 @@ class GitHubStorage {
                     'Accept': 'application/vnd.github.v3+json',
                 }
             });
-            
+
             if (!response.ok) {
                 throw new Error(`GitHub API test failed: ${response.status} ${response.statusText}`);
             }
-            
+
             const data = await response.json();
             console.log('✅ GitHub connection test successful:', data.full_name);
             return true;
@@ -43,15 +136,15 @@ class GitHubStorage {
             if (!isConnected) {
                 throw new Error('GitHub connection test failed');
             }
-            
+
             const fileName = `participants/chatlog_${participantId}_${Date.now()}.json`;
             const content = JSON.stringify(chatData, null, 2);
             const encodedContent = Buffer.from(content).toString('base64');
-            
+
             console.log('📝 Attempting to save file:', fileName);
-            
+
             const url = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${fileName}`;
-            
+
             // First, check if file already exists (to get SHA if updating)
             let sha = null;
             try {
@@ -61,7 +154,7 @@ class GitHubStorage {
                         'Accept': 'application/vnd.github.v3+json',
                     }
                 });
-                
+
                 if (checkResponse.ok) {
                     const existingFile = await checkResponse.json();
                     sha = existingFile.sha;
@@ -70,7 +163,7 @@ class GitHubStorage {
             } catch (e) {
                 console.log('📄 File does not exist, will create new');
             }
-            
+
             // Create or update the file
             const response = await fetch(url, {
                 method: 'PUT',
@@ -86,32 +179,32 @@ class GitHubStorage {
                     ...(sha && { sha })
                 })
             });
-            
+
             const responseText = await response.text();
             console.log('📡 GitHub API Response:', response.status, responseText.substring(0, 200));
-            
+
             if (!response.ok) {
                 throw new Error(`GitHub API error: ${response.status} - ${responseText}`);
             }
-            
+
             const result = JSON.parse(responseText);
-            
+
             console.log('✅ Successfully saved to GitHub:', {
                 path: result.content.path,
                 sha: result.content.sha,
                 url: result.content.html_url
             });
-            
+
             return {
                 success: true,
                 fileName: fileName,
                 githubUrl: result.content.html_url,
                 sha: result.content.sha
             };
-            
+
         } catch (error) {
             console.error('❌ GitHub save error:', error);
-            
+
             return {
                 success: false,
                 error: error.message,
