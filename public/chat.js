@@ -9,6 +9,36 @@ class ChatApp {
         this.autoSaveTimeout = null;
         this.messageIdCounter = 0;
 
+        this.sessionStartTime = Date.now();
+
+        this.behaviorMetrics = {
+            backspaceCount: 0,
+            messageLengths: [],
+            messageCount: 0,
+            conversationCount: 0,
+            editCount: 0,
+            editDistances: [], // How many messages back they edited
+            idleStartTime: Date.now(),
+            totalIdleTime: 0,
+            messageTimes: [],
+            conversationSwitches: 0,
+            responseTimesAfterBot: [], // Time user takes to respond after bot
+            lastBotMessageTime: null,
+            lastUserActivity: Date.now(),
+            typingPatterns: {
+                totalKeystrokes: 0,
+                typingStartTime: null,
+                typingDurations: []
+            }
+        };
+
+        // Track idle time
+        this.idleThreshold = 5000; // 5 seconds of no activity = idle
+        this.idleCheckInterval = null;
+
+        // Initialize tracking
+        this.initializeBehaviorTracking();
+
         // Generate simple participant ID
         this.participantId = this.generateSimpleParticipantId();
 
@@ -145,6 +175,126 @@ class ChatApp {
         }
     }
 
+    initializeBehaviorTracking() {
+        // Track backspaces and keystrokes
+        document.addEventListener('keydown', (e) => {
+            if (document.activeElement.id === 'message-input') {
+                this.updateActivity();
+
+                if (e.key === 'Backspace') {
+                    this.behaviorMetrics.backspaceCount++;
+                }
+
+                // Track typing patterns
+                if (!this.behaviorMetrics.typingPatterns.typingStartTime) {
+                    this.behaviorMetrics.typingPatterns.typingStartTime = Date.now();
+                }
+                this.behaviorMetrics.typingPatterns.totalKeystrokes++;
+            }
+        });
+
+        // Disable copy/paste
+        document.addEventListener('paste', (e) => {
+            if (document.activeElement.id === 'message-input') {
+                e.preventDefault();
+                this.showNotification('Paste is disabled for this study', 'warning');
+                return false;
+            }
+        });
+
+        document.addEventListener('copy', (e) => {
+            if (document.activeElement.id === 'message-input' &&
+                window.getSelection().toString().length > 0) {
+                e.preventDefault();
+                this.showNotification('Copy is disabled for this study', 'warning');
+                return false;
+            }
+        });
+
+        // Also disable context menu on input
+        document.getElementById('message-input').addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            return false;
+        });
+
+        // Track idle time
+        this.startIdleTracking();
+
+        // Track page visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                this.behaviorMetrics.idleStartTime = Date.now();
+            } else {
+                this.updateIdleTime();
+            }
+        });
+    }
+
+    updateActivity() {
+        const now = Date.now();
+        const timeSinceLastActivity = now - this.behaviorMetrics.lastUserActivity;
+
+        if (timeSinceLastActivity > this.idleThreshold) {
+            this.behaviorMetrics.totalIdleTime += timeSinceLastActivity;
+        }
+
+        this.behaviorMetrics.lastUserActivity = now;
+    }
+
+    updateIdleTime() {
+        const idleDuration = Date.now() - this.behaviorMetrics.idleStartTime;
+        if (idleDuration > this.idleThreshold) {
+            this.behaviorMetrics.totalIdleTime += idleDuration;
+        }
+        this.behaviorMetrics.idleStartTime = Date.now();
+    }
+
+    startIdleTracking() {
+        // Check for idle every second
+        this.idleCheckInterval = setInterval(() => {
+            const timeSinceLastActivity = Date.now() - this.behaviorMetrics.lastUserActivity;
+            if (timeSinceLastActivity > this.idleThreshold) {
+                // User is idle
+                if (!this.behaviorMetrics.currentlyIdle) {
+                    this.behaviorMetrics.currentlyIdle = true;
+                    this.behaviorMetrics.idleStartTime = this.behaviorMetrics.lastUserActivity;
+                }
+            } else {
+                // User is active
+                if (this.behaviorMetrics.currentlyIdle) {
+                    this.behaviorMetrics.currentlyIdle = false;
+                    this.updateIdleTime();
+                }
+            }
+        }, 1000);
+    }
+
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: ${type === 'warning' ? '#ef4444' : '#10b981'};
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 2000;
+            animation: slideIn 0.3s ease-out;
+        `;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
     async loadExperimentalCondition() {
         try {
             const response = await fetch('/api/experimental/assign');
@@ -234,6 +384,7 @@ class ChatApp {
     }
 
     createNewConversation() {
+        this.behaviorMetrics.conversationCount++;
         const conversationId = Date.now().toString();
         const conversation = {
             id: conversationId,
@@ -252,6 +403,10 @@ class ChatApp {
     }
 
     switchToConversation(conversationId) {
+        // Only count as switch if actually changing conversations
+        if (this.currentConversationId && this.currentConversationId !== conversationId) {
+            this.behaviorMetrics.conversationSwitches++;
+        }
         // Save current conversation state
         if (this.currentConversationId) {
             const currentConv = this.conversations.get(this.currentConversationId);
@@ -303,6 +458,25 @@ class ChatApp {
         const message = messageInput.value.trim();
 
         if (!message) return;
+
+        // Track typing duration
+        if (this.behaviorMetrics.typingPatterns.typingStartTime) {
+            const typingDuration = Date.now() - this.behaviorMetrics.typingPatterns.typingStartTime;
+            this.behaviorMetrics.typingPatterns.typingDurations.push(typingDuration);
+            this.behaviorMetrics.typingPatterns.typingStartTime = null;
+        }
+
+        // Track response time after bot
+        if (this.behaviorMetrics.lastBotMessageTime) {
+            const responseTime = Date.now() - this.behaviorMetrics.lastBotMessageTime;
+            this.behaviorMetrics.responseTimesAfterBot.push(responseTime);
+            this.behaviorMetrics.lastBotMessageTime = null;
+        }
+
+        // Track message metrics
+        this.behaviorMetrics.messageLengths.push(message.length);
+        this.behaviorMetrics.messageCount++;
+        this.behaviorMetrics.messageTimes.push(new Date().toISOString());
 
         // Remove welcome message if it exists
         const welcomeMsg = document.querySelector('.welcome-message');
@@ -481,6 +655,8 @@ class ChatApp {
             this.renderMessage(botMsgInfo);
             botMessageElement = this.msgWidgets[botMsgId].element.querySelector('.message-content');
 
+            this.behaviorMetrics.lastBotMessageTime = Date.now();
+
             try {
                 while (true) {
                     const { done, value } = await reader.read();
@@ -588,6 +764,17 @@ class ChatApp {
     editMessage(msgId) {
         const widget = this.msgWidgets[msgId];
         if (!widget) return;
+
+        // Track edit metrics
+        this.behaviorMetrics.editCount++;
+
+        // Calculate how many messages back this edit is
+        const currentMessages = Array.from(document.querySelectorAll('.message.user'));
+        const editMessageIndex = currentMessages.findIndex(msg =>
+            parseInt(msg.dataset.msgId) === msgId
+        );
+        const messagesBack = currentMessages.length - editMessageIndex - 1;
+        this.behaviorMetrics.editDistances.push(messagesBack);
 
         const contentDiv = widget.element.querySelector('.message-content');
         const originalText = widget.info.content;
@@ -778,16 +965,21 @@ class ChatApp {
     async saveToServer() {
         try {
             console.log('🔵 Starting save to server...');
+            
+            // Calculate final metrics
+            const behaviorMetrics = this.calculateFinalMetrics();
 
             const saveData = {
                 participantId: this.participantId,
                 conversations: Object.fromEntries(this.conversations),
-                sessionId: `chatbot_${this.participantId}_${Date.now()}`,
+                sessionId: this.sessionId,
                 completedAt: new Date().toISOString(),
                 modelConfig: {
                     displayedModel: this.config.givenModel,
-                    actualModel: this.config.trueModel
-                }
+                    actualModel: this.config.trueModel,
+                    configurationId: this.configurationId
+                },
+                behaviorMetrics: behaviorMetrics  // Add behavioral metrics here
             };
 
             console.log('📦 Save data prepared:', {
@@ -1021,6 +1213,39 @@ class ChatApp {
             };
             return false;
         }
+    }
+    calculateFinalMetrics() {
+        const metrics = {
+            backspaceCount: this.behaviorMetrics.backspaceCount,
+            averageMessageLength: this.behaviorMetrics.messageLengths.length > 0
+                ? this.behaviorMetrics.messageLengths.reduce((a, b) => a + b, 0) / this.behaviorMetrics.messageLengths.length
+                : 0,
+            totalMessages: this.behaviorMetrics.messageCount,
+            messagesPerConversation: this.behaviorMetrics.conversationCount > 0
+                ? this.behaviorMetrics.messageCount / this.behaviorMetrics.conversationCount
+                : 0,
+            conversationCount: this.behaviorMetrics.conversationCount,
+            editCount: this.behaviorMetrics.editCount,
+            averageEditDistance: this.behaviorMetrics.editDistances.length > 0
+                ? this.behaviorMetrics.editDistances.reduce((a, b) => a + b, 0) / this.behaviorMetrics.editDistances.length
+                : 0,
+            totalIdleTime: this.behaviorMetrics.totalIdleTime,
+            messageTimes: this.behaviorMetrics.messageTimes,
+            conversationSwitches: this.behaviorMetrics.conversationSwitches,
+            averageResponseTimeAfterBot: this.behaviorMetrics.responseTimesAfterBot.length > 0
+                ? this.behaviorMetrics.responseTimesAfterBot.reduce((a, b) => a + b, 0) / this.behaviorMetrics.responseTimesAfterBot.length
+                : 0,
+            totalKeystrokes: this.behaviorMetrics.typingPatterns.totalKeystrokes,
+            averageTypingDuration: this.behaviorMetrics.typingPatterns.typingDurations.length > 0
+                ? this.behaviorMetrics.typingPatterns.typingDurations.reduce((a, b) => a + b, 0) / this.behaviorMetrics.typingPatterns.typingDurations.length
+                : 0,
+            sessionDuration: Date.now() - this.sessionStartTime,
+            keystrokesPerMessage: this.behaviorMetrics.messageCount > 0
+                ? this.behaviorMetrics.typingPatterns.totalKeystrokes / this.behaviorMetrics.messageCount
+                : 0
+        };
+
+        return metrics;
     }
 }
 
