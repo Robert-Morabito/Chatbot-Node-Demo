@@ -58,11 +58,48 @@ class ChatApp {
             }
         };
 
-        // Initialize the app
+        this.behaviorMetrics = {
+            totalKeystrokes: 0,
+            backspaceCount: 0,
+            messageEdits: 0,
+            messagesDeleted: 0,
+            typingDuration: 0,
+            idleDuration: 0,
+            sessionStartTime: Date.now(),
+            messageTimings: [],
+            typingPatterns: [],
+            lastActivityTime: Date.now()
+        };
+
+        this.typingStartTime = null;
+        this.idleTimer = null;
+
+        // Session persistence
+        this.sessionKey = null;
+
+        // Initialize
         this.init();
     }
 
     async init() {
+        // Check for existing session first
+        const sessionRestored = await this.checkForExistingSession();
+
+        if (!sessionRestored) {
+            // Load new configuration assignment
+            await this.loadConfiguration();
+        }
+
+        // Continue with initialization
+        this.setupEventListeners();
+        this.setupTextareaAutoResize();
+        this.setupAdvancedAnimations();
+        this.trackKeystrokes(); // Add behavioral tracking
+
+        if (!sessionRestored) {
+            this.showModelInfo();
+        }
+
         // Load configuration assignment first
         await this.loadConfiguration();
 
@@ -119,6 +156,102 @@ class ChatApp {
         return result;
     }
 
+    saveSessionState() {
+        if (!this.sessionKey) {
+            this.sessionKey = `chatbot_session_${this.participantId}_${this.sessionId}`;
+        }
+
+        const sessionData = {
+            participantId: this.participantId,
+            sessionId: this.sessionId,
+            configurationId: this.configurationId,
+            config: this.config,
+            conversations: Object.fromEntries(this.conversations),
+            currentConversationId: this.currentConversationId,
+            currentChatlog: this.currentChatlog,
+            behaviorMetrics: this.behaviorMetrics,
+            lastSaved: Date.now()
+        };
+
+        localStorage.setItem(this.sessionKey, JSON.stringify(sessionData));
+
+        // Also save a recovery key
+        localStorage.setItem('chatbot_last_session', this.sessionKey);
+    }
+
+    async checkForExistingSession() {
+        const lastSessionKey = localStorage.getItem('chatbot_last_session');
+
+        if (lastSessionKey) {
+            const sessionData = localStorage.getItem(lastSessionKey);
+            if (sessionData) {
+                try {
+                    const parsed = JSON.parse(sessionData);
+
+                    // Check if session is less than 24 hours old
+                    if (Date.now() - parsed.lastSaved < 24 * 60 * 60 * 1000) {
+                        return await this.promptSessionRecovery(parsed);
+                    }
+                } catch (e) {
+                    console.error('Error parsing session data:', e);
+                }
+            }
+        }
+        return false;
+    }
+
+    async promptSessionRecovery(sessionData) {
+        const modal = document.createElement('div');
+        modal.className = 'recovery-modal';
+        modal.innerHTML = `
+        <div class="recovery-content">
+            <h3>Resume Previous Session?</h3>
+            <p>We found an incomplete session for Participant ID: <strong>${sessionData.participantId}</strong></p>
+            <p>Would you like to continue where you left off?</p>
+            <div class="recovery-buttons">
+                <button id="resume-session" class="primary-btn">Resume Session</button>
+                <button id="new-session" class="secondary-btn">Start New Session</button>
+            </div>
+        </div>
+    `;
+
+        document.body.appendChild(modal);
+
+        return new Promise((resolve) => {
+            document.getElementById('resume-session').onclick = () => {
+                modal.remove();
+                this.restoreSession(sessionData);
+                resolve(true);
+            };
+
+            document.getElementById('new-session').onclick = () => {
+                modal.remove();
+                localStorage.removeItem(sessionData.sessionKey);
+                localStorage.removeItem('chatbot_last_session');
+                resolve(false);
+            };
+        });
+    }
+
+    restoreSession(sessionData) {
+        // Restore all session data
+        this.participantId = sessionData.participantId;
+        this.sessionId = sessionData.sessionId;
+        this.configurationId = sessionData.configurationId;
+        this.config = sessionData.config;
+        this.conversations = new Map(Object.entries(sessionData.conversations));
+        this.currentConversationId = sessionData.currentConversationId;
+        this.currentChatlog = sessionData.currentChatlog;
+        this.behaviorMetrics = sessionData.behaviorMetrics;
+
+        // Update UI
+        this.updateBotName();
+        this.updateConversationList();
+        this.renderConversation();
+
+        console.log('✅ Session restored successfully');
+    }
+
     async onClose(event) {
         // Auto-save before closing
         if (this.currentConversationId && this.currentChatlog.length > 0) {
@@ -143,6 +276,50 @@ class ChatApp {
                 console.error('Error saving on close:', error);
             }
         }
+    }
+
+    trackKeystrokes() {
+        const messageInput = document.getElementById('message-input');
+
+        messageInput.addEventListener('keydown', (e) => {
+            this.behaviorMetrics.totalKeystrokes++;
+
+            if (e.key === 'Backspace') {
+                this.behaviorMetrics.backspaceCount++;
+            }
+
+            // Track typing start
+            if (!this.typingStartTime) {
+                this.typingStartTime = Date.now();
+            }
+
+            // Reset idle timer
+            this.resetIdleTimer();
+
+            // Save to localStorage periodically
+            this.saveSessionState();
+        });
+
+        messageInput.addEventListener('input', (e) => {
+            // Track typing patterns
+            if (this.typingStartTime) {
+                const pattern = {
+                    duration: Date.now() - this.typingStartTime,
+                    length: e.target.value.length,
+                    timestamp: Date.now()
+                };
+                this.behaviorMetrics.typingPatterns.push(pattern);
+            }
+        });
+    }
+
+    resetIdleTimer() {
+        if (this.idleTimer) clearTimeout(this.idleTimer);
+
+        const idleStart = Date.now();
+        this.idleTimer = setTimeout(() => {
+            this.behaviorMetrics.idleDuration += Date.now() - idleStart;
+        }, 5000); // Consider idle after 5 seconds
     }
 
     async loadExperimentalCondition() {
@@ -586,6 +763,7 @@ class ChatApp {
     }
 
     editMessage(msgId) {
+        this.behaviorMetrics.messageEdits++;
         const widget = this.msgWidgets[msgId];
         if (!widget) return;
 
@@ -648,6 +826,9 @@ class ChatApp {
     }
 
     deleteMessages(fromMsgId) {
+        const deletedCount = this.currentChatlog.filter(msg => msg.msg_id >= fromMsgId).length;
+        this.behaviorMetrics.messagesDeleted += deletedCount;
+
         // Remove from UI
         Object.keys(this.msgWidgets).forEach(msgId => {
             const id = parseInt(msgId);
@@ -1021,6 +1202,161 @@ class ChatApp {
             };
             return false;
         }
+    }
+    checkStudyCompletion() {
+        // Define completion criteria
+        const criteria = {
+            minMessages: 10, // Minimum messages sent by user
+            minConversations: 1, // Minimum conversations
+            minDuration: 5 * 60 * 1000, // 5 minutes minimum
+            requiredTasks: true // You can add specific task tracking
+        };
+
+        const userMessages = this.currentChatlog.filter(msg => msg.sender === 'User').length;
+        const sessionDuration = Date.now() - this.behaviorMetrics.sessionStartTime;
+
+        const isComplete =
+            userMessages >= criteria.minMessages &&
+            this.conversations.size >= criteria.minConversations &&
+            sessionDuration >= criteria.minDuration;
+
+        return {
+            isComplete,
+            details: {
+                userMessages,
+                totalConversations: this.conversations.size,
+                sessionDuration: Math.floor(sessionDuration / 1000), // in seconds
+                criteria
+            }
+        };
+    }
+
+    showCompletionInterface() {
+        const completion = this.checkStudyCompletion();
+
+        if (!completion.isComplete) {
+            alert(`Please complete all required tasks:\n- Send at least ${completion.details.criteria.minMessages} messages (you have ${completion.details.userMessages})\n- Spend at least 5 minutes in the study`);
+            return;
+        }
+
+        // Generate completion code
+        const completionCode = this.generateCompletionCode();
+
+        const modal = document.createElement('div');
+        modal.className = 'completion-modal';
+        modal.innerHTML = `
+        <div class="completion-content">
+            <h2>🎉 Study Completed!</h2>
+            <p>Thank you for participating. Your completion code is:</p>
+            <div class="completion-code">${completionCode}</div>
+            <p>Please download your session data and submit it with your Tally survey.</p>
+            <button id="download-data" class="download-btn">📥 Download Session Data</button>
+            <p class="completion-note">After downloading, you may close this window.</p>
+        </div>
+    `;
+
+        document.body.appendChild(modal);
+
+        document.getElementById('download-data').onclick = () => {
+            this.downloadSessionData(completionCode);
+        };
+    }
+
+    generateCompletionCode() {
+        // Generate a unique completion code
+        const timestamp = Date.now().toString(36);
+        const random = Math.random().toString(36).substr(2, 5);
+        return `${this.participantId}-${timestamp}-${random}`.toUpperCase();
+    }
+
+    async downloadSessionData(completionCode) {
+        // Prepare complete session data
+        const sessionData = {
+            participantId: this.participantId,
+            sessionId: this.sessionId,
+            completionCode: completionCode,
+            completedAt: new Date().toISOString(),
+            modelConfiguration: {
+                displayed: this.config.displayName,
+                actual: this.config.trueModel,
+                configurationId: this.configurationId
+            },
+            conversations: Object.fromEntries(this.conversations),
+            behaviorMetrics: this.behaviorMetrics,
+            sessionMetrics: {
+                totalMessages: this.currentChatlog.length,
+                userMessages: this.currentChatlog.filter(msg => msg.sender === 'User').length,
+                botMessages: this.currentChatlog.filter(msg => msg.sender === 'Bot').length,
+                sessionDuration: Date.now() - this.behaviorMetrics.sessionStartTime,
+                backspaceRate: this.behaviorMetrics.backspaceCount / this.behaviorMetrics.totalKeystrokes
+            }
+        };
+
+        // Create blob and download
+        const dataStr = JSON.stringify(sessionData, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `chatbot_session_${this.participantId}_${completionCode}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        // Mark as completed and save to server
+        await this.finalizeSession(completionCode);
+
+        // Show success message
+        setTimeout(() => {
+            alert('Download complete! Please submit this file with your Tally survey.\n\nYour completion code: ' + completionCode);
+        }, 500);
+    }
+
+    async finalizeSession(completionCode) {
+        try {
+            // Add completion code to behavior metrics
+            this.behaviorMetrics.completionCode = completionCode;
+            this.behaviorMetrics.completedAt = new Date().toISOString();
+
+            // Save to server with completion flag
+            const saveData = {
+                participantId: this.participantId,
+                sessionId: this.sessionId,
+                conversations: Object.fromEntries(this.conversations),
+                modelConfig: this.config,
+                behaviorMetrics: this.behaviorMetrics,
+                completionCode: completionCode,
+                studyCompleted: true // This flag indicates actual completion
+            };
+
+            const response = await fetch('/api/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(saveData)
+            });
+
+            if (response.ok) {
+                // Clear local storage
+                localStorage.removeItem(this.sessionKey);
+                localStorage.removeItem('chatbot_last_session');
+                console.log('✅ Session finalized successfully');
+            }
+        } catch (error) {
+            console.error('Error finalizing session:', error);
+        }
+    }
+
+    // Add a complete button to the UI
+    setupCompletionButton() {
+        const completeBtn = document.createElement('button');
+        completeBtn.id = 'complete-study-btn';
+        completeBtn.className = 'complete-btn';
+        completeBtn.innerHTML = '✓ Complete Study';
+        completeBtn.onclick = () => this.showCompletionInterface();
+
+        document.querySelector('.header-actions').appendChild(completeBtn);
     }
 }
 

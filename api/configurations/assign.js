@@ -1,8 +1,6 @@
-import fs from 'fs-extra';
-import path from 'path';
+import GitHubStorage from '../../utils/githubStorage.js';
 
-// Since we can't use __dirname in Vercel, we'll use a different approach
-const DATA_DIR = '/tmp'; // Vercel's temporary directory
+const githubStorage = new GitHubStorage();
 
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
@@ -10,23 +8,59 @@ export default async function handler(req, res) {
     }
 
     try {
-        // For now, let's return a simple response to test
-        const assignment = {
-            sessionId: `session_${Date.now()}`,
-            participantId: generateParticipantId(),
-            configuration: {
-                id: 1,
-                displayedModel: "GPT-4",
-                actualModel: "gpt-4-turbo"
+        // Load current configuration state from GitHub
+        const configData = await githubStorage.loadConfigurationState();
+        
+        // Find configuration with lowest completion count that hasn't reached target
+        let selectedConfig = null;
+        let minCompletions = Infinity;
+        
+        for (const config of Object.values(configData.configurations)) {
+            if (config.isActive && 
+                config.completedSessions < config.targetSessions && 
+                config.completedSessions < minCompletions) {
+                minCompletions = config.completedSessions;
+                selectedConfig = config;
             }
+        }
+        
+        if (!selectedConfig) {
+            // All configurations have reached their target
+            return res.status(503).json({ 
+                error: 'Study complete',
+                message: 'All configuration slots have been filled' 
+            });
+        }
+        
+        // Generate session info
+        const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const participantId = generateParticipantId();
+        
+        // Record the session assignment
+        configData.sessions[sessionId] = {
+            sessionId,
+            participantId,
+            configurationId: selectedConfig.id,
+            displayedModel: selectedConfig.displayedModel,
+            actualModel: selectedConfig.actualModel,
+            assignedAt: new Date().toISOString(),
+            completed: false
         };
-
+        
+        // Save updated state back to GitHub
+        await githubStorage.saveConfigurationState(configData);
+        
         res.json({
             success: true,
-            sessionId: assignment.sessionId,
-            participantId: assignment.participantId,
-            configuration: assignment.configuration
+            sessionId,
+            participantId,
+            configuration: {
+                id: selectedConfig.id,
+                displayedModel: selectedConfig.displayedModel,
+                actualModel: selectedConfig.actualModel
+            }
         });
+        
     } catch (error) {
         console.error('Configuration assignment error:', error);
         res.status(500).json({ 

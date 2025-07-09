@@ -1,27 +1,43 @@
+import GitHubStorage from '../../utils/githubStorage.js';
+
+const githubStorage = new GitHubStorage();
+
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
     try {
-        // Simple status response for testing
-        const status = {
-            configurations: {
-                "1": { id: 1, displayedModel: "GPT-4", actualModel: "gpt-4-turbo", completedSessions: 0, targetSessions: 12 }
-            },
-            totalSessions: 0,
-            completedSessions: 0,
-            activeSessions: 0,
-            metadata: {
-                totalConfigurations: 9,
-                totalTargetSessions: 108
-            }
+        const configData = await githubStorage.loadConfigurationState();
+        
+        // Calculate statistics
+        const stats = {
+            configurations: {},
+            totalSessions: Object.keys(configData.sessions).length,
+            completedSessions: Object.values(configData.sessions).filter(s => s.completed).length,
+            activeSessions: Object.values(configData.sessions).filter(s => !s.completed).length,
+            remainingSlots: 0
         };
-
+        
+        // Configuration-specific stats
+        for (const [id, config] of Object.entries(configData.configurations)) {
+            stats.configurations[id] = {
+                displayedModel: config.displayedModel,
+                actualModel: config.actualModel,
+                completedSessions: config.completedSessions,
+                targetSessions: config.targetSessions,
+                remainingSlots: config.targetSessions - config.completedSessions,
+                isActive: config.isActive && config.completedSessions < config.targetSessions
+            };
+            stats.remainingSlots += Math.max(0, config.targetSessions - config.completedSessions);
+        }
+        
         res.json({
             success: true,
-            status: status
+            stats,
+            metadata: configData.metadata
         });
+        
     } catch (error) {
         console.error('Status error:', error);
         res.status(500).json({ 
