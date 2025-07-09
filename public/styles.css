@@ -1740,7 +1740,7 @@ body.light-theme {
 
 .welcome-content-container {
     position: relative;
-    min-height: 280px;
+    min-height: 300px;
     overflow: hidden;
     flex: 1;
     border-radius: 8px;
