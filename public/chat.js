@@ -777,7 +777,6 @@ class ChatApp {
         }
     }
 
-    // Add this new method to register the session with participant ID
     async registerSession() {
         try {
             const response = await fetch('/api/sessions/register', {
@@ -791,30 +790,21 @@ class ChatApp {
             });
 
             if (!response.ok) {
-                console.warn('Failed to register session');
+                console.warn('Failed to register session on server');
+                return false;
+            }
+
+            const data = await response.json();
+            if (data.success) {
+                console.log('✅ Session registered successfully');
+                return true;
+            } else {
+                console.warn('Session registration returned unsuccessful response');
+                return false;
             }
         } catch (error) {
-            console.warn('Session registration error:', error);
-        }
-    }
-
-    async registerSession() {
-        try {
-            const response = await fetch('/api/sessions/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    sessionId: this.sessionId,
-                    participantId: this.participantId,
-                    configurationId: this.configurationId
-                })
-            });
-
-            if (!response.ok) {
-                console.warn('Failed to register session');
-            }
-        } catch (error) {
-            console.warn('Session registration error:', error);
+            console.warn('Error registering session:', error);
+            return false;
         }
     }
 

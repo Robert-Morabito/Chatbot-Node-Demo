@@ -12,6 +12,7 @@ import { chatRouter } from './routes/chat.js';
 import { saveRouter } from './routes/save.js';
 import { configurationsRouter } from './routes/configurations.js';
 import { modelsRouter } from './routes/models.js';
+import { sessionsRouter } from './routes/sessions.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,6 +33,7 @@ app.use('/api/chat', chatRouter);
 app.use('/api/save', saveRouter);
 app.use('/api/configurations', configurationsRouter);
 app.use('/api/models', modelsRouter);
+app.use('/api/sessions', sessionsRouter);
 
 // Health check with API key validation
 app.get('/api/health', (req, res) => {
