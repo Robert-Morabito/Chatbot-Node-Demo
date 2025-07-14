@@ -10,36 +10,42 @@ export default async function handler(req, res) {
     try {
         const { sessionId, participantId, configurationId } = req.body;
         
-        if (!sessionId || !participantId) {
-            return res.status(400).json({ error: 'Session ID and Participant ID required' });
+        if (!sessionId || !participantId || !configurationId) {
+            return res.status(400).json({ 
+                error: 'Session ID, Participant ID, and Configuration ID required' 
+            });
         }
+
+        console.log('📝 Registering session:', { sessionId, participantId, configurationId });
 
         // Load current configuration state
         const configData = await githubStorage.loadConfigurationState();
 
-        // Update session with participant ID
-        if (configData.sessions[sessionId]) {
-            configData.sessions[sessionId].participantId = participantId;
-            configData.sessions[sessionId].registeredAt = new Date().toISOString();
-            
-            // Update metadata
-            configData.metadata.lastUpdated = new Date().toISOString();
+        // Add session to the state
+        configData.sessions[sessionId] = {
+            sessionId,
+            participantId,
+            configurationId,
+            assignedAt: new Date().toISOString(),
+            completed: false,
+            completedAt: null
+        };
 
-            // Save updated state
-            await githubStorage.saveConfigurationState(configData);
+        // Update metadata
+        configData.metadata.lastUpdated = new Date().toISOString();
 
-            console.log(`✅ Session ${sessionId} registered for participant ${participantId}`);
+        // Save back to GitHub
+        await githubStorage.saveConfigurationState(configData);
 
-            res.json({
-                success: true,
-                message: 'Session registered successfully'
-            });
-        } else {
-            res.status(404).json({ error: 'Session not found' });
-        }
+        console.log('✅ Session registered successfully');
+
+        res.json({
+            success: true,
+            message: 'Session registered successfully'
+        });
 
     } catch (error) {
-        console.error('Session registration error:', error);
+        console.error('❌ Session registration error:', error);
         res.status(500).json({
             error: 'Failed to register session',
             details: error.message

@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     try {
         const { participantId, sessionId, conversations, behaviorMetrics, modelConfig } = req.body;
         
-        console.log('Save request received:', { 
+        console.log('💾 Save request received:', { 
             participantId, 
             sessionId,
             hasBehaviorMetrics: !!behaviorMetrics 
@@ -18,21 +18,24 @@ export default async function handler(req, res) {
             sessionId,
             conversations,
             modelConfig,
-            behaviorMetrics,  // Include behavioral metrics
+            behaviorMetrics,
             savedAt: new Date().toISOString()
         };
         
-        // For now, just log the data
-        console.log('Complete conversation data with metrics:', JSON.stringify(completeData, null, 2));
+        // Save participant data to GitHub
+        const githubStorage = new (await import('../utils/githubStorage.js')).default();
+        await githubStorage.saveParticipantData(participantId, sessionId, completeData);
+        
+        console.log('✅ Participant data saved to GitHub');
 
         res.json({
             success: true,
             participantId,
-            message: 'Data logged successfully',
+            message: 'Data saved successfully',
             includedMetrics: !!behaviorMetrics
         });
     } catch (error) {
-        console.error('Save error:', error);
+        console.error('❌ Save error:', error);
         res.status(500).json({ 
             error: 'Failed to save data',
             details: error.message 

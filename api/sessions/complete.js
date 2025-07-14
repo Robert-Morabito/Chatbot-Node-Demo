@@ -14,6 +14,8 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'Session ID and Participant ID required' });
         }
 
+        console.log('🏁 Completing session:', { sessionId, participantId });
+
         // Load current configuration state
         const configData = await githubStorage.loadConfigurationState();
 
@@ -33,13 +35,13 @@ export default async function handler(req, res) {
             if (configData.configurations[configId]) {
                 configData.configurations[configId].completedSessions += 1;
                 
+                console.log(`📊 Updated completion count for config ${configId}: ${configData.configurations[configId].completedSessions}/${configData.configurations[configId].targetSessions}`);
+                
                 // Check if configuration has reached its target and deactivate it
                 if (configData.configurations[configId].completedSessions >= configData.configurations[configId].targetSessions) {
                     configData.configurations[configId].isActive = false;
-                    console.log(`🎯 Configuration ${configId} has reached target (${configData.configurations[configId].targetSessions}) and is now inactive`);
+                    console.log(`🎯 Configuration ${configId} has reached target and is now inactive`);
                 }
-                
-                console.log(`✅ Incremented completion count for config ${configId}: ${configData.configurations[configId].completedSessions}/${configData.configurations[configId].targetSessions}`);
             }
 
             // Update metadata
@@ -48,7 +50,7 @@ export default async function handler(req, res) {
             // Save updated state back to GitHub
             await githubStorage.saveConfigurationState(configData);
 
-            console.log(`✅ Session ${sessionId} marked as completed`);
+            console.log('✅ Session completed and configuration updated');
         }
 
         res.json({
@@ -58,7 +60,7 @@ export default async function handler(req, res) {
         });
 
     } catch (error) {
-        console.error('Session completion error:', error);
+        console.error('❌ Session completion error:', error);
         res.status(500).json({
             error: 'Failed to mark session completed',
             details: error.message

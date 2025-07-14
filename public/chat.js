@@ -723,9 +723,11 @@ class ChatApp {
 
     async loadConfiguration() {
         try {
+            console.log('🔄 Loading configuration...');
+
             // First get configuration assignment
             const response = await fetch('/api/configurations/assign', {
-                method: 'GET',  // This is now GET
+                method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
             });
 
@@ -746,7 +748,7 @@ class ChatApp {
                     displayName: data.configuration.displayedModel
                 };
 
-                console.log(`🎯 Configuration assigned:`, {
+                console.log('🎯 Configuration loaded:', {
                     participant: this.participantId,
                     displayed: this.config.givenModel,
                     actual: this.config.trueModel,
@@ -754,14 +756,16 @@ class ChatApp {
                 });
 
                 // Now register the session with participant ID
-                await this.registerSession();
+                if (this.participantId) {
+                    await this.registerSession();
+                }
 
                 return true;
             } else {
                 throw new Error('Failed to get configuration assignment');
             }
         } catch (error) {
-            console.error('Error loading configuration:', error);
+            console.error('❌ Error loading configuration:', error);
             // Fallback to default
             this.config = {
                 givenModel: 'GPT-4',
@@ -800,6 +804,8 @@ class ChatApp {
 
     async registerSession() {
         try {
+            console.log('📝 Registering session with participant ID...');
+
             const response = await fetch('/api/sessions/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -810,11 +816,13 @@ class ChatApp {
                 })
             });
 
-            if (!response.ok) {
-                console.warn('Failed to register session');
+            if (response.ok) {
+                console.log('✅ Session registered successfully');
+            } else {
+                console.warn('⚠️ Failed to register session');
             }
         } catch (error) {
-            console.warn('Session registration error:', error);
+            console.warn('⚠️ Session registration error:', error);
         }
     }
 

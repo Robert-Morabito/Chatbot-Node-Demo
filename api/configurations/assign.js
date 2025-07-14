@@ -8,15 +8,21 @@ export default async function handler(req, res) {
     }
 
     try {
+        console.log('🎯 Starting configuration assignment...');
+        
         // Load current configuration state from GitHub
         const configData = await githubStorage.loadConfigurationState();
+        console.log('📋 Loaded configuration data:', {
+            totalConfigs: Object.keys(configData.configurations).length,
+            sessions: Object.keys(configData.sessions).length
+        });
 
         // Find configuration with lowest completion count that hasn't reached target
         let selectedConfig = null;
         let minCompletions = Infinity;
 
         for (const config of Object.values(configData.configurations)) {
-            if (config.isActive &&
+            if (config.isActive && 
                 config.completedSessions < config.targetSessions &&
                 config.completedSessions < minCompletions) {
                 minCompletions = config.completedSessions;
@@ -31,28 +37,16 @@ export default async function handler(req, res) {
             });
         }
 
+        console.log('✅ Selected configuration:', {
+            id: selectedConfig.id,
+            displayed: selectedConfig.displayedModel,
+            actual: selectedConfig.actualModel,
+            completed: selectedConfig.completedSessions,
+            target: selectedConfig.targetSessions
+        });
+
         // Generate session info
         const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-        // Record session assignment in GitHub
-        configData.sessions[sessionId] = {
-            sessionId,
-            participantId: null, // Will be set when participant ID is provided
-            configurationId: selectedConfig.id,
-            displayedModel: selectedConfig.displayedModel,
-            actualModel: selectedConfig.actualModel,
-            assignedAt: new Date().toISOString(),
-            completed: false,
-            completedAt: null
-        };
-
-        // Update metadata
-        configData.metadata.lastUpdated = new Date().toISOString();
-
-        // Save updated state
-        await githubStorage.saveConfigurationState(configData);
-
-        console.log(`🎯 Assigned config ${selectedConfig.id} (${selectedConfig.displayedModel}) to session ${sessionId}`);
 
         res.json({
             success: true,
@@ -65,7 +59,7 @@ export default async function handler(req, res) {
         });
 
     } catch (error) {
-        console.error('Configuration assignment error:', error);
+        console.error('❌ Configuration assignment error:', error);
         res.status(500).json({
             error: 'Failed to assign configuration',
             details: error.message

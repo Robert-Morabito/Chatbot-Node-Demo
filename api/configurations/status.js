@@ -8,9 +8,10 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Load current configuration state from GitHub
+        console.log('📊 Getting configuration status...');
+        
         const configData = await githubStorage.loadConfigurationState();
-
+        
         const status = {
             configurations: configData.configurations,
             totalSessions: Object.keys(configData.sessions).length,
@@ -24,7 +25,7 @@ export default async function handler(req, res) {
             status: status
         });
     } catch (error) {
-        console.error('Status error:', error);
+        console.error('❌ Status error:', error);
         res.status(500).json({ 
             error: 'Failed to get status',
             details: error.message 
