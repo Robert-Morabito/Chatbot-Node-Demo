@@ -18,15 +18,9 @@ export default async function handler(req, res) {
         const configData = await githubStorage.loadConfigurationState();
 
         // Find the session
-        let session = configData.sessions[sessionId];
+        const session = configData.sessions[sessionId];
         if (!session) {
-            // Session not found - this means the session wasn't properly registered
-            // We need the configuration ID to proceed, so we need to infer or require it
-            console.error(`Session ${sessionId} not found in configuration data`);
-            return res.status(400).json({ 
-                error: 'Session not found',
-                message: 'Session was not properly registered. Please contact support.'
-            });
+            return res.status(404).json({ error: 'Session not found' });
         }
 
         // Only mark as completed if not already done
@@ -38,14 +32,7 @@ export default async function handler(req, res) {
             const configId = session.configurationId;
             if (configData.configurations[configId]) {
                 configData.configurations[configId].completedSessions += 1;
-                
-                // Check if configuration has reached target sessions and deactivate it
-                if (configData.configurations[configId].completedSessions >= configData.configurations[configId].targetSessions) {
-                    configData.configurations[configId].isActive = false;
-                    console.log(`🔒 Configuration ${configId} deactivated (reached target sessions)`);
-                }
-                
-                console.log(`✅ Incremented completion count for config ${configId}: ${configData.configurations[configId].completedSessions}/${configData.configurations[configId].targetSessions}`);
+                console.log(`✅ Incremented completion count for config ${configId}: ${configData.configurations[configId].completedSessions}`);
             }
 
             // Update metadata

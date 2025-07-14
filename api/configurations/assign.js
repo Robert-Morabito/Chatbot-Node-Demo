@@ -1,7 +1,3 @@
-import GitHubStorage from '../../utils/githubStorage.js';
-
-const githubStorage = new GitHubStorage();
-
 export default async function handler(req, res) {
     if (req.method !== 'GET') {  // Changed from POST to GET
         return res.status(405).json({ error: 'Method not allowed' });
@@ -15,14 +11,10 @@ export default async function handler(req, res) {
         const configData = await githubStorage.loadConfigurationState();
 
         // Find configuration with lowest completion count that hasn't reached target
-        // Process in order of ID to ensure consistent assignment
         let selectedConfig = null;
         let minCompletions = Infinity;
 
-        // Sort configurations by ID to ensure deterministic ordering
-        const sortedConfigs = Object.values(configData.configurations).sort((a, b) => a.id - b.id);
-
-        for (const config of sortedConfigs) {
+        for (const config of Object.values(configData.configurations)) {
             if (config.isActive &&
                 config.completedSessions < config.targetSessions &&
                 config.completedSessions < minCompletions) {
@@ -41,7 +33,7 @@ export default async function handler(req, res) {
         // Generate session info
         const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-        console.log(`🎯 Assigned config ${selectedConfig.id} for session ${sessionId}`);
+        // Don't save session assignment yet - let the client handle participant ID
 
         res.json({
             success: true,
