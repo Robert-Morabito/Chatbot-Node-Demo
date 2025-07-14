@@ -38,7 +38,14 @@ class GitHubStorage {
             return {
                 configurations: {
                     "1": { id: 1, displayedModel: "GPT-3.5", actualModel: "gpt-3.5-turbo-0125", completedSessions: 0, targetSessions: 12, isActive: true },
-                    // ... rest of configurations
+                    "2": { id: 2, displayedModel: "GPT-3.5", actualModel: "gpt-4-turbo", completedSessions: 0, targetSessions: 12, isActive: true },
+                    "3": { id: 3, displayedModel: "GPT-3.5", actualModel: "o1-preview", completedSessions: 0, targetSessions: 12, isActive: true },
+                    "4": { id: 4, displayedModel: "GPT-4", actualModel: "gpt-3.5-turbo-0125", completedSessions: 0, targetSessions: 12, isActive: true },
+                    "5": { id: 5, displayedModel: "GPT-4", actualModel: "gpt-4-turbo", completedSessions: 0, targetSessions: 12, isActive: true },
+                    "6": { id: 6, displayedModel: "GPT-4", actualModel: "o1-preview", completedSessions: 0, targetSessions: 12, isActive: true },
+                    "7": { id: 7, displayedModel: "o1-Preview", actualModel: "gpt-3.5-turbo-0125", completedSessions: 0, targetSessions: 12, isActive: true },
+                    "8": { id: 8, displayedModel: "o1-Preview", actualModel: "gpt-4-turbo", completedSessions: 0, targetSessions: 12, isActive: true },
+                    "9": { id: 9, displayedModel: "o1-Preview", actualModel: "o1-preview", completedSessions: 0, targetSessions: 12, isActive: true }
                 },
                 sessions: {},
                 metadata: {

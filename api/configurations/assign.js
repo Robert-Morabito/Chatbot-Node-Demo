@@ -1,12 +1,13 @@
+import GitHubStorage from '../../utils/githubStorage.js';
+
+const githubStorage = new GitHubStorage();
+
 export default async function handler(req, res) {
-    if (req.method !== 'GET') {  // Changed from POST to GET
+    if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
     try {
-        // No need for prolificId from body since it's GET
-        // Just assign the next available configuration
-        
         // Load current configuration state from GitHub
         const configData = await githubStorage.loadConfigurationState();
 
@@ -33,7 +34,25 @@ export default async function handler(req, res) {
         // Generate session info
         const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-        // Don't save session assignment yet - let the client handle participant ID
+        // Record session assignment in GitHub
+        configData.sessions[sessionId] = {
+            sessionId,
+            participantId: null, // Will be set when participant ID is provided
+            configurationId: selectedConfig.id,
+            displayedModel: selectedConfig.displayedModel,
+            actualModel: selectedConfig.actualModel,
+            assignedAt: new Date().toISOString(),
+            completed: false,
+            completedAt: null
+        };
+
+        // Update metadata
+        configData.metadata.lastUpdated = new Date().toISOString();
+
+        // Save updated state
+        await githubStorage.saveConfigurationState(configData);
+
+        console.log(`🎯 Assigned config ${selectedConfig.id} (${selectedConfig.displayedModel}) to session ${sessionId}`);
 
         res.json({
             success: true,

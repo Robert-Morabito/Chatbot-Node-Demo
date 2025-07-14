@@ -3,7 +3,6 @@ import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import GitHubStorage from '../utils/githubStorage.js';
-import { markSessionCompleted } from '../utils/configurationUtils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -58,9 +57,22 @@ router.post('/', async (req, res) => {
             console.error('GitHub save failed:', error);
         }
         
-        // Mark session as completed (don't fail if this doesn't work)
+        // Mark session as completed using GitHub storage
         try {
-            await markSessionCompleted(sessionId);
+            const response = await fetch('/api/sessions/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sessionId: sessionId,
+                    participantId: participantId
+                })
+            });
+            
+            if (response.ok) {
+                console.log(`✅ Session ${sessionId} marked as completed via API`);
+            } else {
+                console.warn('Failed to mark session as completed via API');
+            }
         } catch (error) {
             console.error('Mark session completed failed:', error);
         }

@@ -29,10 +29,17 @@ export default async function handler(req, res) {
             session.completedAt = new Date().toISOString();
 
             // Increment the configuration's completed sessions count
-            const configId = session.configurationId;
+            const configId = session.configurationId.toString();
             if (configData.configurations[configId]) {
                 configData.configurations[configId].completedSessions += 1;
-                console.log(`✅ Incremented completion count for config ${configId}: ${configData.configurations[configId].completedSessions}`);
+                
+                // Check if configuration has reached its target and deactivate it
+                if (configData.configurations[configId].completedSessions >= configData.configurations[configId].targetSessions) {
+                    configData.configurations[configId].isActive = false;
+                    console.log(`🎯 Configuration ${configId} has reached target (${configData.configurations[configId].targetSessions}) and is now inactive`);
+                }
+                
+                console.log(`✅ Incremented completion count for config ${configId}: ${configData.configurations[configId].completedSessions}/${configData.configurations[configId].targetSessions}`);
             }
 
             // Update metadata

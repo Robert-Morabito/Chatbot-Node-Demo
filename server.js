@@ -33,6 +33,22 @@ app.use('/api/save', saveRouter);
 app.use('/api/configurations', configurationsRouter);
 app.use('/api/models', modelsRouter);
 
+// Add sessions API routes
+app.use('/api/sessions', async (req, res, next) => {
+    try {
+        if (req.path === '/register') {
+            const handler = (await import('./api/sessions/register.js')).default;
+            return handler(req, res);
+        } else if (req.path === '/complete') {
+            const handler = (await import('./api/sessions/complete.js')).default;
+            return handler(req, res);
+        }
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
+
 // Health check with API key validation
 app.get('/api/health', (req, res) => {
     const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
