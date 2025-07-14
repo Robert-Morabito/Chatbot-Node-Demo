@@ -1,0 +1,37 @@
+{
+  "participantId": "TestTestTestTestTestTesT",
+  "sessionId": "fallback_1752524148072_q1kp9a5rd",
+  "timestamp": "2025-07-14T20:16:09.652Z",
+  "modelConfig": {
+    "displayedModel": "GPT-4",
+    "actualModel": "gpt-4-turbo",
+    "configurationId": 1
+  },
+  "conversations": {
+    "1752524148072": {
+      "id": "1752524148072",
+      "title": "Hi",
+      "messages": [
+        {
+          "msg_id": 1,
+          "sender": "User",
+          "content": "Hi",
+          "timestamp": "2025-07-14T20:15:51.807Z"
+        },
+        {
+          "msg_id": 2,
+          "sender": "Bot",
+          "content": "Hello! How can I assist you today?",
+          "timestamp": "2025-07-14T20:15:56.147Z"
+        }
+      ],
+      "createdAt": "2025-07-14T20:15:48.072Z",
+      "lastMessageAt": "2025-07-14T20:15:57.161Z"
+    }
+  },
+  "metadata": {
+    "totalConversations": 1,
+    "totalMessages": 2,
+    "studyCompleted": true
+  }
+}
