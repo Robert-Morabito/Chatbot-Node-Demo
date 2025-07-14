@@ -74,46 +74,6 @@
     }
   },
   "sessions": {
-    "session_1751355000655_ngcbgn1p3": {
-      "sessionId": "session_1751355000655_ngcbgn1p3",
-      "participantId": "18QDIZ",
-      "configurationId": 1,
-      "displayedModel": "GPT-3.5",
-      "actualModel": "gpt-3.5-turbo-0125",
-      "assignedAt": "2025-07-01T07:30:00.655Z",
-      "completed": false,
-      "completedAt": null
-    },
-    "session_1751355594637_anzxdnlul": {
-      "sessionId": "session_1751355594637_anzxdnlul",
-      "participantId": "HSO4AN",
-      "configurationId": 1,
-      "displayedModel": "GPT-3.5",
-      "actualModel": "gpt-3.5-turbo-0125",
-      "assignedAt": "2025-07-01T07:39:54.637Z",
-      "completed": false,
-      "completedAt": null
-    },
-    "session_1751355956098_opleic0c7": {
-      "sessionId": "session_1751355956098_opleic0c7",
-      "participantId": "EVQE6B",
-      "configurationId": 1,
-      "displayedModel": "GPT-3.5",
-      "actualModel": "gpt-3.5-turbo-0125",
-      "assignedAt": "2025-07-01T07:45:56.098Z",
-      "completed": false,
-      "completedAt": null
-    },
-    "session_1751357446861_xd2f69epz": {
-      "sessionId": "session_1751357446861_xd2f69epz",
-      "participantId": "10TPY6",
-      "configurationId": 1,
-      "displayedModel": "GPT-3.5",
-      "actualModel": "gpt-3.5-turbo-0125",
-      "assignedAt": "2025-07-01T08:10:46.861Z",
-      "completed": true,
-      "completedAt": "2025-07-01T08:11:02.428Z"
-    }
   },
   "metadata": {
     "totalConfigurations": 9,
