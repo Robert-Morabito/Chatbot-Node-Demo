@@ -4,7 +4,7 @@
       "id": 1,
       "displayedModel": "GPT-3.5",
       "actualModel": "gpt-3.5-turbo-0125",
-      "completedSessions": 0,
+      "completedSessions": 1,
       "targetSessions": 12,
       "isActive": true
     },
@@ -79,14 +79,14 @@
       "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
       "configurationId": 1,
       "assignedAt": "2025-07-14T23:55:50.833Z",
-      "completed": false,
-      "completedAt": null
+      "completed": true,
+      "completedAt": "2025-07-14T23:56:05.830Z"
     }
   },
   "metadata": {
     "totalConfigurations": 9,
     "totalTargetSessions": 108,
     "createdAt": "2024-01-15T00:00:00.000Z",
-    "lastUpdated": "2025-07-14T23:55:50.833Z"
+    "lastUpdated": "2025-07-14T23:56:05.831Z"
   }
 }
