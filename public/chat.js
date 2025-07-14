@@ -12,6 +12,7 @@ class ChatApp {
         this.autoSaveTimeout = null;
         this.messageIdCounter = 0;
         this.sessionStartTime = Date.now();
+        this.isFinishing = false;
 
         this.behaviorMetrics = {
             backspaceCount: 0,
@@ -131,21 +132,35 @@ class ChatApp {
             }
         ];
 
-        // Load default config and add model steps immediately
-        const modelInfo = this.modelDescriptions[this.config.displayName] || this.modelDescriptions['GPT-4'];
+        // We'll add the model-specific steps after configuration is loaded
+        this.buildModelSteps();
+
+        // Show modal and setup
+        const modal = document.getElementById('welcome-modal');
+        modal.style.display = 'flex';
+
+        this.setupWelcomeNavigation();
+        this.updateWelcomeContent();
+        this.createProgressDots();
+    }
+
+    buildModelSteps() {
+        // Use the loaded configuration or default to GPT-4
+        const displayName = this.config?.displayName || 'GPT-4';
+        const modelInfo = this.modelDescriptions[displayName] || this.modelDescriptions['GPT-4'];
 
         // Add model intro step
         this.welcomeState.steps.push({
             type: 'model-intro',
             title: 'Welcome to the Study',
             content: `
-            <div class="model-info-point">
-                <div class="model-header-persistent">
-                    Today you will be using: ${this.config.displayName} (${modelInfo.year})
-                </div>
-                <p>Please read through the following information about this model:</p>
+        <div class="model-info-point">
+            <div class="model-header-persistent">
+                Today you will be using: ${displayName} (${modelInfo.year})
             </div>
-        `,
+            <p>Please read through the following information about this model:</p>
+        </div>
+    `,
             showTimer: true,
             showBack: true
         });
@@ -156,15 +171,15 @@ class ChatApp {
                 type: 'model-point',
                 title: 'Welcome to the Study',
                 content: `
-                <div class="model-info-point">
-                    <div class="point-content">
-                        <p>${point}</p>
-                    </div>
-                    <div class="point-counter">
-                        Point ${index + 1} of ${modelInfo.description.length}
-                    </div>
+            <div class="model-info-point">
+                <div class="point-content">
+                    <p>${point}</p>
                 </div>
-            `,
+                <div class="point-counter">
+                    Point ${index + 1} of ${modelInfo.description.length}
+                </div>
+            </div>
+        `,
                 showTimer: true,
                 showBack: true
             });
@@ -175,30 +190,22 @@ class ChatApp {
             type: 'prolific-id',
             title: 'Welcome to the Study',
             content: `
-            <div class="prolific-id-section">
-                <h3>Enter Your Prolific ID</h3>
-                <p>Please enter your Prolific ID to begin the study:</p>
-                <input type="text" 
-                       id="prolific-id-input" 
-                       class="prolific-id-input" 
-                       placeholder="Enter your 24-character Prolific ID" 
-                       maxlength="24"
-                       autocomplete="off">
-                <div id="prolific-id-error" class="error-message"></div>
-                <p class="prolific-note">Your Prolific ID should be 24 characters long and contain only letters and numbers.</p>
-            </div>
-        `,
+        <div class="prolific-id-section">
+            <h3>Enter Your Prolific ID</h3>
+            <p>Please enter your Prolific ID to begin the study:</p>
+            <input type="text" 
+                   id="prolific-id-input" 
+                   class="prolific-id-input" 
+                   placeholder="Enter your 24-character Prolific ID" 
+                   maxlength="24"
+                   autocomplete="off">
+            <div id="prolific-id-error" class="error-message"></div>
+            <p class="prolific-note">Your Prolific ID should be 24 characters long and contain only letters and numbers.</p>
+        </div>
+    `,
             showTimer: false,
             showBack: true
         });
-
-        // Show modal and setup
-        const modal = document.getElementById('welcome-modal');
-        modal.style.display = 'flex';
-
-        this.setupWelcomeNavigation();
-        this.updateWelcomeContent();
-        this.createProgressDots();
     }
 
     handleWelcomeBack() {
@@ -251,6 +258,11 @@ class ChatApp {
 
         // Load configuration with the Prolific ID
         await this.loadConfiguration();
+
+        // Rebuild the model steps with the correct configuration
+        this.welcomeState.steps = [this.welcomeState.steps[0]]; // Keep only the first welcome step
+        this.buildModelSteps();
+        this.createProgressDots();
 
         // Close modal and start app
         document.getElementById('welcome-modal').style.display = 'none';
@@ -1372,6 +1384,9 @@ class ChatApp {
     }
 
     async onClose(event) {
+        // Only auto-save if not already finishing
+        if (this.isFinishing) return;
+
         // Auto-save before closing
         if (this.currentConversationId && this.currentChatlog.length > 0) {
             const conversation = this.conversations.get(this.currentConversationId);
@@ -1529,11 +1544,22 @@ class ChatApp {
     async handleFinishStudy() {
         console.log('🏁 Finish button clicked');
 
+        // Prevent multiple clicks
+        const finishBtn = document.getElementById('finish-btn');
+        if (finishBtn.disabled) return;
+        finishBtn.disabled = true;
+
         // Show confirmation dialog
         const confirmed = await this.showFinishConfirmationDialog();
-        if (!confirmed) return;
+        if (!confirmed) {
+            finishBtn.disabled = false;
+            return;
+        }
 
         try {
+            // Show loading indicator
+            this.showFinishLoadingIndicator();
+
             // First, ensure all conversations are saved locally
             if (this.currentConversationId && this.currentChatlog.length > 0) {
                 const conversation = this.conversations.get(this.currentConversationId);
@@ -1562,16 +1588,13 @@ class ChatApp {
 
             console.log('📦 Export data prepared:', exportData);
 
-            // Show loading indicator
-            this.showFinishLoadingIndicator();
-
             // Download the data as a JSON file
             await this.downloadConversationData(exportData);
 
-            // Save to server (same as onClose)
+            // Save to server
             await this.saveToServer();
 
-            // Mark session as completed on server
+            // IMPORTANT: Mark session as completed on server
             await this.markSessionCompleted();
 
             // Close the application
@@ -1581,6 +1604,7 @@ class ChatApp {
             console.error('Error finishing study:', error);
             alert('There was an error completing the study. Please try again or contact support.');
             this.hideFinishLoadingIndicator();
+            finishBtn.disabled = false;
         }
     }
 
@@ -1669,6 +1693,9 @@ class ChatApp {
     }
 
     closeApplication() {
+        // Set flag to prevent duplicate saves
+        this.isFinishing = true;
+
         // Hide finish button to prevent double-clicking
         const finishBtn = document.getElementById('finish-btn');
         if (finishBtn) finishBtn.style.display = 'none';
@@ -1701,9 +1728,8 @@ class ChatApp {
                 </p>
             </div>
         </div>
-    `;
+        `;
 
-        // Remove the window.close() attempt - just let it stay open
         console.log('Study completed. Window will remain open.');
     }
 

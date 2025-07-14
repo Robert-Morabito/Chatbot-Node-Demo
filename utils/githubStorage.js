@@ -144,7 +144,8 @@ class GitHubStorage {
                 throw new Error('GitHub connection test failed');
             }
 
-            const fileName = `participants/chatlog_${participantId}_${Date.now()}.json`;
+            // Use cleaner filename without timestamp
+            const fileName = `participants/chatlog_${participantId}.json`;
             const content = JSON.stringify(chatData, null, 2);
             const encodedContent = Buffer.from(content).toString('base64');
 
@@ -180,7 +181,7 @@ class GitHubStorage {
                     'Accept': 'application/vnd.github.v3+json',
                 },
                 body: JSON.stringify({
-                    message: `Add participant data: ${participantId} - ${new Date().toISOString()}`,
+                    message: `Update participant data: ${participantId} - ${new Date().toISOString()}`,
                     content: encodedContent,
                     branch: this.branch,
                     ...(sha && { sha })
