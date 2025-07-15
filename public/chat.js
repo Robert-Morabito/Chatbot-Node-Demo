@@ -834,6 +834,9 @@ class ChatApp {
                 gfm: true,
                 sanitize: false
             });
+
+            // Setup image click handlers for enlargement
+            this.setupImageClickHandlers(contentDiv);
         } else {
             contentDiv.textContent = msgInfo.content;
         }
@@ -1280,6 +1283,7 @@ class ChatApp {
                             console.log('📦 [NEW] Stream data:', data.type);
 
                             if (data.type === 'content') {
+                                // Update the message content
                                 fullResponse = data.fullContent;
 
                                 // Update the message content
@@ -1291,11 +1295,25 @@ class ChatApp {
                                         gfm: true,
                                         sanitize: false
                                     });
+
+                                    // Setup image click handlers for new images
+                                    this.setupImageClickHandlers(botElement);
                                 }
 
                                 this.scrollToBottom();
+
+                            } else if (data.type === 'image_request_detected') {
+                                console.log('🎨 [NEW] Image request detected - showing generation indicator');
+
+                                // Replace typing indicator with image generation indicator
+                                this.hideTypingIndicator();
+                                this.showImageGenerationIndicator();
+
                             } else if (data.type === 'done') {
                                 console.log('✅ [NEW] Stream completed');
+
+                                // Hide any indicators
+                                this.hideImageGenerationIndicator();
                                 break;
                             }
                         } catch (parseError) {
@@ -2254,6 +2272,52 @@ class ChatApp {
             this.configurationId = 1;
 
             return false;
+        }
+    }
+
+    showImageGenerationIndicator() {
+        console.log('🎨 [NEW] Showing image generation indicator');
+
+        const messagesContainer = document.getElementById('messages');
+
+        // Remove existing indicators
+        const existingTyping = document.getElementById('typing-indicator');
+        const existingImageGen = document.getElementById('image-generation-indicator');
+        if (existingTyping) existingTyping.remove();
+        if (existingImageGen) existingImageGen.remove();
+
+        const imageGenDiv = document.createElement('div');
+        imageGenDiv.className = 'typing-message';
+        imageGenDiv.id = 'image-generation-indicator';
+
+        const iconImg = document.createElement('img');
+        iconImg.className = 'message-icon';
+        iconImg.alt = 'Bot';
+
+        // Use dynamic icon
+        const displayedModel = this.config?.displayName || '';
+        if (displayedModel.toLowerCase().includes('claude')) {
+            iconImg.src = 'images/claude.png';
+        } else {
+            iconImg.src = 'images/gpt.png';
+        }
+
+        const generatingContent = document.createElement('div');
+        generatingContent.className = 'typing-content';
+        generatingContent.innerHTML = '<div class="image-generating-text"><em>Generating image...</em></div>';
+
+        imageGenDiv.appendChild(iconImg);
+        imageGenDiv.appendChild(generatingContent);
+        messagesContainer.appendChild(imageGenDiv);
+
+        this.scrollToBottom();
+    }
+
+    hideImageGenerationIndicator() {
+        console.log('🎨 [NEW] Hiding image generation indicator');
+        const imageGenIndicator = document.getElementById('image-generation-indicator');
+        if (imageGenIndicator) {
+            imageGenIndicator.remove();
         }
     }
 }

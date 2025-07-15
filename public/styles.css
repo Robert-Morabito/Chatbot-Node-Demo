@@ -68,8 +68,10 @@ body.light-theme {
     border-radius: 16px;
     width: 90%;
     height: 90%;
-    max-width: 900px; /* Increased from 600px */
-    max-height: 80vh; /* Increased from 70vh */
+    max-width: 900px;
+    /* Increased from 600px */
+    max-height: 80vh;
+    /* Increased from 70vh */
     text-align: center;
     box-shadow: var(--shadow-dark);
 }
@@ -187,22 +189,26 @@ body.light-theme {
 }
 
 .sidebar.collapsed {
-    width: 60px; /* Keep width for toggle button */
+    width: 60px;
+    /* Keep width for toggle button */
     border-right-width: 1px;
 }
 
 .sidebar.collapsed .sidebar-header {
-    padding: 16px 8px; /* Adjust padding when collapsed */
+    padding: 16px 8px;
+    /* Adjust padding when collapsed */
 }
 
 .sidebar.collapsed .new-chat-btn,
 .sidebar.collapsed .conversation-list,
 .sidebar.collapsed .sidebar-footer {
-    display: none; /* Hide everything except toggle */
+    display: none;
+    /* Hide everything except toggle */
 }
 
 .sidebar.collapsed .sidebar-toggle {
-    margin: 0 auto; /* Center the toggle button */
+    margin: 0 auto;
+    /* Center the toggle button */
 }
 
 
@@ -549,6 +555,7 @@ body.light-theme {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -642,13 +649,29 @@ body.light-theme {
     background-color: var(--text-secondary-light);
 }
 
-.typing-dot:nth-child(1) { animation-delay: 0ms; }
-.typing-dot:nth-child(2) { animation-delay: 200ms; }
-.typing-dot:nth-child(3) { animation-delay: 400ms; }
+.typing-dot:nth-child(1) {
+    animation-delay: 0ms;
+}
+
+.typing-dot:nth-child(2) {
+    animation-delay: 200ms;
+}
+
+.typing-dot:nth-child(3) {
+    animation-delay: 400ms;
+}
 
 @keyframes typingPulse {
-    0%, 60%, 100% { opacity: 0.3; }
-    30% { opacity: 1; }
+
+    0%,
+    60%,
+    100% {
+        opacity: 0.3;
+    }
+
+    30% {
+        opacity: 1;
+    }
 }
 
 /* Edit Button */
@@ -722,7 +745,8 @@ body.light-theme {
     justify-content: flex-end;
 }
 
-.edit-confirm, .edit-cancel {
+.edit-confirm,
+.edit-cancel {
     padding: 8px 16px;
     border: none;
     border-radius: 6px;
@@ -964,8 +988,13 @@ body.light-theme {
 
 /* Spin animation for loading spinner */
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Responsive Design */
@@ -978,36 +1007,36 @@ body.light-theme {
         z-index: 100;
         transition: left 0.3s ease;
     }
-    
+
     .sidebar.open {
         left: 0;
     }
-    
+
     .sidebar.collapsed {
         left: -280px;
         width: 280px;
     }
-    
+
     .mobile-sidebar-toggle {
         display: block;
     }
-    
+
     .messages {
         padding: 0 8px;
     }
-    
+
     .message {
         max-width: 95%;
     }
-    
+
     .bot-name {
         font-size: 20px;
     }
-    
+
     .input-area {
         padding: 16px;
     }
-    
+
     .header {
         padding: 12px 16px;
     }
@@ -1019,7 +1048,7 @@ body.light-theme {
         padding: 10px 16px;
         font-size: 13px;
     }
-    
+
     .finish-btn::before {
         font-size: 14px;
     }
@@ -1065,12 +1094,18 @@ body.light-theme {
     }
 }
 
-.new-chat-btn, .save-btn, .send-btn, .continue-btn {
+.new-chat-btn,
+.save-btn,
+.send-btn,
+.continue-btn {
     position: relative;
     overflow: hidden;
 }
 
-.new-chat-btn::before, .save-btn::before, .send-btn::before, .continue-btn::before {
+.new-chat-btn::before,
+.save-btn::before,
+.send-btn::before,
+.continue-btn::before {
     content: '';
     position: absolute;
     top: 50%;
@@ -1084,15 +1119,20 @@ body.light-theme {
     z-index: 0;
 }
 
-.new-chat-btn:hover::before, .save-btn:hover::before, 
-.send-btn:hover::before, .continue-btn:hover::before {
+.new-chat-btn:hover::before,
+.save-btn:hover::before,
+.send-btn:hover::before,
+.continue-btn:hover::before {
     width: 300px;
     height: 300px;
     top: 50%;
     left: 50%;
 }
 
-.new-chat-btn span, .save-btn span, .send-btn span, .continue-btn span {
+.new-chat-btn span,
+.save-btn span,
+.send-btn span,
+.continue-btn span {
     position: relative;
     z-index: 1;
 }
@@ -1100,7 +1140,8 @@ body.light-theme {
 .conversation-item {
     transform: translateX(-20px);
     opacity: 0;
-    transition: all 0.3s ease; /* Add transition for smooth updates */
+    transition: all 0.3s ease;
+    /* Add transition for smooth updates */
 }
 
 .conversation-item:not([style*="animation: none"]) {
@@ -1131,9 +1172,11 @@ body.light-theme {
         opacity: 0;
         transform: translateY(20px) scale(0.9);
     }
+
     50% {
         transform: translateY(-5px) scale(1.02);
     }
+
     100% {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -1146,10 +1189,14 @@ body.light-theme {
 
 /* Enhanced typing dots animation */
 @keyframes typingBounce {
-    0%, 60%, 100% {
+
+    0%,
+    60%,
+    100% {
         transform: translateY(0);
         opacity: 0.4;
     }
+
     30% {
         transform: translateY(-10px);
         opacity: 1;
@@ -1234,8 +1281,8 @@ body.light-theme {
 
 /* Input focus glow effect */
 .message-input:focus {
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), 
-                0 0 20px rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1),
+        0 0 20px rgba(37, 99, 235, 0.1);
 }
 
 /* Conversation item active state animation */
@@ -1259,6 +1306,7 @@ body.light-theme {
     from {
         height: 0;
     }
+
     to {
         height: 100%;
     }
@@ -1274,8 +1322,13 @@ body.light-theme {
 }
 
 @keyframes modalFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes modalSlideIn {
@@ -1283,6 +1336,7 @@ body.light-theme {
         opacity: 0;
         transform: translateY(-30px) scale(0.9);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -1314,6 +1368,7 @@ body.light-theme {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -1322,10 +1377,19 @@ body.light-theme {
 
 /* Pulse animation for new chat indicator */
 @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
+
 .conversation-item {
     transform: translateX(-20px);
     opacity: 0;
@@ -1337,11 +1401,25 @@ body.light-theme {
     animation: slideInFromLeft 0.3s ease-out forwards;
 }
 
-.conversation-item:not(.active):nth-child(1) { animation-delay: 0.1s; }
-.conversation-item:not(.active):nth-child(2) { animation-delay: 0.2s; }
-.conversation-item:not(.active):nth-child(3) { animation-delay: 0.3s; }
-.conversation-item:not(.active):nth-child(4) { animation-delay: 0.4s; }
-.conversation-item:not(.active):nth-child(5) { animation-delay: 0.5s; }
+.conversation-item:not(.active):nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.conversation-item:not(.active):nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.conversation-item:not(.active):nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.conversation-item:not(.active):nth-child(4) {
+    animation-delay: 0.4s;
+}
+
+.conversation-item:not(.active):nth-child(5) {
+    animation-delay: 0.5s;
+}
 
 /* Ensure active state always takes precedence */
 .conversation-item.active {
@@ -1380,17 +1458,30 @@ body.light-theme {
 }
 
 /* Markdown styling within message content */
-.message-content h1, .message-content h2, .message-content h3,
-.message-content h4, .message-content h5, .message-content h6 {
+.message-content h1,
+.message-content h2,
+.message-content h3,
+.message-content h4,
+.message-content h5,
+.message-content h6 {
     margin: 16px 0 8px 0;
     font-weight: 600;
 }
 
-.message-content h1 { font-size: 1.5em; }
-.message-content h2 { font-size: 1.3em; }
-.message-content h3 { font-size: 1.1em; }
+.message-content h1 {
+    font-size: 1.5em;
+}
 
-.message-content ul, .message-content ol {
+.message-content h2 {
+    font-size: 1.3em;
+}
+
+.message-content h3 {
+    font-size: 1.1em;
+}
+
+.message-content ul,
+.message-content ol {
     margin: 8px 0;
     padding-left: 20px;
 }
@@ -1471,13 +1562,14 @@ body.light-theme {
     width: 100%;
 }
 
-.message-content th, .message-content td {
+.message-content th,
+.message-content td {
     border: 1px solid var(--border-dark);
     padding: 8px;
     text-align: left;
 }
 
-.light-theme .message-content th, 
+.light-theme .message-content th,
 .light-theme .message-content td {
     border-color: var(--border-light);
 }
@@ -1520,7 +1612,8 @@ body.light-theme {
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 0; /* Remove gap since we're using margin-right */
+    gap: 0;
+    /* Remove gap since we're using margin-right */
 }
 
 /* Mobile responsive for participant display */
@@ -1530,9 +1623,10 @@ body.light-theme {
         padding: 6px 8px;
         margin-right: 8px;
     }
-    
+
     .participant-display span:first-child {
-        display: none; /* Hide "ID:" text on mobile */
+        display: none;
+        /* Hide "ID:" text on mobile */
     }
 }
 
@@ -1671,6 +1765,7 @@ body.light-theme {
         transform: translateX(-50%) translateY(-20px);
         opacity: 0;
     }
+
     to {
         transform: translateX(-50%) translateY(0);
         opacity: 1;
@@ -1682,6 +1777,7 @@ body.light-theme {
         transform: translateX(-50%) translateY(0);
         opacity: 1;
     }
+
     to {
         transform: translateX(-50%) translateY(-20px);
         opacity: 0;
@@ -2136,16 +2232,16 @@ body.light-theme {
         max-width: 95%;
         max-height: 80vh;
     }
-    
+
     .welcome-content-container {
         min-height: 250px;
     }
-    
+
     .welcome-navigation {
         flex-direction: column;
         gap: 15px;
     }
-    
+
     .welcome-nav-btn.primary {
         width: 100%;
     }
@@ -2291,17 +2387,42 @@ body.light-theme {
         margin: 8px 0;
         border-radius: 8px;
     }
-    
+
     .image-modal img {
         max-width: 95%;
         max-height: 95%;
     }
-    
+
     .image-modal .close-button {
         top: 10px;
         right: 10px;
         width: 35px;
         height: 35px;
         font-size: 20px;
+    }
+}
+
+/* Image generation indicator */
+.image-generating-text {
+    color: var(--text-secondary-dark);
+    font-style: italic;
+    font-size: 15px;
+    opacity: 0.8;
+    animation: fadeInOut 2s ease-in-out infinite;
+}
+
+.light-theme .image-generating-text {
+    color: var(--text-secondary-light);
+}
+
+@keyframes fadeInOut {
+
+    0%,
+    100% {
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 1;
     }
 }
