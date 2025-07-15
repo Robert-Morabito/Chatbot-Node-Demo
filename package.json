@@ -1,11 +1,11 @@
 {
   "name": "chatbot-webapp",
-  "version": "1.0.0",
+  "version": "2",
   "type": "module",
   "scripts": {
-    "dev": "vercel dev",
     "build": "echo 'No build needed for Vercel'",
-    "start": "echo 'Use vercel dev for local development'"
+    "dev": "vercel dev",
+    "start": "vercel dev"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.56.0",
