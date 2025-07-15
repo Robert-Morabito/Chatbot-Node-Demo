@@ -81,12 +81,20 @@
       "assignedAt": "2025-07-14T23:55:50.833Z",
       "completed": true,
       "completedAt": "2025-07-14T23:56:05.830Z"
+    },
+    "session_1752539891277_1sqsdgovt": {
+      "sessionId": "session_1752539891277_1sqsdgovt",
+      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
+      "configurationId": 2,
+      "assignedAt": "2025-07-15T00:38:25.492Z",
+      "completed": false,
+      "completedAt": null
     }
   },
   "metadata": {
     "totalConfigurations": 9,
     "totalTargetSessions": 108,
     "createdAt": "2024-01-15T00:00:00.000Z",
-    "lastUpdated": "2025-07-14T23:56:05.831Z"
+    "lastUpdated": "2025-07-15T00:38:25.492Z"
   }
 }
