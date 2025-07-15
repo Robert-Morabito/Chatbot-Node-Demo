@@ -37,15 +37,21 @@ function validateModel(model) {
 
 // Image classification function
 async function classifyImageIntent(userMessage, hasImageContext) {
-    console.log('🔍 [Stream] Classifying image intent...');
+    console.log('🔍 [Stream] === CLASSIFICATION DEBUG START ===');
+    console.log('🔍 [Stream] User message:', userMessage);
+    console.log('🔍 [Stream] Has image context:', hasImageContext);
 
     try {
+        console.log('🔍 [Stream] Checking OpenAI API key...');
         if (!process.env.OPENAI_API_KEY) {
             console.log('❌ [Stream] No OpenAI key for classification');
             return { intent: 'none' };
         }
+        console.log('✅ [Stream] OpenAI API key found');
 
+        console.log('🔍 [Stream] Creating classifier...');
         const classifier = new OpenAIHandler(process.env.OPENAI_API_KEY);
+        console.log('✅ [Stream] Classifier created');
 
         let classificationPrompt;
         if (hasImageContext) {
@@ -65,21 +71,29 @@ Does this message request creating an image or picture?
 Respond with only: YES or NO`;
         }
 
-        const messages = [{ sender: 'User', content: classificationPrompt }];
+        console.log('🔍 [Stream] Classification prompt:', classificationPrompt);
 
+        const messages = [{ sender: 'User', content: classificationPrompt }];
+        console.log('🔍 [Stream] Messages for classification:', messages);
+
+        console.log('🔍 [Stream] Starting classification stream...');
         let classification = '';
         for await (const chunk of classifier.streamChat(messages, 'gpt-3.5-turbo-0125')) {
+            console.log('🔍 [Stream] Classification chunk:', chunk);
             if (chunk.type === 'content') {
                 classification += chunk.content;
+                console.log('🔍 [Stream] Classification building:', classification);
             } else if (chunk.type === 'done') {
+                console.log('🔍 [Stream] Classification stream done');
                 break;
             } else if (chunk.type === 'error') {
+                console.log('❌ [Stream] Classification stream error:', chunk.error);
                 throw new Error(chunk.error);
             }
         }
 
         classification = classification.trim().toUpperCase();
-        console.log('🔍 [Stream] Classification result:', classification);
+        console.log('🔍 [Stream] Final classification:', classification);
 
         let intent = 'none';
         if (hasImageContext) {
@@ -90,10 +104,12 @@ Respond with only: YES or NO`;
         }
 
         console.log('🔍 [Stream] Final intent:', intent);
+        console.log('🔍 [Stream] === CLASSIFICATION DEBUG END ===');
         return { intent, classification };
 
     } catch (error) {
         console.error('❌ [Stream] Classification error:', error);
+        console.log('🔍 [Stream] === CLASSIFICATION DEBUG END (ERROR) ===');
         return { intent: 'none' };
     }
 }
