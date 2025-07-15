@@ -1,38 +1,38 @@
 {
   "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-  "sessionId": "session_1752555730611_gmv5wfq26",
+  "sessionId": "session_1752555381085_bi2pee64l",
   "conversations": {
-    "1752555731025": {
-      "id": "1752555731025",
+    "1752555379989": {
+      "id": "1752555379989",
       "title": "Hi",
       "messages": [
         {
           "msg_id": 1,
           "sender": "User",
           "content": "Hi",
-          "timestamp": "2025-07-15T05:02:13.571Z"
+          "timestamp": "2025-07-15T04:56:22.592Z"
         },
         {
           "msg_id": 2,
           "sender": "Bot",
           "content": "Hello! How can I assist you today?",
-          "timestamp": "2025-07-15T05:02:14.242Z"
+          "timestamp": "2025-07-15T04:56:23.278Z"
         },
         {
           "msg_id": 3,
           "sender": "User",
           "content": "generate an image of a dog",
-          "timestamp": "2025-07-15T05:02:23.661Z"
+          "timestamp": "2025-07-15T04:56:32.640Z"
         },
         {
           "msg_id": 4,
           "sender": "Bot",
           "content": "I'm unable to generate images as I'm a text-based AI chatbot. However, I can try to describe a dog for you if you'd like!",
-          "timestamp": "2025-07-15T05:02:24.274Z"
+          "timestamp": "2025-07-15T04:56:33.248Z"
         }
       ],
-      "createdAt": "2025-07-15T05:02:11.025Z",
-      "lastMessageAt": "2025-07-15T05:02:11.025Z"
+      "createdAt": "2025-07-15T04:56:19.989Z",
+      "lastMessageAt": "2025-07-15T04:56:19.989Z"
     }
   },
   "modelConfig": {
@@ -41,24 +41,24 @@
     "configurationId": 1
   },
   "behaviorMetrics": {
-    "backspaceCount": 13,
+    "backspaceCount": 4,
     "averageMessageLength": 14,
     "totalMessages": 2,
     "messagesPerConversation": 2,
     "conversationCount": 1,
     "editCount": 0,
     "averageEditDistance": 0,
-    "totalIdleTime": 20396,
+    "totalIdleTime": 17810,
     "messageTimes": [
-      "2025-07-15T05:02:13.570Z",
-      "2025-07-15T05:02:23.661Z"
+      "2025-07-15T04:56:22.591Z",
+      "2025-07-15T04:56:32.640Z"
     ],
     "conversationSwitches": 0,
     "averageResponseTimeAfterBot": 0,
-    "totalKeystrokes": 57,
+    "totalKeystrokes": 39,
     "averageTypingDuration": 0,
-    "sessionDuration": 58120,
-    "keystrokesPerMessage": 28.5
+    "sessionDuration": 409165,
+    "keystrokesPerMessage": 19.5
   },
-  "savedAt": "2025-07-15T05:03:08.702Z"
+  "savedAt": "2025-07-15T05:03:10.055Z"
 }
