@@ -1,20 +1,20 @@
 {
   "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-  "sessionId": "session_1752550307150_3gc7g6r03",
+  "sessionId": "session_1752550442163_4kk8s0rn9",
   "conversations": {
-    "1752550306869": {
-      "id": "1752550306869",
+    "1752550442698": {
+      "id": "1752550442698",
       "title": "New Chat",
       "messages": [
         {
           "msg_id": 1,
           "sender": "User",
           "content": "Hi",
-          "timestamp": "2025-07-15T03:31:50.199Z"
+          "timestamp": "2025-07-15T03:34:06.010Z"
         }
       ],
-      "createdAt": "2025-07-15T03:31:46.869Z",
-      "lastMessageAt": "2025-07-15T03:31:46.869Z"
+      "createdAt": "2025-07-15T03:34:02.698Z",
+      "lastMessageAt": "2025-07-15T03:34:02.698Z"
     }
   },
   "modelConfig": {
@@ -30,16 +30,16 @@
     "conversationCount": 1,
     "editCount": 0,
     "averageEditDistance": 0,
-    "totalIdleTime": 104547,
+    "totalIdleTime": 22345,
     "messageTimes": [
-      "2025-07-15T03:31:50.199Z"
+      "2025-07-15T03:34:06.009Z"
     ],
     "conversationSwitches": 0,
     "averageResponseTimeAfterBot": 0,
     "totalKeystrokes": 4,
     "averageTypingDuration": 0,
-    "sessionDuration": 105523,
+    "sessionDuration": 33913,
     "keystrokesPerMessage": 4
   },
-  "savedAt": "2025-07-15T03:33:32.592Z"
+  "savedAt": "2025-07-15T03:34:36.070Z"
 }
