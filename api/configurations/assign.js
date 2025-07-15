@@ -15,8 +15,25 @@ export default async function handler(req, res) {
     try {
         console.log('Starting configuration assignment');
         
+        // Load current configuration state from GitHub
         const configData = await githubStorage.loadConfigurationState();
-        const selectedConfig = findAvailableConfiguration(configData.configurations);
+        console.log('Loaded configuration data:', {
+            totalConfigs: Object.keys(configData.configurations).length,
+            sessions: Object.keys(configData.sessions).length
+        });
+
+        // Find configuration with lowest completion count that hasn't reached target
+        let selectedConfig = null;
+        let minCompletions = Infinity;
+
+        for (const config of Object.values(configData.configurations)) {
+            if (config.isActive && 
+                config.completedSessions < config.targetSessions &&
+                config.completedSessions < minCompletions) {
+                minCompletions = config.completedSessions;
+                selectedConfig = config;
+            }
+        }
 
         if (!selectedConfig) {
             return res.status(503).json({
@@ -25,9 +42,16 @@ export default async function handler(req, res) {
             });
         }
 
-        const sessionId = generateSessionId();
+        console.log('Selected configuration:', {
+            id: selectedConfig.id,
+            displayed: selectedConfig.displayedModel,
+            actual: selectedConfig.actualModel,
+            completed: selectedConfig.completedSessions,
+            target: selectedConfig.targetSessions
+        });
 
-        console.log(`Assigned configuration ${selectedConfig.id} to session ${sessionId}`);
+        // Generate session info
+        const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
         res.json({
             success: true,
@@ -46,33 +70,4 @@ export default async function handler(req, res) {
             details: error.message
         });
     }
-}
-
-/**
- * Find configuration with lowest completion count that hasn't reached target
- * @param {Object} configurations - Available configurations
- * @returns {Object|null} Selected configuration or null if none available
- */
-function findAvailableConfiguration(configurations) {
-    let selectedConfig = null;
-    let minCompletions = Infinity;
-
-    for (const config of Object.values(configurations)) {
-        if (config.isActive && 
-            config.completedSessions < config.targetSessions &&
-            config.completedSessions < minCompletions) {
-            minCompletions = config.completedSessions;
-            selectedConfig = config;
-        }
-    }
-
-    return selectedConfig;
-}
-
-/**
- * Generate unique session ID
- * @returns {string} Session ID
- */
-function generateSessionId() {
-    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
