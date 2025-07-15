@@ -177,12 +177,20 @@
       "assignedAt": "2025-07-15T03:06:07.116Z",
       "completed": false,
       "completedAt": null
+    },
+    "session_1752550307150_3gc7g6r03": {
+      "sessionId": "session_1752550307150_3gc7g6r03",
+      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
+      "configurationId": 1,
+      "assignedAt": "2025-07-15T03:31:54.099Z",
+      "completed": false,
+      "completedAt": null
     }
   },
   "metadata": {
     "totalConfigurations": 20,
     "totalTargetSessions": 20,
     "createdAt": "2024-01-15T00:00:00.000Z",
-    "lastUpdated": "2025-07-15T03:06:07.116Z"
+    "lastUpdated": "2025-07-15T03:31:54.099Z"
   }
 }
