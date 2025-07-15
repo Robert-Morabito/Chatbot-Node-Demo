@@ -1,0 +1,51 @@
+{
+  "participantId": "gagagagagggggggggggggggg",
+  "sessionId": "session_1752558656623_rlgwdnahc",
+  "conversations": {
+    "1752558658817": {
+      "id": "1752558658817",
+      "title": "Generate a picture of a donkey",
+      "messages": [
+        {
+          "msg_id": 1,
+          "sender": "User",
+          "content": "Generate a picture of a donkey",
+          "timestamp": "2025-07-15T05:51:04.919Z"
+        },
+        {
+          "msg_id": 2,
+          "sender": "Bot",
+          "content": "I've generated an image for you:\n\n![Generated Image](https://oaidalleapiprodscus.blob.core.windows.net/private/org-Yh76Y43H54S7cSzY2d7PJb2a/user-694Lha43voRkn4gGxaZbYrMv/img-P10fFSf2SDQBO1u2m8ntlRJp.png?st=2025-07-15T04%3A51%3A28Z&se=2025-07-15T06%3A51%3A28Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=475fd488-6c59-44a5-9aa9-31c4db451bea&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-15T03%3A19%3A37Z&ske=2025-07-16T03%3A19%3A37Z&sks=b&skv=2024-08-04&sig=tNbowE2ilHmZugrlMoUzD7irtALMi1DkKB9waRIVE2w%3D)",
+          "timestamp": "2025-07-15T05:51:05.682Z"
+        }
+      ],
+      "createdAt": "2025-07-15T05:50:58.817Z",
+      "lastMessageAt": "2025-07-15T05:50:58.817Z"
+    }
+  },
+  "modelConfig": {
+    "displayedModel": "GPT-3.5",
+    "actualModel": "gpt-3.5-turbo-0125",
+    "configurationId": 1
+  },
+  "behaviorMetrics": {
+    "backspaceCount": 0,
+    "averageMessageLength": 30,
+    "totalMessages": 1,
+    "messagesPerConversation": 1,
+    "conversationCount": 1,
+    "editCount": 0,
+    "averageEditDistance": 0,
+    "totalIdleTime": 44697,
+    "messageTimes": [
+      "2025-07-15T05:51:04.919Z"
+    ],
+    "conversationSwitches": 0,
+    "averageResponseTimeAfterBot": 0,
+    "totalKeystrokes": 32,
+    "averageTypingDuration": 0,
+    "sessionDuration": 60357,
+    "keystrokesPerMessage": 32
+  },
+  "savedAt": "2025-07-15T05:51:57.026Z"
+}
