@@ -1,26 +1,26 @@
 {
   "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-  "sessionId": "session_1752551721257_ojre4o1lv",
+  "sessionId": "session_1752552138406_em7rttzgn",
   "conversations": {
-    "1752551729369": {
-      "id": "1752551729369",
-      "title": "Hi",
+    "1752552139954": {
+      "id": "1752552139954",
+      "title": "What model are you?",
       "messages": [
         {
           "msg_id": 1,
           "sender": "User",
-          "content": "Hi",
-          "timestamp": "2025-07-15T03:55:31.758Z"
+          "content": "What model are you?",
+          "timestamp": "2025-07-15T04:02:24.364Z"
         },
         {
           "msg_id": 2,
           "sender": "Bot",
-          "content": "Hello! How are you doing today? Is there anything I can help you with?",
-          "timestamp": "2025-07-15T03:55:32.441Z"
+          "content": "I'm an AI chatbot. I'm happy to help you with tasks or conversation, but I don't discuss details about my specific model or technical background.",
+          "timestamp": "2025-07-15T04:02:25.131Z"
         }
       ],
-      "createdAt": "2025-07-15T03:55:29.369Z",
-      "lastMessageAt": "2025-07-15T03:55:29.369Z"
+      "createdAt": "2025-07-15T04:02:19.954Z",
+      "lastMessageAt": "2025-07-15T04:02:19.954Z"
     }
   },
   "modelConfig": {
@@ -30,22 +30,22 @@
   },
   "behaviorMetrics": {
     "backspaceCount": 0,
-    "averageMessageLength": 2,
+    "averageMessageLength": 19,
     "totalMessages": 1,
     "messagesPerConversation": 1,
     "conversationCount": 1,
     "editCount": 0,
     "averageEditDistance": 0,
-    "totalIdleTime": 35978,
+    "totalIdleTime": 22303,
     "messageTimes": [
-      "2025-07-15T03:55:31.758Z"
+      "2025-07-15T04:02:24.364Z"
     ],
     "conversationSwitches": 0,
     "averageResponseTimeAfterBot": 0,
-    "totalKeystrokes": 4,
+    "totalKeystrokes": 22,
     "averageTypingDuration": 0,
-    "sessionDuration": 23375,
-    "keystrokesPerMessage": 4
+    "sessionDuration": 18618,
+    "keystrokesPerMessage": 22
   },
-  "savedAt": "2025-07-15T03:55:44.578Z"
+  "savedAt": "2025-07-15T04:02:36.919Z"
 }
