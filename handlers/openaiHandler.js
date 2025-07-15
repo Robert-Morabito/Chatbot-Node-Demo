@@ -5,14 +5,14 @@ export class OpenAIHandler {
         if (!apiKey) {
             throw new Error('OpenAI API key is required');
         }
-        
+
         this.client = new OpenAI({
             apiKey: apiKey,
         });
-        
+
         this.modelMapping = {
             'GPT-4': 'gpt-4-turbo',
-            'GPT-4o': 'gpt-4o', 
+            'GPT-4o': 'gpt-4o',
             'GPT-3.5': 'gpt-3.5-turbo-0125',
             'o1-mini': 'o1-mini',
             'o1-preview': 'o1-preview'
@@ -20,16 +20,26 @@ export class OpenAIHandler {
     }
 
     formatMessages(messages) {
-        return messages.map(msg => ({
+        // Add system prompt first
+        const systemMessage = {
+            role: 'system',
+            content: 'If asked about which model you are, simply reply that you are an AI chatbot. Never reveal which model you are or which company created you.'
+        };
+
+        // Convert user messages
+        const userMessages = messages.map(msg => ({
             role: msg.sender === 'User' ? 'user' : 'assistant',
             content: msg.content
         }));
+
+        // Return system message + user messages
+        return [systemMessage, ...userMessages];
     }
 
     async generateImage(prompt, options = {}) {
         const {
             model = "dall-e-3",
-            size = "1024x1024", 
+            size = "1024x1024",
             quality = "standard",
             n = 1
         } = options;
@@ -47,7 +57,7 @@ export class OpenAIHandler {
             });
 
             console.log('✅ [OpenAI] Image generated successfully');
-            
+
             return {
                 success: true,
                 url: response.data[0].url,
@@ -69,17 +79,17 @@ export class OpenAIHandler {
                 model: actualModel,
                 messages: this.formatMessages(messages),
                 stream: true,
-                ...(actualModel.startsWith('o1') 
+                ...(actualModel.startsWith('o1')
                     ? { max_completion_tokens: 5000 }
                     : { max_tokens: 800, temperature: 0.7 }
                 )
             });
 
             let fullResponse = '';
-            
+
             for await (const chunk of stream) {
                 const delta = chunk.choices[0]?.delta;
-                
+
                 if (delta?.content) {
                     fullResponse += delta.content;
                     yield {
@@ -88,7 +98,7 @@ export class OpenAIHandler {
                         fullContent: fullResponse
                     };
                 }
-                
+
                 if (chunk.choices[0]?.finish_reason) {
                     yield {
                         type: 'done',

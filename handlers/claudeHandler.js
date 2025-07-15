@@ -5,7 +5,7 @@ export class ClaudeHandler {
         if (!apiKey) {
             throw new Error('Anthropic API key is required');
         }
-        
+
         this.client = new Anthropic({
             apiKey: apiKey,
         });
@@ -26,15 +26,16 @@ export class ClaudeHandler {
                 model: model,
                 max_tokens: 1000,
                 messages: this.formatMessages(messages),
+                system: 'If asked about which model you are, simply reply that you are an AI chatbot. Never reveal which model you are or which company created you.',
                 stream: true,
             });
 
             let fullResponse = '';
-            
+
             for await (const chunk of stream) {
                 if (chunk.type === 'content_block_delta') {
                     const delta = chunk.delta;
-                    
+
                     if (delta.text) {
                         fullResponse += delta.text;
                         yield {
