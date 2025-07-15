@@ -2,14 +2,14 @@ import { OpenAIHandler } from '../../handlers/openaiHandler.js';
 
 export default async function handler(req, res) {
     console.log('🔍 [Image Classify] Request received');
-    
+
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
     try {
         const { userMessage, hasImageContext } = req.body;
-        
+
         console.log('🔍 [Image Classify] Processing:', {
             userMessage,
             hasImageContext
@@ -31,18 +31,32 @@ export default async function handler(req, res) {
         if (hasImageContext) {
             classificationPrompt = `The user previously generated an image. Now they said: "${userMessage}"
 
-Does this message request:
-- A NEW image (completely different subject)
-- MODIFY the existing image (change color, add/remove elements, etc.)
-- NEITHER (just regular conversation)
+            Analyze what the user wants:
+            - If they want a completely NEW/DIFFERENT image, respond: NEW
+            - If they want to MODIFY/CHANGE the existing image (color, size, add/remove things), respond: MODIFY  
+            - If they're just having normal conversation, respond: NEITHER
 
-Respond with only: NEW, MODIFY, or NEITHER`;
+            Respond with only one word: NEW, MODIFY, or NEITHER`;
         } else {
             classificationPrompt = `The user said: "${userMessage}"
 
-Does this message request creating an image or picture?
+            Does this request involve creating, generating, drawing, or making an image, picture, or visual?
 
-Respond with only: YES or NO`;
+            Examples that should be YES:
+            - "draw a dog"
+            - "generate an image of a cat"
+            - "create a picture of a sunset"
+            - "make an image of a car"
+            - "I want a picture of flowers"
+            - "show me an image of a mountain"
+
+            Examples that should be NO:
+            - "hello"
+            - "how are you?"
+            - "what's the weather?"
+            - "tell me a joke"
+
+            Respond with only: YES or NO`;
         }
 
         // Create fake conversation for classification
