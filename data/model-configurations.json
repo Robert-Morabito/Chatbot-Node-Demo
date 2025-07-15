@@ -162,11 +162,19 @@
     }
   },
   "sessions": {
+    "session_1752553404197_hp1fzhxsj": {
+      "sessionId": "session_1752553404197_hp1fzhxsj",
+      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
+      "configurationId": 1,
+      "assignedAt": "2025-07-15T04:23:38.478Z",
+      "completed": false,
+      "completedAt": null
+    }
   },
   "metadata": {
     "totalConfigurations": 20,
     "totalTargetSessions": 20,
     "createdAt": "2024-01-15T00:00:00.000Z",
-    "lastUpdated": "2025-07-15T03:39:19.498Z"
+    "lastUpdated": "2025-07-15T04:23:38.478Z"
   }
 }
