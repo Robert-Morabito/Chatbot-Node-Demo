@@ -1,4 +1,9 @@
-/*import GitHubStorage from '../../utils/githubStorage.js';
+/**
+ * Configuration Assignment Handler
+ * Assigns study configurations to chat sessions based on completion counts
+ */
+
+import GitHubStorage from '../../utils/githubStorage.js';
 
 const githubStorage = new GitHubStorage();
 
@@ -8,27 +13,10 @@ export default async function handler(req, res) {
     }
 
     try {
-        console.log('🎯 Starting configuration assignment...');
+        console.log('Starting configuration assignment');
         
-        // Load current configuration state from GitHub
         const configData = await githubStorage.loadConfigurationState();
-        console.log('📋 Loaded configuration data:', {
-            totalConfigs: Object.keys(configData.configurations).length,
-            sessions: Object.keys(configData.sessions).length
-        });
-
-        // Find configuration with lowest completion count that hasn't reached target
-        let selectedConfig = null;
-        let minCompletions = Infinity;
-
-        for (const config of Object.values(configData.configurations)) {
-            if (config.isActive && 
-                config.completedSessions < config.targetSessions &&
-                config.completedSessions < minCompletions) {
-                minCompletions = config.completedSessions;
-                selectedConfig = config;
-            }
-        }
+        const selectedConfig = findAvailableConfiguration(configData.configurations);
 
         if (!selectedConfig) {
             return res.status(503).json({
@@ -37,16 +25,9 @@ export default async function handler(req, res) {
             });
         }
 
-        console.log('✅ Selected configuration:', {
-            id: selectedConfig.id,
-            displayed: selectedConfig.displayedModel,
-            actual: selectedConfig.actualModel,
-            completed: selectedConfig.completedSessions,
-            target: selectedConfig.targetSessions
-        });
+        const sessionId = generateSessionId();
 
-        // Generate session info
-        const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        console.log(`Assigned configuration ${selectedConfig.id} to session ${sessionId}`);
 
         res.json({
             success: true,
@@ -59,10 +40,39 @@ export default async function handler(req, res) {
         });
 
     } catch (error) {
-        console.error('❌ Configuration assignment error:', error);
+        console.error('Configuration assignment error:', error.message);
         res.status(500).json({
             error: 'Failed to assign configuration',
             details: error.message
         });
     }
-}*/
+}
+
+/**
+ * Find configuration with lowest completion count that hasn't reached target
+ * @param {Object} configurations - Available configurations
+ * @returns {Object|null} Selected configuration or null if none available
+ */
+function findAvailableConfiguration(configurations) {
+    let selectedConfig = null;
+    let minCompletions = Infinity;
+
+    for (const config of Object.values(configurations)) {
+        if (config.isActive && 
+            config.completedSessions < config.targetSessions &&
+            config.completedSessions < minCompletions) {
+            minCompletions = config.completedSessions;
+            selectedConfig = config;
+        }
+    }
+
+    return selectedConfig;
+}
+
+/**
+ * Generate unique session ID
+ * @returns {string} Session ID
+ */
+function generateSessionId() {
+    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
