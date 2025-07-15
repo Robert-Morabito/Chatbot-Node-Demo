@@ -2,7 +2,7 @@
   "configurations": {
     "1": {
       "id": 1,
-      "displayedModel": "GPT-3.5",
+      "displayedModel": "Claude 3 Opus",
       "actualModel": "claude-3-5-haiku-20241022",
       "completedSessions": 0,
       "targetSessions": 1,
