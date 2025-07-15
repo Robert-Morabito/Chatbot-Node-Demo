@@ -953,6 +953,7 @@ class ChatApp {
         }
     }
 
+    /*
     async getLLMResponse() {
         try {
             // Prepare the message data
@@ -1156,6 +1157,119 @@ class ChatApp {
 
             this.currentChatlog.push(errorMsgInfo);
             this.renderMessage(errorMsgInfo);
+        }
+    }
+        */
+    async getLLMResponse() {
+        console.log('🤖 [NEW] getLLMResponse() called');
+
+        try {
+            // Hide typing indicator
+            this.hideTypingIndicator();
+
+            // Prepare request data
+            const requestData = {
+                messages: this.currentChatlog,
+                model: this.config.trueModel,
+                sessionId: this.sessionId,
+                conversationId: this.currentConversationId,
+                imageContext: this.imageContext
+            };
+
+            console.log('📡 [NEW] Making API request to /api/chat/stream');
+            console.log('📡 [NEW] Request data:', requestData);
+
+            // Make the API call
+            const response = await fetch('/api/chat/stream', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            console.log('📡 [NEW] Response status:', response.status);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Process the stream
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            // Create bot message
+            const botMsgId = ++this.messageIdCounter;
+            const botMsg = {
+                msg_id: botMsgId,
+                sender: 'Bot',
+                content: '',
+                timestamp: new Date()
+            };
+
+            // Add to chatlog and render
+            this.currentChatlog.push(botMsg);
+            this.renderMessage(botMsg);
+
+            let fullResponse = '';
+
+            // Read the stream
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.slice(6));
+                            console.log('📦 [NEW] Stream data:', data.type);
+
+                            if (data.type === 'content') {
+                                fullResponse = data.fullContent;
+
+                                // Update the message content
+                                botMsg.content = fullResponse;
+                                const botElement = this.msgWidgets[botMsgId].element.querySelector('.message-content');
+                                if (botElement) {
+                                    botElement.innerHTML = marked.parse(fullResponse, {
+                                        breaks: true,
+                                        gfm: true,
+                                        sanitize: false
+                                    });
+                                }
+
+                                this.scrollToBottom();
+                            } else if (data.type === 'done') {
+                                console.log('✅ [NEW] Stream completed');
+                                break;
+                            }
+                        } catch (parseError) {
+                            console.error('❌ [NEW] JSON parse error:', parseError);
+                        }
+                    }
+                }
+            }
+
+            console.log('✅ [NEW] Full response received:', fullResponse);
+
+        } catch (error) {
+            console.error('❌ [NEW] getLLMResponse error:', error);
+            this.hideTypingIndicator();
+
+            // Show error message
+            const errorMsgId = ++this.messageIdCounter;
+            const errorMsg = {
+                msg_id: errorMsgId,
+                sender: 'Bot',
+                content: `Sorry, I encountered an error: ${error.message}`,
+                timestamp: new Date()
+            };
+
+            this.currentChatlog.push(errorMsg);
+            this.renderMessage(errorMsg);
         }
     }
 
