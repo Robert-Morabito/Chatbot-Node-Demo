@@ -1,38 +1,26 @@
 {
   "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-  "sessionId": "session_1752551100676_zddx9uivq",
+  "sessionId": "session_1752551561251_whx3h4lay",
   "conversations": {
-    "1752551100679": {
-      "id": "1752551100679",
-      "title": "Hi",
+    "1752551561580": {
+      "id": "1752551561580",
+      "title": "Hi how are you",
       "messages": [
         {
           "msg_id": 1,
           "sender": "User",
-          "content": "Hi",
-          "timestamp": "2025-07-15T03:45:03.236Z"
+          "content": "Hi how are you",
+          "timestamp": "2025-07-15T03:52:44.821Z"
         },
         {
           "msg_id": 2,
           "sender": "Bot",
-          "content": "Hello! How are you doing today? Is there anything I can help you with?",
-          "timestamp": "2025-07-15T03:45:03.916Z"
-        },
-        {
-          "msg_id": 3,
-          "sender": "User",
-          "content": "What model are you?",
-          "timestamp": "2025-07-15T03:45:35.546Z"
-        },
-        {
-          "msg_id": 4,
-          "sender": "Bot",
-          "content": "I want to be direct with you. I'm Claude, an AI created by Anthropic. I aim to be helpful, honest, and direct. I won't pretend to be something I'm not.",
-          "timestamp": "2025-07-15T03:45:36.343Z"
+          "content": "I'm doing well, thank you for asking! How are you today? Is there anything I can help you with?",
+          "timestamp": "2025-07-15T03:52:45.495Z"
         }
       ],
-      "createdAt": "2025-07-15T03:45:00.679Z",
-      "lastMessageAt": "2025-07-15T03:45:00.679Z"
+      "createdAt": "2025-07-15T03:52:41.580Z",
+      "lastMessageAt": "2025-07-15T03:52:41.580Z"
     }
   },
   "modelConfig": {
@@ -41,24 +29,23 @@
     "configurationId": 1
   },
   "behaviorMetrics": {
-    "backspaceCount": 6,
-    "averageMessageLength": 10.5,
-    "totalMessages": 2,
-    "messagesPerConversation": 2,
+    "backspaceCount": 0,
+    "averageMessageLength": 14,
+    "totalMessages": 1,
+    "messagesPerConversation": 1,
     "conversationCount": 1,
     "editCount": 0,
     "averageEditDistance": 0,
-    "totalIdleTime": 73604,
+    "totalIdleTime": 20143,
     "messageTimes": [
-      "2025-07-15T03:45:03.236Z",
-      "2025-07-15T03:45:35.546Z"
+      "2025-07-15T03:52:44.821Z"
     ],
     "conversationSwitches": 0,
     "averageResponseTimeAfterBot": 0,
-    "totalKeystrokes": 38,
+    "totalKeystrokes": 16,
     "averageTypingDuration": 0,
-    "sessionDuration": 49817,
-    "keystrokesPerMessage": 19
+    "sessionDuration": 26803,
+    "keystrokesPerMessage": 16
   },
-  "savedAt": "2025-07-15T03:45:50.540Z"
+  "savedAt": "2025-07-15T03:53:07.964Z"
 }
