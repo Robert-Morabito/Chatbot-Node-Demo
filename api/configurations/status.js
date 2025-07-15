@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        console.log('Getting configuration status');
+        console.log('📊 Getting configuration status...');
         
         const configData = await githubStorage.loadConfigurationState();
         
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
             status: status
         });
     } catch (error) {
-        console.error('Status error:', error.message);
+        console.error('❌ Status error:', error);
         res.status(500).json({ 
             error: 'Failed to get status',
             details: error.message 
