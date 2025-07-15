@@ -603,6 +603,7 @@ class ChatApp {
         this.showTypingIndicator();
         setTimeout(() => this.getLLMResponse(), 500);
     }*/
+
     sendMessage() {
         console.log('📤 [NEW] sendMessage() called');
 
@@ -691,6 +692,7 @@ class ChatApp {
         }
     }
 
+    /*
     renderMessage(msgInfo, autoScroll = true) {
         const messagesContainer = document.getElementById('messages');
 
@@ -740,6 +742,67 @@ class ChatApp {
         if (autoScroll) {
             this.scrollToBottom();
         }
+    }
+        */
+    renderMessage(msgInfo, autoScroll = true) {
+        console.log('🎨 [NEW] renderMessage() called for:', msgInfo.sender, msgInfo.content);
+
+        const messagesContainer = document.getElementById('messages');
+
+        // Create message wrapper
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${msgInfo.sender.toLowerCase()}`;
+        messageDiv.dataset.msgId = msgInfo.msg_id;
+
+        // Create icon
+        const iconImg = document.createElement('img');
+        iconImg.className = 'message-icon';
+        iconImg.alt = msgInfo.sender;
+
+        if (msgInfo.sender === 'User') {
+            iconImg.src = 'images/user.png';
+        } else {
+            // Use dynamic icon based on displayed model
+            const displayedModel = this.config?.displayName || '';
+            if (displayedModel.toLowerCase().includes('claude')) {
+                iconImg.src = 'images/claude.png';
+            } else {
+                iconImg.src = 'images/gpt.png';
+            }
+        }
+
+        // Create content
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+
+        // For bot messages, parse markdown
+        if (msgInfo.sender === 'Bot') {
+            contentDiv.innerHTML = marked.parse(msgInfo.content, {
+                breaks: true,
+                gfm: true,
+                sanitize: false
+            });
+        } else {
+            contentDiv.textContent = msgInfo.content;
+        }
+
+        // Assemble message
+        messageDiv.appendChild(iconImg);
+        messageDiv.appendChild(contentDiv);
+        messagesContainer.appendChild(messageDiv);
+
+        // Store reference
+        this.msgWidgets[msgInfo.msg_id] = {
+            element: messageDiv,
+            info: msgInfo
+        };
+
+        // Auto-scroll if requested
+        if (autoScroll) {
+            this.scrollToBottom();
+        }
+
+        console.log('✅ [NEW] Message rendered successfully');
     }
 
     setupImageClickHandlers(contentDiv) {
