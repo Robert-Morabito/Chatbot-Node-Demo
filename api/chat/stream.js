@@ -1,19 +1,6 @@
 import { OpenAIHandler } from '../../handlers/openaiHandler.js';
 import { ClaudeHandler } from '../../handlers/claudeHandler.js';
 
-// Model detection functions
-function isClaudeModel(model) {
-    const result = model.startsWith('claude-');
-    console.log(`🔍 [Stream] isClaudeModel("${model}") = ${result}`);
-    return result;
-}
-
-function isOpenAIModel(model) {
-    const result = model.startsWith('gpt-') || model.startsWith('o1-');
-    console.log(`🔍 [Stream] isOpenAIModel("${model}") = ${result}`);
-    return result;
-}
-
 // Model validation
 function validateModel(model) {
     console.log(`✅ [Stream] Validating model: "${model}"`);
@@ -36,80 +23,34 @@ function validateModel(model) {
 }
 
 // Image classification function
-async function classifyImageIntent(userMessage, hasImageContext) {
-    console.log('🔍 [Stream] === CLASSIFICATION DEBUG START ===');
-    console.log('🔍 [Stream] User message:', userMessage);
-    console.log('🔍 [Stream] Has image context:', hasImageContext);
+async function classifyImageIntent(userMessage, hasImageContext, req) {
+    console.log('🔍 [Stream] Calling classify.js API...');
 
     try {
-        console.log('🔍 [Stream] Checking OpenAI API key...');
-        if (!process.env.OPENAI_API_KEY) {
-            console.log('❌ [Stream] No OpenAI key for classification');
+        const classifyResponse = await fetch(`${req.headers.host.startsWith('localhost') ? 'http' : 'https'}://${req.headers.host}/api/image/classify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userMessage: userMessage,
+                hasImageContext: hasImageContext
+            })
+        });
+
+        if (!classifyResponse.ok) {
+            console.log('❌ [Stream] Classify API failed:', classifyResponse.status);
             return { intent: 'none' };
         }
-        console.log('✅ [Stream] OpenAI API key found');
 
-        console.log('🔍 [Stream] Creating classifier...');
-        const classifier = new OpenAIHandler(process.env.OPENAI_API_KEY);
-        console.log('✅ [Stream] Classifier created');
+        const classifyData = await classifyResponse.json();
+        console.log('✅ [Stream] Classify API result:', classifyData);
 
-        let classificationPrompt;
-        if (hasImageContext) {
-            classificationPrompt = `The user previously generated an image. Now they said: "${userMessage}"
-
-Does this message request:
-- A NEW image (completely different subject)
-- MODIFY the existing image (change color, add/remove elements, etc.)
-- NEITHER (just regular conversation)
-
-Respond with only: NEW, MODIFY, or NEITHER`;
-        } else {
-            classificationPrompt = `The user said: "${userMessage}"
-
-Does this message request creating an image or picture?
-
-Respond with only: YES or NO`;
-        }
-
-        console.log('🔍 [Stream] Classification prompt:', classificationPrompt);
-
-        const messages = [{ sender: 'User', content: classificationPrompt }];
-        console.log('🔍 [Stream] Messages for classification:', messages);
-
-        console.log('🔍 [Stream] Starting classification stream...');
-        let classification = '';
-        for await (const chunk of classifier.streamChat(messages, 'gpt-3.5-turbo-0125')) {
-            console.log('🔍 [Stream] Classification chunk:', chunk);
-            if (chunk.type === 'content') {
-                classification += chunk.content;
-                console.log('🔍 [Stream] Classification building:', classification);
-            } else if (chunk.type === 'done') {
-                console.log('🔍 [Stream] Classification stream done');
-                break;
-            } else if (chunk.type === 'error') {
-                console.log('❌ [Stream] Classification stream error:', chunk.error);
-                throw new Error(chunk.error);
-            }
-        }
-
-        classification = classification.trim().toUpperCase();
-        console.log('🔍 [Stream] Final classification:', classification);
-
-        let intent = 'none';
-        if (hasImageContext) {
-            if (classification.includes('NEW')) intent = 'new_image';
-            else if (classification.includes('MODIFY')) intent = 'modify_image';
-        } else {
-            if (classification.includes('YES')) intent = 'new_image';
-        }
-
-        console.log('🔍 [Stream] Final intent:', intent);
-        console.log('🔍 [Stream] === CLASSIFICATION DEBUG END ===');
-        return { intent, classification };
+        return {
+            intent: classifyData.intent,
+            classification: classifyData.classification
+        };
 
     } catch (error) {
-        console.error('❌ [Stream] Classification error:', error);
-        console.log('🔍 [Stream] === CLASSIFICATION DEBUG END (ERROR) ===');
+        console.error('❌ [Stream] Classify API error:', error);
         return { intent: 'none' };
     }
 }
@@ -255,7 +196,8 @@ export default async function handler(req, res) {
 
             const imageClassification = await classifyImageIntent(
                 lastMessage.content,
-                !!(imageContext?.lastPrompt)
+                !!(imageContext?.lastPrompt),
+                req
             );
 
             if (imageClassification.intent === 'new_image' || imageClassification.intent === 'modify_image') {
