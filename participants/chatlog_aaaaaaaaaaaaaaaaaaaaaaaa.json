@@ -1,51 +1,51 @@
 {
   "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-  "sessionId": "session_1752552138406_em7rttzgn",
+  "sessionId": "session_1752554287425_108si104f",
   "conversations": {
-    "1752552139954": {
-      "id": "1752552139954",
-      "title": "What model are you?",
+    "1752554286756": {
+      "id": "1752554286756",
+      "title": "Generate an image of a dog",
       "messages": [
         {
           "msg_id": 1,
           "sender": "User",
-          "content": "What model are you?",
-          "timestamp": "2025-07-15T04:02:24.364Z"
+          "content": "Generate an image of a dog",
+          "timestamp": "2025-07-15T04:38:12.912Z"
         },
         {
           "msg_id": 2,
           "sender": "Bot",
-          "content": "I'm an AI chatbot. I'm happy to help you with tasks or conversation, but I don't discuss details about my specific model or technical background.",
-          "timestamp": "2025-07-15T04:02:25.131Z"
+          "content": "",
+          "timestamp": "2025-07-15T04:38:13.625Z"
         }
       ],
-      "createdAt": "2025-07-15T04:02:19.954Z",
-      "lastMessageAt": "2025-07-15T04:02:19.954Z"
+      "createdAt": "2025-07-15T04:38:06.756Z",
+      "lastMessageAt": "2025-07-15T04:38:06.756Z"
     }
   },
   "modelConfig": {
-    "displayedModel": "Claude 3 Opus",
-    "actualModel": "claude-3-5-haiku-20241022",
+    "displayedModel": "GPT-3.5",
+    "actualModel": "gpt-3.5-turbo-0125",
     "configurationId": 1
   },
   "behaviorMetrics": {
-    "backspaceCount": 0,
-    "averageMessageLength": 19,
+    "backspaceCount": 1,
+    "averageMessageLength": 26,
     "totalMessages": 1,
     "messagesPerConversation": 1,
     "conversationCount": 1,
     "editCount": 0,
     "averageEditDistance": 0,
-    "totalIdleTime": 22303,
+    "totalIdleTime": 18482,
     "messageTimes": [
-      "2025-07-15T04:02:24.364Z"
+      "2025-07-15T04:38:12.911Z"
     ],
     "conversationSwitches": 0,
     "averageResponseTimeAfterBot": 0,
-    "totalKeystrokes": 22,
+    "totalKeystrokes": 30,
     "averageTypingDuration": 0,
-    "sessionDuration": 18618,
-    "keystrokesPerMessage": 22
+    "sessionDuration": 61556,
+    "keystrokesPerMessage": 30
   },
-  "savedAt": "2025-07-15T04:02:36.919Z"
+  "savedAt": "2025-07-15T04:39:08.914Z"
 }
