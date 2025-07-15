@@ -1,26 +1,26 @@
 {
   "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-  "sessionId": "session_1752554287425_108si104f",
+  "sessionId": "session_1752554349057_gjgfo0nb7",
   "conversations": {
-    "1752554286756": {
-      "id": "1752554286756",
-      "title": "Generate an image of a dog",
+    "1752554349582": {
+      "id": "1752554349582",
+      "title": "Hi",
       "messages": [
         {
           "msg_id": 1,
           "sender": "User",
-          "content": "Generate an image of a dog",
-          "timestamp": "2025-07-15T04:38:12.912Z"
+          "content": "Hi",
+          "timestamp": "2025-07-15T04:39:12.670Z"
         },
         {
           "msg_id": 2,
           "sender": "Bot",
           "content": "",
-          "timestamp": "2025-07-15T04:38:13.625Z"
+          "timestamp": "2025-07-15T04:39:13.287Z"
         }
       ],
-      "createdAt": "2025-07-15T04:38:06.756Z",
-      "lastMessageAt": "2025-07-15T04:38:06.756Z"
+      "createdAt": "2025-07-15T04:39:09.582Z",
+      "lastMessageAt": "2025-07-15T04:39:09.582Z"
     }
   },
   "modelConfig": {
@@ -29,23 +29,23 @@
     "configurationId": 1
   },
   "behaviorMetrics": {
-    "backspaceCount": 1,
-    "averageMessageLength": 26,
+    "backspaceCount": 0,
+    "averageMessageLength": 2,
     "totalMessages": 1,
     "messagesPerConversation": 1,
     "conversationCount": 1,
     "editCount": 0,
     "averageEditDistance": 0,
-    "totalIdleTime": 18482,
+    "totalIdleTime": 28531,
     "messageTimes": [
-      "2025-07-15T04:38:12.911Z"
+      "2025-07-15T04:39:12.670Z"
     ],
     "conversationSwitches": 0,
     "averageResponseTimeAfterBot": 0,
-    "totalKeystrokes": 30,
+    "totalKeystrokes": 4,
     "averageTypingDuration": 0,
-    "sessionDuration": 61556,
-    "keystrokesPerMessage": 30
+    "sessionDuration": 26991,
+    "keystrokesPerMessage": 4
   },
-  "savedAt": "2025-07-15T04:39:08.914Z"
+  "savedAt": "2025-07-15T04:39:36.093Z"
 }
