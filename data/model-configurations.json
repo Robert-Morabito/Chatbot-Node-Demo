@@ -161,11 +161,20 @@
       "isActive": true
     }
   },
-  "sessions": {},
+  "sessions": {
+    "session_1752547768755_vh33uh4ny": {
+      "sessionId": "session_1752547768755_vh33uh4ny",
+      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
+      "configurationId": 1,
+      "assignedAt": "2025-07-15T02:49:37.068Z",
+      "completed": false,
+      "completedAt": null
+    }
+  },
   "metadata": {
     "totalConfigurations": 20,
     "totalTargetSessions": 20,
     "createdAt": "2024-01-15T00:00:00.000Z",
-    "lastUpdated": "2025-01-21T12:00:00.000Z"
+    "lastUpdated": "2025-07-15T02:49:37.068Z"
   }
 }
