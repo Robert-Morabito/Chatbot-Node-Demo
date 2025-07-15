@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js",
-    "build": "echo 'No build step required'"
+    "dev": "vercel dev",
+    "build": "echo 'No build needed for Vercel'",
+    "start": "echo 'Use vercel dev for local development'"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.56.0",

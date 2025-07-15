@@ -9,12 +9,6 @@ export class ClaudeHandler {
         this.client = new Anthropic({
             apiKey: apiKey,
         });
-        
-        this.modelMapping = {
-            'Claude 3.5 Haiku': 'claude-3-5-haiku-20241022',
-            'Claude 3.5 Sonnet': 'claude-3-5-sonnet-20241022',
-            'Claude 3 Opus': 'claude-3-opus-20240229'
-        };
     }
 
     formatMessages(messages) {
@@ -25,12 +19,11 @@ export class ClaudeHandler {
     }
 
     async* streamChat(messages, model) {
-        const actualModel = this.modelMapping[model] || model;
-        console.log('💬 [Claude] Starting chat stream with model:', actualModel);
+        console.log('💬 [Claude] Starting chat stream with model:', model);
 
         try {
             const stream = await this.client.messages.create({
-                model: actualModel,
+                model: model,
                 max_tokens: 1000,
                 messages: this.formatMessages(messages),
                 stream: true,

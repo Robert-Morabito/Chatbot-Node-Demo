@@ -1,29 +1,17 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
 import { OpenAIHandler } from '../../handlers/openaiHandler.js';
 import { ClaudeHandler } from '../../handlers/claudeHandler.js';
 
 // Image generation keywords
 const MODIFICATION_KEYWORDS = [
-    // Direct modifications
     'make it', 'make the', 'make them', 'make this',
     'change it', 'change the', 'change them',
     'turn it', 'turn the', 'turn them',
     'color it', 'color the', 'paint it', 'paint the',
-
-    // Additions/removals
     'add', 'remove', 'delete', 'include', 'exclude',
     'with', 'without', 'but with', 'now with',
-
-    // Adjustments
     'more', 'less', 'bigger', 'smaller', 'larger',
     'brighter', 'darker', 'lighter',
-
-    // Style changes
     'in the style', 'style of', 'like',
-
-    // General modifications
     'modify', 'adjust', 'update', 'alter', 'transform',
     'redo', 'remake', 'regenerate', 'try again',
     'different', 'another', 'instead'
@@ -62,26 +50,13 @@ function detectImageIntent(message, imageContext = {}) {
     if (imageContext?.lastPrompt) {
         console.log('🖼️ Previous image context exists:', imageContext.lastPrompt);
 
-        // Check if message contains modification keywords
         const hasModificationKeyword = MODIFICATION_KEYWORDS.some(keyword =>
             content.includes(keyword)
         );
 
-        // Check if message starts with a verb that implies modification
         const startsWithModificationVerb = /^(make|change|turn|color|paint|add|remove|adjust|modify)/.test(content);
-
-        // Check if message contains color words (often used for modifications)
         const hasColorWord = COLOR_WORDS.some(color => content.includes(color));
-
-        // Check if it's a short directive (less than 5 words) with a color or modification
         const isShortDirective = content.split(' ').length <= 5 && (hasColorWord || hasModificationKeyword);
-
-        console.log('📊 Modification checks:', {
-            hasModificationKeyword,
-            startsWithModificationVerb,
-            hasColorWord,
-            isShortDirective
-        });
 
         if (hasModificationKeyword || startsWithModificationVerb || isShortDirective) {
             console.log('✅ Modification detected');
@@ -126,13 +101,13 @@ function mergePromptWithModification(basePrompt, modification) {
         return `${basePrompt}, but ${colorMatch[1]} colored`;
     }
 
-    // Handle "make the X Y" pattern (e.g., "make the mouse red")
+    // Handle "make the X Y" pattern
     const makeTheMatch = modLower.match(/make the (\w+) (\w+)/);
     if (makeTheMatch) {
         return `${basePrompt}, but make the ${makeTheMatch[1]} ${makeTheMatch[2]}`;
     }
 
-    // Handle other patterns...
+    // Handle other patterns
     if (modLower.startsWith('make it ')) {
         const change = modification.replace(/make it /i, '');
         return `${basePrompt}, but ${change}`;
@@ -150,7 +125,7 @@ function mergePromptWithModification(basePrompt, modification) {
         return `${basePrompt}, ${modification}`;
     }
 
-    // For simple color words or adjectives, assume it's a modification
+    // For simple color words, assume it's a modification
     if (COLOR_WORDS.some(color => modLower === color || modLower === `${color} one`)) {
         return `${basePrompt}, but ${modification}`;
     }
@@ -168,7 +143,12 @@ function isOpenAIModel(model) {
 }
 
 export default async function handler(req, res) {
-    console.log('🌐 Vercel function called:', req.method, req.url);
+    console.log('🌐 [Vercel] Stream function called:', req.method, req.url);
+    console.log('🌐 [Vercel] Request body preview:', {
+        hasMessages: !!req.body?.messages,
+        messageCount: req.body?.messages?.length,
+        model: req.body?.model
+    });
 
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -177,18 +157,12 @@ export default async function handler(req, res) {
     try {
         const { messages, model, sessionId, conversationId, imageContext } = req.body;
 
-        console.log('📦 Request includes:', {
-            model,
-            messageCount: messages?.length,
-            imageContext: !!imageContext
-        });
-
         if (!messages || !Array.isArray(messages)) {
             return res.status(400).json({ error: 'Messages array is required' });
         }
 
         const lastMessage = messages[messages.length - 1];
-        console.log('💬 Last message:', lastMessage);
+        console.log('💬 [Vercel] Last message:', lastMessage);
 
         // Set up SSE headers
         res.writeHead(200, {
@@ -202,15 +176,14 @@ export default async function handler(req, res) {
 
         // Detect image intent with context
         const imageIntent = detectImageIntent(lastMessage?.content || '', imageContext);
-        console.log('🔍 Image intent:', imageIntent);
+        console.log('🔍 [Vercel] Image intent:', imageIntent);
 
         if (lastMessage?.sender === 'User' && imageIntent.isImageRequest) {
-            console.log('🎨 Image generation request! Type:', imageIntent.type);
+            console.log('🎨 [Vercel] Image generation request! Type:', imageIntent.type);
 
             res.write(`data: ${JSON.stringify({ type: 'image_request_detected' })}\n\n`);
 
             try {
-                // For now, use OpenAI for image generation regardless of model
                 const apiKey = process.env.OPENAI_API_KEY;
                 if (!apiKey) {
                     throw new Error('OpenAI API key not configured');
@@ -220,15 +193,13 @@ export default async function handler(req, res) {
                 let finalPrompt;
 
                 if (imageIntent.type === 'modification' && imageContext?.lastPrompt) {
-                    // Modification of previous image
-                    console.log('🔄 Modifying previous prompt:', imageContext.lastPrompt);
+                    console.log('🔄 [Vercel] Modifying previous prompt:', imageContext.lastPrompt);
                     finalPrompt = mergePromptWithModification(imageContext.lastPrompt, lastMessage.content);
                 } else {
-                    // New image
                     finalPrompt = extractImagePrompt(lastMessage.content);
                 }
 
-                console.log('🖼️ Final prompt:', finalPrompt);
+                console.log('🖼️ [Vercel] Final prompt:', finalPrompt);
 
                 const result = await openai.generateImage(finalPrompt);
 
@@ -254,7 +225,7 @@ export default async function handler(req, res) {
                 })}\n\n`);
 
             } catch (error) {
-                console.error('❌ Image generation error:', error);
+                console.error('❌ [Vercel] Image generation error:', error);
 
                 const errorMessage = `I apologize, but I couldn't generate the image. Error: ${error.message}`;
 
@@ -275,11 +246,16 @@ export default async function handler(req, res) {
         }
 
         // Regular chat request - route to appropriate handler
-        console.log('💬 Processing regular chat request with model:', model);
+        console.log('💬 [Vercel] Processing regular chat request with model:', model);
 
         try {
             if (isClaudeModel(model)) {
-                console.log('🎭 Using Claude handler');
+                console.log('🎭 [Vercel] Using Claude handler for model:', model);
+                
+                if (!process.env.ANTHROPIC_API_KEY) {
+                    throw new Error('Anthropic API key not configured');
+                }
+                
                 const claudeHandler = new ClaudeHandler(process.env.ANTHROPIC_API_KEY);
                 
                 for await (const chunk of claudeHandler.streamChat(messages, model)) {
@@ -290,7 +266,12 @@ export default async function handler(req, res) {
                     }
                 }
             } else if (isOpenAIModel(model)) {
-                console.log('🤖 Using OpenAI handler');
+                console.log('🤖 [Vercel] Using OpenAI handler for model:', model);
+                
+                if (!process.env.OPENAI_API_KEY) {
+                    throw new Error('OpenAI API key not configured');
+                }
+                
                 const openaiHandler = new OpenAIHandler(process.env.OPENAI_API_KEY);
                 
                 for await (const chunk of openaiHandler.streamChat(messages, model)) {
@@ -304,14 +285,14 @@ export default async function handler(req, res) {
                 throw new Error(`Unsupported model: ${model}`);
             }
         } catch (error) {
-            console.error('❌ Chat handler error:', error);
+            console.error('❌ [Vercel] Chat handler error:', error);
             res.write(`data: ${JSON.stringify({ type: 'error', error: error.message })}\n\n`);
         }
 
         res.end();
 
     } catch (error) {
-        console.error('❌ Handler error:', error);
+        console.error('❌ [Vercel] Handler error:', error);
 
         if (!res.headersSent) {
             res.status(500).json({ error: error.message });
