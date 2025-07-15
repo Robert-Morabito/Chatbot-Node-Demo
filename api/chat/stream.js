@@ -249,44 +249,60 @@ export default async function handler(req, res) {
         console.log('💬 [Vercel] Processing regular chat request with model:', model);
 
         try {
+            let handler;
+            let modelType;
+
+            // Determine model type and create handler
             if (isClaudeModel(model)) {
                 console.log('🎭 [Vercel] Using Claude handler for model:', model);
-                
+
                 if (!process.env.ANTHROPIC_API_KEY) {
                     throw new Error('Anthropic API key not configured');
                 }
-                
-                const claudeHandler = new ClaudeHandler(process.env.ANTHROPIC_API_KEY);
-                
-                for await (const chunk of claudeHandler.streamChat(messages, model)) {
-                    res.write(`data: ${JSON.stringify(chunk)}\n\n`);
-                    
-                    if (chunk.type === 'done' || chunk.type === 'error') {
-                        break;
-                    }
-                }
+
+                handler = new ClaudeHandler(process.env.ANTHROPIC_API_KEY);
+                modelType = 'claude';
+
             } else if (isOpenAIModel(model)) {
                 console.log('🤖 [Vercel] Using OpenAI handler for model:', model);
-                
+
                 if (!process.env.OPENAI_API_KEY) {
                     throw new Error('OpenAI API key not configured');
                 }
-                
-                const openaiHandler = new OpenAIHandler(process.env.OPENAI_API_KEY);
-                
-                for await (const chunk of openaiHandler.streamChat(messages, model)) {
-                    res.write(`data: ${JSON.stringify(chunk)}\n\n`);
-                    
-                    if (chunk.type === 'done' || chunk.type === 'error') {
-                        break;
-                    }
-                }
+
+                handler = new OpenAIHandler(process.env.OPENAI_API_KEY);
+                modelType = 'openai';
+
             } else {
                 throw new Error(`Unsupported model: ${model}`);
             }
+
+            console.log(`✅ [Vercel] Handler created for ${modelType} model`);
+
+            // Send model info to frontend
+            res.write(`data: ${JSON.stringify({
+                type: 'model_info',
+                modelType: modelType,
+                actualModel: model
+            })}\n\n`);
+
+            // Stream the response
+            for await (const chunk of handler.streamChat(messages, model)) {
+                res.write(`data: ${JSON.stringify(chunk)}\n\n`);
+
+                if (chunk.type === 'done' || chunk.type === 'error') {
+                    console.log(`🏁 [Vercel] ${modelType} stream completed with:`, chunk.type);
+                    break;
+                }
+            }
+
         } catch (error) {
             console.error('❌ [Vercel] Chat handler error:', error);
-            res.write(`data: ${JSON.stringify({ type: 'error', error: error.message })}\n\n`);
+            res.write(`data: ${JSON.stringify({
+                type: 'error',
+                error: error.message,
+                model: model
+            })}\n\n`);
         }
 
         res.end();
