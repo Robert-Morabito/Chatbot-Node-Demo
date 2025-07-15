@@ -1,3 +1,8 @@
+/**
+ * Session Registration Handler
+ * Registers new study sessions and updates configuration state
+ */
+
 import GitHubStorage from '../../utils/githubStorage.js';
 
 const githubStorage = new GitHubStorage();
@@ -16,7 +21,7 @@ export default async function handler(req, res) {
             });
         }
 
-        console.log('📝 Registering session:', { sessionId, participantId, configurationId });
+        console.log('Registering session:', { sessionId, participantId, configurationId });
 
         // Load current configuration state
         const configData = await githubStorage.loadConfigurationState();
@@ -37,7 +42,7 @@ export default async function handler(req, res) {
         // Save back to GitHub
         await githubStorage.saveConfigurationState(configData);
 
-        console.log('✅ Session registered successfully');
+        console.log('Session registered successfully');
 
         res.json({
             success: true,
@@ -45,7 +50,7 @@ export default async function handler(req, res) {
         });
 
     } catch (error) {
-        console.error('❌ Session registration error:', error);
+        console.error('Session registration error:', error.message);
         res.status(500).json({
             error: 'Failed to register session',
             details: error.message

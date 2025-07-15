@@ -1,3 +1,10 @@
+/**
+ * Data Save Handler
+ * Saves participant study data including conversations and behavioral metrics
+ */
+
+import GitHubStorage from '../utils/githubStorage.js';
+
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -6,7 +13,7 @@ export default async function handler(req, res) {
     try {
         const { participantId, sessionId, conversations, behaviorMetrics, modelConfig } = req.body;
         
-        console.log('💾 Save request received:', { 
+        console.log('Save request received:', { 
             participantId, 
             sessionId,
             hasBehaviorMetrics: !!behaviorMetrics 
@@ -23,10 +30,10 @@ export default async function handler(req, res) {
         };
         
         // Save participant data to GitHub
-        const githubStorage = new (await import('../utils/githubStorage.js')).default();
+        const githubStorage = new GitHubStorage();
         await githubStorage.saveParticipantData(participantId, sessionId, completeData);
         
-        console.log('✅ Participant data saved to GitHub');
+        console.log('Participant data saved to GitHub');
 
         res.json({
             success: true,
@@ -35,7 +42,7 @@ export default async function handler(req, res) {
             includedMetrics: !!behaviorMetrics
         });
     } catch (error) {
-        console.error('❌ Save error:', error);
+        console.error('Save error:', error.message);
         res.status(500).json({ 
             error: 'Failed to save data',
             details: error.message 
