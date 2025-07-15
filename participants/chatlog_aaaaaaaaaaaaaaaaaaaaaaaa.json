@@ -1,62 +1,62 @@
 {
   "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-  "sessionId": "session_1752555097337_qdobc7smc",
+  "sessionId": "session_1752556390235_ao95a32wt",
   "conversations": {
-    "1752555095897": {
-      "id": "1752555095897",
+    "1752556390517": {
+      "id": "1752556390517",
       "title": "Hi",
       "messages": [
         {
           "msg_id": 1,
           "sender": "User",
           "content": "Hi",
-          "timestamp": "2025-07-15T04:51:38.497Z"
+          "timestamp": "2025-07-15T05:13:13.683Z"
         },
         {
           "msg_id": 2,
           "sender": "Bot",
           "content": "Hello! How can I assist you today?",
-          "timestamp": "2025-07-15T04:51:39.178Z"
+          "timestamp": "2025-07-15T05:13:14.420Z"
         },
         {
           "msg_id": 3,
           "sender": "User",
-          "content": "Badabing",
-          "timestamp": "2025-07-15T04:51:45.712Z"
+          "content": "Generate a picture of a dog.",
+          "timestamp": "2025-07-15T05:13:24.135Z"
         },
         {
           "msg_id": 4,
           "sender": "Bot",
-          "content": "Badaboom! How can I help you?",
-          "timestamp": "2025-07-15T04:51:46.304Z"
+          "content": "I've generated an image for you:\n\n![Generated Image](https://oaidalleapiprodscus.blob.core.windows.net/private/org-Yh76Y43H54S7cSzY2d7PJb2a/user-694Lha43voRkn4gGxaZbYrMv/img-OhYgIdYpCWvpbeBZ9pP9IM0D.png?st=2025-07-15T04%3A13%3A47Z&se=2025-07-15T06%3A13%3A47Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=475fd488-6c59-44a5-9aa9-31c4db451bea&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-15T02%3A55%3A03Z&ske=2025-07-16T02%3A55%3A03Z&sks=b&skv=2024-08-04&sig=YOhNEkOic24Lft7TVXMXt9RGcZzSkii23iqcEiqjNY8%3D)",
+          "timestamp": "2025-07-15T05:13:24.788Z"
         },
         {
           "msg_id": 5,
           "sender": "User",
-          "content": "Can you make me an image of a dog?",
-          "timestamp": "2025-07-15T04:51:55.565Z"
+          "content": "Remove the tennis ball, and make him a german shepard.",
+          "timestamp": "2025-07-15T05:14:20.550Z"
         },
         {
           "msg_id": 6,
           "sender": "Bot",
-          "content": "I'm here to help with text-based tasks. I can't create images, but I can certainly describe a dog for you or help with any information you need about dogs. Just let me know how I can assist you further!",
-          "timestamp": "2025-07-15T04:51:56.261Z"
+          "content": "I've generated an image for you:\n\n![Generated Image](https://oaidalleapiprodscus.blob.core.windows.net/private/org-Yh76Y43H54S7cSzY2d7PJb2a/user-694Lha43voRkn4gGxaZbYrMv/img-lmTnZpPSyVAecejghc3CZWj1.png?st=2025-07-15T04%3A14%3A42Z&se=2025-07-15T06%3A14%3A42Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=475fd488-6c59-44a5-9aa9-31c4db451bea&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-14T10%3A03%3A23Z&ske=2025-07-15T10%3A03%3A23Z&sks=b&skv=2024-08-04&sig=CThwBbA2WiueUGcKt8L/L15JwPPuTjMOBoCqCd0l%2BxU%3D)",
+          "timestamp": "2025-07-15T05:14:21.313Z"
         },
         {
           "msg_id": 7,
           "sender": "User",
-          "content": "generate an image of a dog",
-          "timestamp": "2025-07-15T04:52:08.333Z"
+          "content": "Thank you!",
+          "timestamp": "2025-07-15T05:14:51.057Z"
         },
         {
           "msg_id": 8,
           "sender": "Bot",
-          "content": "I'm unable to create images as I'm a text-based AI. However, if you'd like, I can provide a description of a dog or help you with any information you need about dogs. Just let me know how I can assist you further!",
-          "timestamp": "2025-07-15T04:52:08.988Z"
+          "content": "You're welcome! If you need any more assistance, feel free to ask. Have a great day!",
+          "timestamp": "2025-07-15T05:14:51.711Z"
         }
       ],
-      "createdAt": "2025-07-15T04:51:35.897Z",
-      "lastMessageAt": "2025-07-15T04:51:35.897Z"
+      "createdAt": "2025-07-15T05:13:10.517Z",
+      "lastMessageAt": "2025-07-15T05:13:10.517Z"
     }
   },
   "modelConfig": {
@@ -65,26 +65,26 @@
     "configurationId": 1
   },
   "behaviorMetrics": {
-    "backspaceCount": 10,
-    "averageMessageLength": 17.5,
+    "backspaceCount": 3,
+    "averageMessageLength": 23.5,
     "totalMessages": 4,
     "messagesPerConversation": 4,
     "conversationCount": 1,
     "editCount": 0,
     "averageEditDistance": 0,
-    "totalIdleTime": 42340,
+    "totalIdleTime": 131832,
     "messageTimes": [
-      "2025-07-15T04:51:38.497Z",
-      "2025-07-15T04:51:45.712Z",
-      "2025-07-15T04:51:55.565Z",
-      "2025-07-15T04:52:08.333Z"
+      "2025-07-15T05:13:13.683Z",
+      "2025-07-15T05:13:24.135Z",
+      "2025-07-15T05:14:20.550Z",
+      "2025-07-15T05:14:51.057Z"
     ],
     "conversationSwitches": 0,
     "averageResponseTimeAfterBot": 0,
-    "totalKeystrokes": 100,
+    "totalKeystrokes": 110,
     "averageTypingDuration": 0,
-    "sessionDuration": 693347,
-    "keystrokesPerMessage": 25
+    "sessionDuration": 126022,
+    "keystrokesPerMessage": 27.5
   },
-  "savedAt": "2025-07-15T05:03:10.559Z"
+  "savedAt": "2025-07-15T05:15:16.189Z"
 }
