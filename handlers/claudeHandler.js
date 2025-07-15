@@ -1,6 +1,15 @@
+/**
+ * Claude Handler - Anthropic API Integration
+ * Handles streaming chat interactions with Claude AI models
+ */
+
 import Anthropic from '@anthropic-ai/sdk';
 
 export class ClaudeHandler {
+    /**
+     * Initialize Claude API client
+     * @param {string} apiKey - Anthropic API key
+     */
     constructor(apiKey) {
         if (!apiKey) {
             throw new Error('Anthropic API key is required');
@@ -11,6 +20,11 @@ export class ClaudeHandler {
         });
     }
 
+    /**
+     * Format chat messages for Claude API
+     * @param {Array} messages - Array of message objects with sender and content
+     * @returns {Array} Formatted messages for API
+     */
     formatMessages(messages) {
         return messages.map(msg => ({
             role: msg.sender === 'User' ? 'user' : 'assistant',
@@ -18,8 +32,14 @@ export class ClaudeHandler {
         }));
     }
 
+    /**
+     * Stream chat response from Claude
+     * @param {Array} messages - Conversation history
+     * @param {string} model - Claude model to use
+     * @yields {Object} Stream chunks with content or completion status
+     */
     async* streamChat(messages, model) {
-        console.log('💬 [Claude] Starting chat stream with model:', model);
+        console.log(`Starting Claude chat stream with ${model}`);
 
         try {
             const stream = await this.client.messages.create({
@@ -53,7 +73,7 @@ export class ClaudeHandler {
                 }
             }
         } catch (error) {
-            console.error('❌ [Claude] Chat stream error:', error);
+            console.error('Claude API error:', error.message);
             yield {
                 type: 'error',
                 error: error.message
