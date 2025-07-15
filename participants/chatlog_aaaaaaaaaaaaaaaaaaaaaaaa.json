@@ -1,45 +1,38 @@
 {
   "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-  "sessionId": "session_1752557026240_d8ggzq3g7",
+  "sessionId": "session_1752558307672_nqr13b8pf",
   "conversations": {
-    "1752557026319": {
-      "id": "1752557026319",
-      "title": "Generate an image of a dog",
+    "1752558306043": {
+      "id": "1752558306043",
+      "title": "Generate an image of an elephant",
       "messages": [
         {
           "msg_id": 1,
           "sender": "User",
-          "content": "Generate an image of a dog",
-          "timestamp": "2025-07-15T05:23:51.815Z"
+          "content": "Generate an image of an elephant",
+          "timestamp": "2025-07-15T05:45:15.361Z"
         },
         {
           "msg_id": 2,
           "sender": "Bot",
-          "content": "I've generated an image for you:\n\n![Generated Image](https://oaidalleapiprodscus.blob.core.windows.net/private/org-Yh76Y43H54S7cSzY2d7PJb2a/user-694Lha43voRkn4gGxaZbYrMv/img-1cM4KxcjWmTDxnGP6nmpLHbw.png?st=2025-07-15T04%3A24%3A14Z&se=2025-07-15T06%3A24%3A14Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=475fd488-6c59-44a5-9aa9-31c4db451bea&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-14T20%3A09%3A50Z&ske=2025-07-15T20%3A09%3A50Z&sks=b&skv=2024-08-04&sig=qn5VNkzA7OCVdivqHahNCfyYQwYm6A%2BrVMppr3ghCJg%3D)",
-          "timestamp": "2025-07-15T05:23:52.529Z"
+          "content": "I've generated an image for you:\n\n![Generated Image](https://oaidalleapiprodscus.blob.core.windows.net/private/org-Yh76Y43H54S7cSzY2d7PJb2a/user-694Lha43voRkn4gGxaZbYrMv/img-vqnk4FKmJTd3y2DZ2KmscGAh.png?st=2025-07-15T04%3A45%3A41Z&se=2025-07-15T06%3A45%3A41Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=475fd488-6c59-44a5-9aa9-31c4db451bea&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-14T09%3A14%3A33Z&ske=2025-07-15T09%3A14%3A33Z&sks=b&skv=2024-08-04&sig=Pt5rgxN28Zxok7/EMJPfhjSMZByb9CJHYiyTOFYk8K4%3D)",
+          "timestamp": "2025-07-15T05:45:16.090Z"
         },
         {
           "msg_id": 3,
           "sender": "User",
-          "content": "Let's make it an oil painting, with a nice chair, and the dog is sitting on the chair.",
-          "timestamp": "2025-07-15T05:24:30.981Z"
+          "content": "Make the elephant a cartoon drawing, and give him a space helmet.",
+          "timestamp": "2025-07-15T05:45:36.227Z"
         },
         {
           "msg_id": 4,
           "sender": "Bot",
-          "content": "I've generated an image for you:\n\n![Generated Image](https://oaidalleapiprodscus.blob.core.windows.net/private/org-Yh76Y43H54S7cSzY2d7PJb2a/user-694Lha43voRkn4gGxaZbYrMv/img-iA233rLXhDAjw6bmrd7nP5TY.png?st=2025-07-15T04%3A24%3A58Z&se=2025-07-15T06%3A24%3A58Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=475fd488-6c59-44a5-9aa9-31c4db451bea&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-14T13%3A39%3A48Z&ske=2025-07-15T13%3A39%3A48Z&sks=b&skv=2024-08-04&sig=/K4IVsdlVr32k8syZLK4AEXGmF0%2BBc/v0dxbPAyXNLw%3D)",
-          "timestamp": "2025-07-15T05:24:31.637Z"
+          "content": "I've generated an image for you:\n\n![Generated Image](https://oaidalleapiprodscus.blob.core.windows.net/private/org-Yh76Y43H54S7cSzY2d7PJb2a/user-694Lha43voRkn4gGxaZbYrMv/img-U9nPmRAig78JvdZPfhaYnqu9.png?st=2025-07-15T04%3A45%3A58Z&se=2025-07-15T06%3A45%3A58Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=475fd488-6c59-44a5-9aa9-31c4db451bea&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-14T20%3A14%3A08Z&ske=2025-07-15T20%3A14%3A08Z&sks=b&skv=2024-08-04&sig=ZT9NZp/VDRZCKzX/cyMQevw/nfdiXWpo5oZOsdZl%2Bgk%3D)",
+          "timestamp": "2025-07-15T05:45:36.992Z"
         }
       ],
-      "createdAt": "2025-07-15T05:23:46.319Z",
-      "lastMessageAt": "2025-07-15T05:23:46.319Z"
-    },
-    "1752557099871": {
-      "id": "1752557099871",
-      "title": "New Chat",
-      "messages": [],
-      "createdAt": "2025-07-15T05:24:59.871Z",
-      "lastMessageAt": "2025-07-15T05:24:59.871Z"
+      "createdAt": "2025-07-15T05:45:06.043Z",
+      "lastMessageAt": "2025-07-15T05:45:06.043Z"
     }
   },
   "modelConfig": {
@@ -48,24 +41,24 @@
     "configurationId": 1
   },
   "behaviorMetrics": {
-    "backspaceCount": 11,
-    "averageMessageLength": 56,
+    "backspaceCount": 3,
+    "averageMessageLength": 48.5,
     "totalMessages": 2,
-    "messagesPerConversation": 1,
-    "conversationCount": 2,
+    "messagesPerConversation": 2,
+    "conversationCount": 1,
     "editCount": 0,
     "averageEditDistance": 0,
-    "totalIdleTime": 59672,
+    "totalIdleTime": 28391,
     "messageTimes": [
-      "2025-07-15T05:23:51.815Z",
-      "2025-07-15T05:24:30.981Z"
+      "2025-07-15T05:45:15.361Z",
+      "2025-07-15T05:45:36.227Z"
     ],
-    "conversationSwitches": 3,
+    "conversationSwitches": 0,
     "averageResponseTimeAfterBot": 0,
-    "totalKeystrokes": 138,
+    "totalKeystrokes": 107,
     "averageTypingDuration": 0,
-    "sessionDuration": 86997,
-    "keystrokesPerMessage": 69
+    "sessionDuration": 55876,
+    "keystrokesPerMessage": 53.5
   },
-  "savedAt": "2025-07-15T05:25:13.210Z"
+  "savedAt": "2025-07-15T05:46:03.561Z"
 }
