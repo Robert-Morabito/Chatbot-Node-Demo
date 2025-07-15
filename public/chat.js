@@ -653,6 +653,7 @@ class ChatApp {
         setTimeout(() => this.getLLMResponse(), 500);
     }
 
+    /*
     showTypingIndicator() {
         const messagesContainer = document.getElementById('messages');
 
@@ -686,6 +687,49 @@ class ChatApp {
     }
 
     hideTypingIndicator() {
+        const typingIndicator = document.getElementById('typing-indicator');
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
+    }*/
+    showTypingIndicator() {
+        console.log('⏳ [NEW] Showing typing indicator');
+
+        const messagesContainer = document.getElementById('messages');
+
+        // Remove existing typing indicator
+        const existing = document.getElementById('typing-indicator');
+        if (existing) existing.remove();
+
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'typing-message';
+        typingDiv.id = 'typing-indicator';
+
+        const iconImg = document.createElement('img');
+        iconImg.className = 'message-icon';
+        iconImg.alt = 'Bot';
+
+        // Use dynamic icon
+        const displayedModel = this.config?.displayName || '';
+        if (displayedModel.toLowerCase().includes('claude')) {
+            iconImg.src = 'images/claude.png';
+        } else {
+            iconImg.src = 'images/gpt.png';
+        }
+
+        const typingContent = document.createElement('div');
+        typingContent.className = 'typing-content';
+        typingContent.innerHTML = '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+
+        typingDiv.appendChild(iconImg);
+        typingDiv.appendChild(typingContent);
+        messagesContainer.appendChild(typingDiv);
+
+        this.scrollToBottom();
+    }
+
+    hideTypingIndicator() {
+        console.log('⏳ [NEW] Hiding typing indicator');
         const typingIndicator = document.getElementById('typing-indicator');
         if (typingIndicator) {
             typingIndicator.remove();
