@@ -1,26 +1,20 @@
 {
   "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-  "sessionId": "session_1752548758271_wxlbua1u5",
+  "sessionId": "session_1752550307150_3gc7g6r03",
   "conversations": {
-    "1752548759857": {
-      "id": "1752548759857",
+    "1752550306869": {
+      "id": "1752550306869",
       "title": "New Chat",
       "messages": [
         {
           "msg_id": 1,
           "sender": "User",
           "content": "Hi",
-          "timestamp": "2025-07-15T03:06:02.005Z"
-        },
-        {
-          "msg_id": 2,
-          "sender": "User",
-          "content": "hehosief",
-          "timestamp": "2025-07-15T03:06:04.071Z"
+          "timestamp": "2025-07-15T03:31:50.199Z"
         }
       ],
-      "createdAt": "2025-07-15T03:05:59.857Z",
-      "lastMessageAt": "2025-07-15T03:05:59.857Z"
+      "createdAt": "2025-07-15T03:31:46.869Z",
+      "lastMessageAt": "2025-07-15T03:31:46.869Z"
     }
   },
   "modelConfig": {
@@ -30,23 +24,22 @@
   },
   "behaviorMetrics": {
     "backspaceCount": 0,
-    "averageMessageLength": 5,
-    "totalMessages": 2,
-    "messagesPerConversation": 2,
+    "averageMessageLength": 2,
+    "totalMessages": 1,
+    "messagesPerConversation": 1,
     "conversationCount": 1,
     "editCount": 0,
     "averageEditDistance": 0,
-    "totalIdleTime": 22401,
+    "totalIdleTime": 104547,
     "messageTimes": [
-      "2025-07-15T03:06:02.005Z",
-      "2025-07-15T03:06:04.071Z"
+      "2025-07-15T03:31:50.199Z"
     ],
     "conversationSwitches": 0,
     "averageResponseTimeAfterBot": 0,
-    "totalKeystrokes": 13,
-    "averageTypingDuration": 1409.5,
-    "sessionDuration": 15624,
-    "keystrokesPerMessage": 6.5
+    "totalKeystrokes": 4,
+    "averageTypingDuration": 0,
+    "sessionDuration": 105523,
+    "keystrokesPerMessage": 4
   },
-  "savedAt": "2025-07-15T03:06:13.827Z"
+  "savedAt": "2025-07-15T03:33:32.592Z"
 }
