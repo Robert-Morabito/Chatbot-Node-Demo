@@ -1,38 +1,26 @@
 {
   "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-  "sessionId": "session_1752550752235_lbqgnvt7z",
+  "sessionId": "session_1752551004190_v3pe8go4y",
   "conversations": {
-    "1752550752304": {
-      "id": "1752550752304",
-      "title": "Hi how are outy",
+    "1752551004310": {
+      "id": "1752551004310",
+      "title": "Hi",
       "messages": [
         {
           "msg_id": 1,
           "sender": "User",
-          "content": "Hi how are outy",
-          "timestamp": "2025-07-15T03:39:15.587Z"
+          "content": "Hi",
+          "timestamp": "2025-07-15T03:43:26.690Z"
         },
         {
           "msg_id": 2,
           "sender": "Bot",
-          "content": "Hello! I'm just a computer program, so I don't have feelings, but I'm here and ready to assist you. How can I help you today?",
-          "timestamp": "2025-07-15T03:39:16.268Z"
-        },
-        {
-          "msg_id": 3,
-          "sender": "User",
-          "content": "asf",
-          "timestamp": "2025-07-15T03:39:18.361Z"
-        },
-        {
-          "msg_id": 4,
-          "sender": "Bot",
-          "content": "It seems like you may have typed a random string of letters. Is there anything specific you would like to know or discuss? Feel free to ask me any questions or share any thoughts you have.",
-          "timestamp": "2025-07-15T03:39:19.042Z"
+          "content": "Hello! How can I assist you today?",
+          "timestamp": "2025-07-15T03:43:27.361Z"
         }
       ],
-      "createdAt": "2025-07-15T03:39:12.304Z",
-      "lastMessageAt": "2025-07-15T03:39:12.304Z"
+      "createdAt": "2025-07-15T03:43:24.310Z",
+      "lastMessageAt": "2025-07-15T03:43:24.310Z"
     }
   },
   "modelConfig": {
@@ -42,23 +30,22 @@
   },
   "behaviorMetrics": {
     "backspaceCount": 0,
-    "averageMessageLength": 9,
-    "totalMessages": 2,
-    "messagesPerConversation": 2,
+    "averageMessageLength": 2,
+    "totalMessages": 1,
+    "messagesPerConversation": 1,
     "conversationCount": 1,
     "editCount": 0,
     "averageEditDistance": 0,
-    "totalIdleTime": 19485,
+    "totalIdleTime": 19912,
     "messageTimes": [
-      "2025-07-15T03:39:15.586Z",
-      "2025-07-15T03:39:18.361Z"
+      "2025-07-15T03:43:26.690Z"
     ],
     "conversationSwitches": 0,
     "averageResponseTimeAfterBot": 0,
-    "totalKeystrokes": 21,
+    "totalKeystrokes": 4,
     "averageTypingDuration": 0,
-    "sessionDuration": 17067,
-    "keystrokesPerMessage": 10.5
+    "sessionDuration": 44346,
+    "keystrokesPerMessage": 4
   },
-  "savedAt": "2025-07-15T03:39:29.226Z"
+  "savedAt": "2025-07-15T03:44:08.589Z"
 }
