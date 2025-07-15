@@ -1,4 +1,4 @@
-import GitHubStorage from '../../utils/githubStorage.js';
+/*import GitHubStorage from '../../utils/githubStorage.js';
 
 const githubStorage = new GitHubStorage();
 
@@ -31,4 +31,4 @@ export default async function handler(req, res) {
             details: error.message 
         });
     }
-}
+}*/
