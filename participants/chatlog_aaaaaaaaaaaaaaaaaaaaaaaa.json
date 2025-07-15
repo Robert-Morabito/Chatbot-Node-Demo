@@ -1,0 +1,31 @@
+{
+  "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
+  "sessionId": "session_1752547768755_vh33uh4ny",
+  "timestamp": "2025-07-15T02:49:45.498Z",
+  "modelConfig": {
+    "displayedModel": "GPT-3.5",
+    "actualModel": "gpt-3.5-turbo-0125",
+    "configurationId": 1
+  },
+  "conversations": {
+    "1752547769956": {
+      "id": "1752547769956",
+      "title": "New Chat",
+      "messages": [
+        {
+          "msg_id": 1,
+          "sender": "User",
+          "content": "Hi",
+          "timestamp": "2025-07-15T02:49:32.935Z"
+        }
+      ],
+      "createdAt": "2025-07-15T02:49:29.956Z",
+      "lastMessageAt": "2025-07-15T02:49:29.956Z"
+    }
+  },
+  "metadata": {
+    "totalConversations": 1,
+    "totalMessages": 1,
+    "studyCompleted": true
+  }
+}
