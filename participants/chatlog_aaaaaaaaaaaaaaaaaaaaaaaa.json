@@ -1,50 +1,38 @@
 {
   "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-  "sessionId": "session_1752550523389_8o6v4wq95",
+  "sessionId": "session_1752550640436_2o8tzyx2a",
   "conversations": {
-    "1752550523272": {
-      "id": "1752550523272",
-      "title": "Hi",
+    "1752550640077": {
+      "id": "1752550640077",
+      "title": "Hi how are toyu",
       "messages": [
         {
           "msg_id": 1,
           "sender": "User",
-          "content": "Hi",
-          "timestamp": "2025-07-15T03:35:25.145Z"
+          "content": "Hi how are toyu",
+          "timestamp": "2025-07-15T03:37:24.901Z"
         },
         {
           "msg_id": 2,
           "sender": "Bot",
-          "content": "Hello! How can I assist you today?",
-          "timestamp": "2025-07-15T03:35:26.435Z"
+          "content": "Hello! I'm just a virtual assistant, so I don't have feelings, but I'm here to help you with anything you need. How can I assist you today?",
+          "timestamp": "2025-07-15T03:37:25.596Z"
         },
         {
           "msg_id": 3,
           "sender": "User",
-          "content": "Badabing",
-          "timestamp": "2025-07-15T03:35:31.921Z"
+          "content": "asfasd",
+          "timestamp": "2025-07-15T03:37:28.463Z"
         },
         {
           "msg_id": 4,
           "sender": "Bot",
-          "content": "Badaboom! How can I help you?",
-          "timestamp": "2025-07-15T03:35:33.297Z"
-        },
-        {
-          "msg_id": 5,
-          "sender": "User",
-          "content": "What model are you?",
-          "timestamp": "2025-07-15T03:35:37.450Z"
-        },
-        {
-          "msg_id": 6,
-          "sender": "Bot",
-          "content": "I am a language model AI designed to assist with answering questions and providing information. How can I assist you today?",
-          "timestamp": "2025-07-15T03:35:38.737Z"
+          "content": "It seems like you may have accidentally typed a random string of characters. Is there something specific you would like assistance with?",
+          "timestamp": "2025-07-15T03:37:29.082Z"
         }
       ],
-      "createdAt": "2025-07-15T03:35:23.272Z",
-      "lastMessageAt": "2025-07-15T03:35:39.740Z"
+      "createdAt": "2025-07-15T03:37:20.077Z",
+      "lastMessageAt": "2025-07-15T03:37:20.077Z"
     }
   },
   "modelConfig": {
@@ -54,24 +42,23 @@
   },
   "behaviorMetrics": {
     "backspaceCount": 0,
-    "averageMessageLength": 9.666666666666666,
-    "totalMessages": 3,
-    "messagesPerConversation": 3,
+    "averageMessageLength": 10.5,
+    "totalMessages": 2,
+    "messagesPerConversation": 2,
     "conversationCount": 1,
     "editCount": 0,
     "averageEditDistance": 0,
-    "totalIdleTime": 18879,
+    "totalIdleTime": 18821,
     "messageTimes": [
-      "2025-07-15T03:35:25.144Z",
-      "2025-07-15T03:35:31.921Z",
-      "2025-07-15T03:35:37.450Z"
+      "2025-07-15T03:37:24.900Z",
+      "2025-07-15T03:37:28.463Z"
     ],
     "conversationSwitches": 0,
     "averageResponseTimeAfterBot": 0,
-    "totalKeystrokes": 36,
+    "totalKeystrokes": 25,
     "averageTypingDuration": 0,
-    "sessionDuration": 33852,
-    "keystrokesPerMessage": 12
+    "sessionDuration": 20397,
+    "keystrokesPerMessage": 12.5
   },
-  "savedAt": "2025-07-15T03:35:57.517Z"
+  "savedAt": "2025-07-15T03:37:40.695Z"
 }
