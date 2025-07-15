@@ -198,7 +198,7 @@
       "sessionId": "session_1752550523389_8o6v4wq95",
       "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
       "configurationId": 1,
-      "assignedAt": "2025-07-15T03:35:30.585Z",
+      "assignedAt": "2025-07-15T03:35:31.064Z",
       "completed": false,
       "completedAt": null
     }
@@ -207,6 +207,6 @@
     "totalConfigurations": 20,
     "totalTargetSessions": 20,
     "createdAt": "2024-01-15T00:00:00.000Z",
-    "lastUpdated": "2025-07-15T03:35:30.585Z"
+    "lastUpdated": "2025-07-15T03:35:31.064Z"
   }
 }
