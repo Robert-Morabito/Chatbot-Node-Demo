@@ -545,7 +545,7 @@ class ChatApp {
         `;
     }
 
-    sendMessage() {
+    /*sendMessage() {
         const messageInput = document.getElementById('message-input');
         const message = messageInput.value.trim();
 
@@ -600,6 +600,54 @@ class ChatApp {
         this.autoSaveConversation();
 
         // Show typing indicator and get response
+        this.showTypingIndicator();
+        setTimeout(() => this.getLLMResponse(), 500);
+    }*/
+    sendMessage() {
+        console.log('📤 [NEW] sendMessage() called');
+
+        const messageInput = document.getElementById('message-input');
+        const message = messageInput.value.trim();
+
+        if (!message) {
+            console.log('❌ [NEW] Empty message, returning');
+            return;
+        }
+
+        console.log('💬 [NEW] Sending message:', message);
+
+        // Track basic metrics (keep this from original)
+        this.behaviorMetrics.messageLengths.push(message.length);
+        this.behaviorMetrics.messageCount++;
+        this.behaviorMetrics.messageTimes.push(new Date().toISOString());
+
+        // Remove welcome message if it exists
+        const welcomeMsg = document.querySelector('.welcome-message');
+        if (welcomeMsg) {
+            welcomeMsg.remove();
+        }
+
+        // Create user message
+        const msgId = ++this.messageIdCounter;
+        const userMsg = {
+            msg_id: msgId,
+            sender: 'User',
+            content: message,
+            timestamp: new Date()
+        };
+
+        // Add to chatlog and render
+        this.currentChatlog.push(userMsg);
+        this.renderMessage(userMsg);
+
+        // Clear input
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+
+        // Update conversation title if needed
+        this.updateConversationTitle(message);
+
+        // Show typing and get response
         this.showTypingIndicator();
         setTimeout(() => this.getLLMResponse(), 500);
     }
