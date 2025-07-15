@@ -193,12 +193,20 @@
       "assignedAt": "2025-07-15T04:45:54.379Z",
       "completed": false,
       "completedAt": null
+    },
+    "session_1752555097337_qdobc7smc": {
+      "sessionId": "session_1752555097337_qdobc7smc",
+      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
+      "configurationId": 1,
+      "assignedAt": "2025-07-15T04:51:43.149Z",
+      "completed": false,
+      "completedAt": null
     }
   },
   "metadata": {
     "totalConfigurations": 20,
     "totalTargetSessions": 20,
     "createdAt": "2024-01-15T00:00:00.000Z",
-    "lastUpdated": "2025-07-15T04:45:54.379Z"
+    "lastUpdated": "2025-07-15T04:51:43.149Z"
   }
 }
