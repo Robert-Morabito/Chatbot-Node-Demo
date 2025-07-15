@@ -1,138 +1,6 @@
 import { OpenAIHandler } from '../../handlers/openaiHandler.js';
 import { ClaudeHandler } from '../../handlers/claudeHandler.js';
 
-// Image generation keywords
-const MODIFICATION_KEYWORDS = [
-    'make it', 'make the', 'make them', 'make this',
-    'change it', 'change the', 'change them',
-    'turn it', 'turn the', 'turn them',
-    'color it', 'color the', 'paint it', 'paint the',
-    'add', 'remove', 'delete', 'include', 'exclude',
-    'with', 'without', 'but with', 'now with',
-    'more', 'less', 'bigger', 'smaller', 'larger',
-    'brighter', 'darker', 'lighter',
-    'in the style', 'style of', 'like',
-    'modify', 'adjust', 'update', 'alter', 'transform',
-    'redo', 'remake', 'regenerate', 'try again',
-    'different', 'another', 'instead'
-];
-
-const GENERATION_KEYWORDS = [
-    'generate an image', 'create an image', 'draw', 'make a picture',
-    'generate a picture', 'create a picture', 'image of', 'picture of',
-    'draw me', 'show me a picture', 'visualize', 'illustrate',
-    'make an image', 'create a visual', 'show me an image'
-];
-
-const COLOR_WORDS = [
-    'red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'brown',
-    'black', 'white', 'gray', 'grey', 'silver', 'gold', 'cyan', 'magenta',
-    'maroon', 'navy', 'olive', 'lime', 'aqua', 'teal', 'fuchsia'
-];
-
-function detectImageIntent(message, imageContext = {}) {
-    const content = message.toLowerCase().trim();
-
-    console.log('🔍 Detecting image intent for:', content);
-    console.log('📦 With context:', imageContext);
-
-    // Check direct generation
-    const isDirectGeneration = GENERATION_KEYWORDS.some(keyword =>
-        content.includes(keyword)
-    );
-
-    if (isDirectGeneration) {
-        console.log('✅ Direct generation detected');
-        return { isImageRequest: true, type: 'new' };
-    }
-
-    // If we have previous image context, check for modifications
-    if (imageContext?.lastPrompt) {
-        console.log('🖼️ Previous image context exists:', imageContext.lastPrompt);
-
-        const hasModificationKeyword = MODIFICATION_KEYWORDS.some(keyword =>
-            content.includes(keyword)
-        );
-
-        const startsWithModificationVerb = /^(make|change|turn|color|paint|add|remove|adjust|modify)/.test(content);
-        const hasColorWord = COLOR_WORDS.some(color => content.includes(color));
-        const isShortDirective = content.split(' ').length <= 5 && (hasColorWord || hasModificationKeyword);
-
-        if (hasModificationKeyword || startsWithModificationVerb || isShortDirective) {
-            console.log('✅ Modification detected');
-            return { isImageRequest: true, type: 'modification' };
-        }
-    }
-
-    console.log('❌ No image intent detected');
-    return { isImageRequest: false, type: 'none' };
-}
-
-function extractImagePrompt(message) {
-    let prompt = message;
-
-    const prefixes = [
-        'generate an image of', 'create an image of', 'draw me',
-        'make a picture of', 'generate a picture of', 'create a picture of',
-        'show me a picture of', 'image of', 'picture of', 'draw',
-        'generate an image', 'create an image', 'make a picture',
-        'show me a picture', 'visualize', 'illustrate'
-    ];
-
-    for (const prefix of prefixes) {
-        const regex = new RegExp(`^${prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*`, 'i');
-        if (regex.test(prompt)) {
-            prompt = prompt.replace(regex, '').trim();
-            break;
-        }
-    }
-
-    return prompt || message;
-}
-
-function mergePromptWithModification(basePrompt, modification) {
-    const modLower = modification.toLowerCase();
-
-    console.log('🔄 Merging:', { basePrompt, modification });
-
-    // Handle color changes specifically
-    const colorMatch = modLower.match(/make (?:it|the|them|this) (\w+)/);
-    if (colorMatch && COLOR_WORDS.includes(colorMatch[1])) {
-        return `${basePrompt}, but ${colorMatch[1]} colored`;
-    }
-
-    // Handle "make the X Y" pattern
-    const makeTheMatch = modLower.match(/make the (\w+) (\w+)/);
-    if (makeTheMatch) {
-        return `${basePrompt}, but make the ${makeTheMatch[1]} ${makeTheMatch[2]}`;
-    }
-
-    // Handle other patterns
-    if (modLower.startsWith('make it ')) {
-        const change = modification.replace(/make it /i, '');
-        return `${basePrompt}, but ${change}`;
-    }
-
-    if (modLower.startsWith('add ')) {
-        return `${basePrompt}, ${modification}`;
-    }
-
-    if (modLower.startsWith('with ')) {
-        return `${basePrompt} ${modification}`;
-    }
-
-    if (modLower.includes('without') || modLower.includes('remove')) {
-        return `${basePrompt}, ${modification}`;
-    }
-
-    // For simple color words, assume it's a modification
-    if (COLOR_WORDS.some(color => modLower === color || modLower === `${color} one`)) {
-        return `${basePrompt}, but ${modification}`;
-    }
-
-    // Default: treat as instruction
-    return `${basePrompt}, ${modification}`;
-}
 
 function validateModel(model) {
     console.log(`✅ [Vercel] Validating model: "${model}"`);
@@ -201,116 +69,107 @@ export default async function handler(req, res) {
         // Detect image intent with context
         const imageIntent = detectImageIntent(lastMessage?.content || '', imageContext);
         console.log('🔍 [Vercel] Image intent:', imageIntent);
-
-        if (lastMessage?.sender === 'User' && imageIntent.isImageRequest) {
-            console.log('🎨 [Vercel] Image generation request! Type:', imageIntent.type);
-
-            res.write(`data: ${JSON.stringify({ type: 'image_request_detected' })}\n\n`);
+        if (lastMessage?.sender === 'User') {
+            console.log('🔍 [Vercel] Checking for image intent with AI classification');
 
             try {
-                // Step 1: Extract user prompt
-                let userPrompt;
-                if (imageIntent.type === 'modification' && imageContext?.lastPrompt) {
-                    userPrompt = lastMessage.content; // The modification request
-                } else {
-                    userPrompt = extractImagePrompt(lastMessage.content);
-                }
-
-                console.log('🎨 [Vercel] User prompt:', userPrompt);
-
-                // Step 2: Enhance prompt with current LLM
-                res.write(`data: ${JSON.stringify({
-                    type: 'content',
-                    content: 'Enhancing your prompt with AI...',
-                    fullContent: 'Enhancing your prompt with AI...'
-                })}\n\n`);
-
-                console.log('🎨 [Vercel] Enhancing prompt with model:', model);
-
-                const enhanceResponse = await fetch(`${req.headers.host.startsWith('localhost') ? 'http' : 'https'}://${req.headers.host}/api/image/enhance`, {
+                // Use AI to classify the user's intent
+                const classifyResponse = await fetch(`${req.headers.host.startsWith('localhost') ? 'http' : 'https'}://${req.headers.host}/api/image/classify`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        userPrompt: userPrompt,
-                        model: model,
-                        previousPrompt: imageContext?.lastPrompt,
-                        modificationType: imageIntent.type
+                        userMessage: lastMessage.content,
+                        hasImageContext: !!(imageContext?.lastPrompt)
+                        // No model parameter needed - always uses GPT-3.5 for classification
                     })
                 });
 
-                if (!enhanceResponse.ok) {
-                    throw new Error(`Enhancement failed: ${enhanceResponse.status}`);
-                }
+                if (classifyResponse.ok) {
+                    const classifyData = await classifyResponse.json();
+                    console.log('🔍 [Vercel] Classification result:', classifyData.intent);
 
-                const enhanceData = await enhanceResponse.json();
-                console.log('🎨 [Vercel] Enhanced prompt:', enhanceData.enhancedPrompt);
+                    if (classifyData.intent === 'new_image' || classifyData.intent === 'modify_image') {
+                        console.log('🎨 [Vercel] Image generation request detected!');
 
-                // Step 3: Generate image with DALL-E
-                res.write(`data: ${JSON.stringify({
-                    type: 'content',
-                    content: 'Creating your image with DALL-E...',
-                    fullContent: 'Creating your image with DALL-E...'
-                })}\n\n`);
+                        // Show typing indicator (no mention of AI enhancement)
+                        res.write(`data: ${JSON.stringify({ type: 'image_request_detected' })}\n\n`);
 
-                const generateResponse = await fetch(`${req.headers.host.startsWith('localhost') ? 'http' : 'https'}://${req.headers.host}/api/image/generate`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        enhancedPrompt: enhanceData.enhancedPrompt,
-                        originalPrompt: userPrompt,
-                        model: model
-                    })
-                });
+                        // Step 1: Enhance prompt (invisible to user)
+                        let userPrompt = lastMessage.content;
+                        console.log('🎨 [Vercel] Enhancing prompt invisibly...');
 
-                if (!generateResponse.ok) {
-                    throw new Error(`Image generation failed: ${generateResponse.status}`);
-                }
+                        const enhanceResponse = await fetch(`${req.headers.host.startsWith('localhost') ? 'http' : 'https'}://${req.headers.host}/api/image/enhance`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                userPrompt: userPrompt,
+                                model: model,
+                                previousPrompt: imageContext?.lastPrompt,
+                                modificationType: classifyData.intent === 'modify_image' ? 'modification' : 'new'
+                            })
+                        });
 
-                const generateData = await generateResponse.json();
-                console.log('🖼️ [Vercel] Image generated:', generateData.imageUrl);
+                        if (!enhanceResponse.ok) {
+                            throw new Error(`Enhancement failed: ${enhanceResponse.status}`);
+                        }
 
-                // Step 4: Send final response
-                let imageResponse;
-                if (imageIntent.type === 'modification') {
-                    imageResponse = `I've modified the image based on your request:\n\n![Generated Image](${generateData.imageUrl})\n\n*Enhanced prompt: "${enhanceData.enhancedPrompt}"*\n\n*Original request: "${userPrompt}"*`;
+                        const enhanceData = await enhanceResponse.json();
+                        console.log('🎨 [Vercel] Enhanced prompt (hidden):', enhanceData.enhancedPrompt);
+
+                        // Step 2: Generate image with DALL-E
+                        const generateResponse = await fetch(`${req.headers.host.startsWith('localhost') ? 'http' : 'https'}://${req.headers.host}/api/image/generate`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                enhancedPrompt: enhanceData.enhancedPrompt,
+                                originalPrompt: userPrompt,
+                                model: model
+                            })
+                        });
+
+                        if (!generateResponse.ok) {
+                            throw new Error(`Image generation failed: ${generateResponse.status}`);
+                        }
+
+                        const generateData = await generateResponse.json();
+                        console.log('🖼️ [Vercel] Image generated:', generateData.imageUrl);
+
+                        // Step 3: Send clean response (no enhanced prompt shown)
+                        let imageResponse;
+                        if (classifyData.intent === 'modify_image') {
+                            imageResponse = `I've modified the image based on your request:\n\n![Generated Image](${generateData.imageUrl})`;
+                        } else {
+                            imageResponse = `I've generated an image for you:\n\n![Generated Image](${generateData.imageUrl})`;
+                        }
+
+                        res.write(`data: ${JSON.stringify({
+                            type: 'content',
+                            content: imageResponse,
+                            fullContent: imageResponse,
+                            imageUrl: generateData.imageUrl,
+                            imagePrompt: enhanceData.enhancedPrompt, // Store for context, but don't show
+                            originalPrompt: userPrompt,
+                            revisedPrompt: generateData.revisedPrompt
+                        })}\n\n`);
+
+                        res.write(`data: ${JSON.stringify({
+                            type: 'done',
+                            finishReason: 'image_generated'
+                        })}\n\n`);
+
+                        res.end();
+                        return;
+
+                    } else {
+                        console.log('🔍 [Vercel] No image intent detected, proceeding with regular chat');
+                    }
                 } else {
-                    imageResponse = `I've generated an image for you:\n\n![Generated Image](${generateData.imageUrl})\n\n*Enhanced prompt: "${enhanceData.enhancedPrompt}"*\n\n*Original request: "${userPrompt}"*`;
+                    console.log('⚠️ [Vercel] Classification failed, proceeding with regular chat');
                 }
-
-                res.write(`data: ${JSON.stringify({
-                    type: 'content',
-                    content: imageResponse,
-                    fullContent: imageResponse,
-                    imageUrl: generateData.imageUrl,
-                    imagePrompt: enhanceData.enhancedPrompt, // Store enhanced prompt for context
-                    originalPrompt: userPrompt,
-                    revisedPrompt: generateData.revisedPrompt
-                })}\n\n`);
-
-                res.write(`data: ${JSON.stringify({
-                    type: 'done',
-                    finishReason: 'image_generated'
-                })}\n\n`);
-
             } catch (error) {
-                console.error('❌ [Vercel] Image generation error:', error);
-
-                const errorMessage = `I apologize, but I couldn't generate the image. Error: ${error.message}`;
-
-                res.write(`data: ${JSON.stringify({
-                    type: 'content',
-                    content: errorMessage,
-                    fullContent: errorMessage
-                })}\n\n`);
-
-                res.write(`data: ${JSON.stringify({
-                    type: 'done',
-                    finishReason: 'error'
-                })}\n\n`);
+                console.error('❌ [Vercel] Classification error:', error);
+                // If classification fails, proceed with regular chat
             }
-
-            res.end();
-            return;
         }
 
         // Regular chat request - route to appropriate handler

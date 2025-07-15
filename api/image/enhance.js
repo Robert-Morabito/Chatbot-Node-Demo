@@ -11,14 +11,14 @@ function isOpenAIModel(model) {
 
 export default async function handler(req, res) {
     console.log('🎨 [Image Enhance] Request received');
-    
+
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
     try {
         const { userPrompt, model, previousPrompt, modificationType } = req.body;
-        
+
         console.log('🎨 [Image Enhance] Processing:', {
             userPrompt,
             model,
@@ -32,37 +32,24 @@ export default async function handler(req, res) {
 
         // Create the enhancement prompt for the LLM
         let enhancementPrompt;
-        
+
         if (modificationType === 'modification' && previousPrompt) {
             // User is modifying an existing image
-            enhancementPrompt = `You are an expert at crafting prompts for DALL-E 3 image generation. 
+            enhancementPrompt = `Previous DALL-E prompt: "${previousPrompt}"
 
-I previously used this DALL-E prompt: "${previousPrompt}"
+            User wants to modify it: "${userPrompt}"
 
-The user now wants to modify it with this request: "${userPrompt}"
+            Create an updated DALL-E prompt that applies the user's modification. Keep it natural and concise like ChatGPT would - don't over-describe.
 
-Please provide an updated DALL-E prompt that incorporates the user's modification while maintaining the quality and style of the original. The prompt should be:
-- Detailed and specific
-- Include artistic/technical terms
-- Mention lighting, style, and quality
-- Be optimized for DALL-E 3
-
-Only respond with the enhanced prompt, nothing else.`;
+            Only respond with the new prompt:`;
 
         } else {
             // User is creating a new image
-            enhancementPrompt = `You are an expert at crafting prompts for DALL-E 3 image generation.
+            enhancementPrompt = `User wants: "${userPrompt}"
 
-The user wants: "${userPrompt}"
+            Create a natural DALL-E prompt like ChatGPT would. Keep it concise but effective - add key details for quality (good lighting, clear subject) but don't over-describe.
 
-Please enhance this into a detailed, high-quality DALL-E prompt. Make it:
-- Specific and detailed
-- Include artistic terms and techniques
-- Mention lighting, composition, and style
-- Add quality indicators (e.g., "high quality", "detailed", "professional")
-- Be optimized for DALL-E 3
-
-Only respond with the enhanced prompt, nothing else.`;
+            Only respond with the prompt:`;
         }
 
         console.log('🎨 [Image Enhance] Enhancement prompt created');
@@ -104,7 +91,7 @@ Only respond with the enhanced prompt, nothing else.`;
 
         // Clean up the enhanced prompt
         enhancedPrompt = enhancedPrompt.trim();
-        
+
         console.log('🎨 [Image Enhance] Original prompt:', userPrompt);
         console.log('🎨 [Image Enhance] Enhanced prompt:', enhancedPrompt);
 
