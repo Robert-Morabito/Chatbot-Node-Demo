@@ -711,10 +711,14 @@ class ChatApp {
 
         // Use dynamic icon
         const displayedModel = this.config?.displayName || '';
+        console.log(`⏳ [NEW] Setting typing icon for displayed model: "${displayedModel}"`);
+
         if (displayedModel.toLowerCase().includes('claude')) {
             iconImg.src = 'images/claude.png';
+            console.log('⏳ [NEW] Using Claude typing icon');
         } else {
             iconImg.src = 'images/gpt.png';
+            console.log('⏳ [NEW] Using GPT typing icon');
         }
 
         const typingContent = document.createElement('div');
@@ -808,10 +812,14 @@ class ChatApp {
         } else {
             // Use dynamic icon based on displayed model
             const displayedModel = this.config?.displayName || '';
+            console.log(`🎨 [NEW] Setting icon for displayed model: "${displayedModel}"`);
+
             if (displayedModel.toLowerCase().includes('claude')) {
                 iconImg.src = 'images/claude.png';
+                console.log('🎨 [NEW] Using Claude icon');
             } else {
                 iconImg.src = 'images/gpt.png';
+                console.log('🎨 [NEW] Using GPT icon');
             }
         }
 

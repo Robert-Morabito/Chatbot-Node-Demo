@@ -134,12 +134,36 @@ function mergePromptWithModification(basePrompt, modification) {
     return `${basePrompt}, ${modification}`;
 }
 
+function validateModel(model) {
+    console.log(`✅ [Vercel] Validating model: "${model}"`);
+
+    const validOpenAIModels = ['gpt-3.5-turbo-0125', 'gpt-4-turbo', 'o1-preview'];
+    const validClaudeModels = ['claude-3-5-haiku-20241022', 'claude-3-5-sonnet-20241022', 'claude-3-opus-20240229'];
+
+    if (validOpenAIModels.includes(model)) {
+        console.log(`✅ [Vercel] Valid OpenAI model: ${model}`);
+        return { isValid: true, type: 'openai' };
+    }
+
+    if (validClaudeModels.includes(model)) {
+        console.log(`✅ [Vercel] Valid Claude model: ${model}`);
+        return { isValid: true, type: 'claude' };
+    }
+
+    console.log(`❌ [Vercel] Invalid model: ${model}`);
+    return { isValid: false, type: 'unknown' };
+}
+
 function isClaudeModel(model) {
-    return model.startsWith('claude-');
+    const isClaudeResult = model.startsWith('claude-');
+    console.log(`🔍 [Vercel] isClaudeModel("${model}") = ${isClaudeResult}`);
+    return isClaudeResult;
 }
 
 function isOpenAIModel(model) {
-    return model.startsWith('gpt-') || model.startsWith('o1-');
+    const isOpenAIResult = model.startsWith('gpt-') || model.startsWith('o1-');
+    console.log(`🔍 [Vercel] isOpenAIModel("${model}") = ${isOpenAIResult}`);
+    return isOpenAIResult;
 }
 
 export default async function handler(req, res) {
@@ -249,11 +273,17 @@ export default async function handler(req, res) {
         console.log('💬 [Vercel] Processing regular chat request with model:', model);
 
         try {
-            let handler;
-            let modelType;
+            // Validate model first
+            const validation = validateModel(model);
+            if (!validation.isValid) {
+                throw new Error(`Invalid model: ${model}`);
+            }
 
-            // Determine model type and create handler
-            if (isClaudeModel(model)) {
+            let handler;
+            let modelType = validation.type;
+
+            // Create appropriate handler
+            if (modelType === 'claude') {
                 console.log('🎭 [Vercel] Using Claude handler for model:', model);
 
                 if (!process.env.ANTHROPIC_API_KEY) {
@@ -261,9 +291,8 @@ export default async function handler(req, res) {
                 }
 
                 handler = new ClaudeHandler(process.env.ANTHROPIC_API_KEY);
-                modelType = 'claude';
 
-            } else if (isOpenAIModel(model)) {
+            } else if (modelType === 'openai') {
                 console.log('🤖 [Vercel] Using OpenAI handler for model:', model);
 
                 if (!process.env.OPENAI_API_KEY) {
@@ -271,20 +300,12 @@ export default async function handler(req, res) {
                 }
 
                 handler = new OpenAIHandler(process.env.OPENAI_API_KEY);
-                modelType = 'openai';
 
             } else {
-                throw new Error(`Unsupported model: ${model}`);
+                throw new Error(`Unsupported model type: ${modelType}`);
             }
 
-            console.log(`✅ [Vercel] Handler created for ${modelType} model`);
-
-            // Send model info to frontend
-            res.write(`data: ${JSON.stringify({
-                type: 'model_info',
-                modelType: modelType,
-                actualModel: model
-            })}\n\n`);
+            console.log(`✅ [Vercel] Handler created for ${modelType} model: ${model}`);
 
             // Stream the response
             for await (const chunk of handler.streamChat(messages, model)) {
