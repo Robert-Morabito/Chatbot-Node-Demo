@@ -67,12 +67,12 @@ app.use('/api/sessions', async (req, res, next) => {
 app.get('/api/health', (req, res) => {
     const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
     const keyPrefix = process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 7) + '...' : 'not set';
-
+    
     console.log('🔍 Health check - OpenAI API Key:', hasOpenAIKey ? 'present' : 'missing');
     console.log('🔑 Key prefix:', keyPrefix);
-
-    res.json({
-        status: 'OK',
+    
+    res.json({ 
+        status: 'OK', 
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         imageGeneration: hasOpenAIKey,
@@ -85,9 +85,9 @@ app.get('/api/test-github', async (req, res) => {
     try {
         const GitHubStorage = (await import('./utils/githubStorage.js')).default;
         const storage = new GitHubStorage();
-
+        
         const testResult = await storage.testConnection();
-
+        
         res.json({
             success: testResult,
             config: {
@@ -112,7 +112,7 @@ app.get('*', (req, res) => {
 // Error handling
 app.use((error, req, res, next) => {
     console.error('Server Error:', error);
-    res.status(500).json({
+    res.status(500).json({ 
         error: 'Internal server error',
         message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
     });

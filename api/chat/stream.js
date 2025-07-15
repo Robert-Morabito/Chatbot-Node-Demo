@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { OpenAIHandler } from '../../handlers/openaiHandler.js';
+import { ClaudeHandler } from '../../handlers/claudeHandler.js';
 
 // Image generation keywords
 const MODIFICATION_KEYWORDS = [
@@ -26,6 +27,19 @@ const MODIFICATION_KEYWORDS = [
     'modify', 'adjust', 'update', 'alter', 'transform',
     'redo', 'remake', 'regenerate', 'try again',
     'different', 'another', 'instead'
+];
+
+const GENERATION_KEYWORDS = [
+    'generate an image', 'create an image', 'draw', 'make a picture',
+    'generate a picture', 'create a picture', 'image of', 'picture of',
+    'draw me', 'show me a picture', 'visualize', 'illustrate',
+    'make an image', 'create a visual', 'show me an image'
+];
+
+const COLOR_WORDS = [
+    'red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'brown',
+    'black', 'white', 'gray', 'grey', 'silver', 'gold', 'cyan', 'magenta',
+    'maroon', 'navy', 'olive', 'lime', 'aqua', 'teal', 'fuchsia'
 ];
 
 function detectImageIntent(message, imageContext = {}) {
@@ -145,6 +159,14 @@ function mergePromptWithModification(basePrompt, modification) {
     return `${basePrompt}, ${modification}`;
 }
 
+function isClaudeModel(model) {
+    return model.startsWith('claude-');
+}
+
+function isOpenAIModel(model) {
+    return model.startsWith('gpt-') || model.startsWith('o1-');
+}
+
 export default async function handler(req, res) {
     console.log('🌐 Vercel function called:', req.method, req.url);
 
@@ -155,7 +177,11 @@ export default async function handler(req, res) {
     try {
         const { messages, model, sessionId, conversationId, imageContext } = req.body;
 
-        console.log('📦 Request includes imageContext:', !!imageContext);
+        console.log('📦 Request includes:', {
+            model,
+            messageCount: messages?.length,
+            imageContext: !!imageContext
+        });
 
         if (!messages || !Array.isArray(messages)) {
             return res.status(400).json({ error: 'Messages array is required' });
@@ -184,6 +210,7 @@ export default async function handler(req, res) {
             res.write(`data: ${JSON.stringify({ type: 'image_request_detected' })}\n\n`);
 
             try {
+                // For now, use OpenAI for image generation regardless of model
                 const apiKey = process.env.OPENAI_API_KEY;
                 if (!apiKey) {
                     throw new Error('OpenAI API key not configured');
@@ -247,23 +274,38 @@ export default async function handler(req, res) {
             return;
         }
 
-        // Regular chat request
-        console.log('💬 Processing regular chat request');
+        // Regular chat request - route to appropriate handler
+        console.log('💬 Processing regular chat request with model:', model);
 
-        const apiKey = process.env.OPENAI_API_KEY;
-        if (!apiKey) {
-            throw new Error('OpenAI API key not configured');
-        }
-
-        const openai = new OpenAIHandler(apiKey);
-
-        // Use streamChat instead of streamChatTextOnly
-        for await (const chunk of openai.streamChat(messages, model)) {
-            res.write(`data: ${JSON.stringify(chunk)}\n\n`);
-
-            if (chunk.type === 'done' || chunk.type === 'error') {
-                break;
+        try {
+            if (isClaudeModel(model)) {
+                console.log('🎭 Using Claude handler');
+                const claudeHandler = new ClaudeHandler(process.env.ANTHROPIC_API_KEY);
+                
+                for await (const chunk of claudeHandler.streamChat(messages, model)) {
+                    res.write(`data: ${JSON.stringify(chunk)}\n\n`);
+                    
+                    if (chunk.type === 'done' || chunk.type === 'error') {
+                        break;
+                    }
+                }
+            } else if (isOpenAIModel(model)) {
+                console.log('🤖 Using OpenAI handler');
+                const openaiHandler = new OpenAIHandler(process.env.OPENAI_API_KEY);
+                
+                for await (const chunk of openaiHandler.streamChat(messages, model)) {
+                    res.write(`data: ${JSON.stringify(chunk)}\n\n`);
+                    
+                    if (chunk.type === 'done' || chunk.type === 'error') {
+                        break;
+                    }
+                }
+            } else {
+                throw new Error(`Unsupported model: ${model}`);
             }
+        } catch (error) {
+            console.error('❌ Chat handler error:', error);
+            res.write(`data: ${JSON.stringify({ type: 'error', error: error.message })}\n\n`);
         }
 
         res.end();

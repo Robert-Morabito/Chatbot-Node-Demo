@@ -20,12 +20,12 @@ class ChatApp {
             messageCount: 0,
             conversationCount: 0,
             editCount: 0,
-            editDistances: [], // How many messages back they edited
+            editDistances: [],
             idleStartTime: Date.now(),
             totalIdleTime: 0,
             messageTimes: [],
             conversationSwitches: 0,
-            responseTimesAfterBot: [], // Time user takes to respond after bot
+            responseTimesAfterBot: [],
             lastBotMessageTime: null,
             lastUserActivity: Date.now(),
             typingPatterns: {
@@ -41,7 +41,6 @@ class ChatApp {
             conversationHasImage: false
         };
 
-        // Add this to your constructor if it's not there:
         this.welcomeState = {
             currentStep: 0,
             timer: null,
@@ -50,10 +49,10 @@ class ChatApp {
         };
 
         // Track idle time
-        this.idleThreshold = 5000; // 5 seconds of no activity = idle
+        this.idleThreshold = 5000;
         this.idleCheckInterval = null;
 
-        // Configuration (can be simplified since we're not doing complex experimental assignment)
+        // Default configuration (will be overridden)
         this.config = {
             givenModel: 'GPT-4',
             trueModel: 'gpt-4-turbo',
@@ -65,12 +64,7 @@ class ChatApp {
                 year: '2022',
                 generation: '3.5',
                 description: [
-                    '⚬ Generation 3.5 - Released March 2022',
-                    '⚬ Fast & Cost-Effective - Quick responses, efficient processing',
-                    '⚬ General Purpose - Good at most conversational tasks',
-                    '⚬ Reliable Baseline - Solid performance across various topics',
-                    '⚬ Best For - Everyday chat, basic writing, general questions',
-                    '⚬ Limitations - May struggle with very complex reasoning or specialized tasks'
+                    '⚬ Generation 3.5 - Released March 2022'
                 ]
             },
             'GPT-4': {
@@ -96,19 +90,62 @@ class ChatApp {
                     '⚬ Best For - Research, analysis, complex reasoning tasks',
                     '⚬ Trade-offs - Much slower responses, not ideal for casual conversation'
                 ]
+            },
+            'Claude 3.5 Haiku': {
+                year: '2024',
+                generation: '3.5',
+                description: [
+                    '⚬ Generation 3.5 - Released October 2024',
+                    '⚬ Fast & Efficient - Optimized for speed and responsiveness',
+                    '⚬ Lightweight Model - Quick processing with solid performance',
+                    '⚬ Cost-Effective - Designed for high-volume, everyday tasks',
+                    '⚬ Best For - Simple conversations, basic analysis, quick responses',
+                    '⚬ Trade-offs - Less sophisticated than Sonnet or Opus variants'
+                ]
+            },
+            'Claude 3.5 Sonnet': {
+                year: '2024',
+                generation: '3.5',
+                description: [
+                    '⚬ Generation 3.5 - Released October 2024',
+                    '⚬ Balanced Performance - Optimal mix of speed and capability',
+                    '⚬ Strong Reasoning - Advanced problem-solving and analysis',
+                    '⚬ Versatile Applications - Excellent for diverse tasks',
+                    '⚬ Best For - Complex writing, coding, research, detailed analysis',
+                    '⚬ Current Flagship - Anthropic\'s most advanced widely-available model'
+                ]
+            },
+            'Claude 3 Opus': {
+                year: '2024',
+                generation: '3.0',
+                description: [
+                    '⚬ Generation 3.0 - Released February 2024',
+                    '⚬ Maximum Capability - Anthropic\'s most powerful model',
+                    '⚬ Superior Reasoning - Exceptional at complex, nuanced tasks',
+                    '⚬ Careful & Thoughtful - Takes time for thorough analysis',
+                    '⚬ Best For - Research, complex writing, sophisticated analysis',
+                    '⚬ Trade-offs - Slower responses, higher computational cost'
+                ]
             }
         };
 
-        // Welcome flow state
-        this.welcomeState = {
-            currentStep: 0,
-            timer: null,
-            timerSeconds: 10,
-            steps: []
-        };
+        // Initialize the app - load configuration first, then show welcome
+        this.initializeApp();
+    }
 
-        // Initialize the app
-        this.showWelcomeFlow();
+    async initializeApp() {
+        try {
+            // Load configuration first
+            await this.loadConfiguration();
+            console.log('✅ Configuration loaded:', this.config);
+
+            // Now show welcome flow with correct model info
+            this.showWelcomeFlow();
+        } catch (error) {
+            console.error('❌ Failed to load configuration:', error);
+            // Show welcome flow with default config
+            this.showWelcomeFlow();
+        }
     }
 
     showWelcomeFlow() {
@@ -256,13 +293,8 @@ class ChatApp {
 
         this.participantId = prolificId;
 
-        // Load configuration with the Prolific ID
-        await this.loadConfiguration();
-
-        // Rebuild the model steps with the correct configuration
-        this.welcomeState.steps = [this.welcomeState.steps[0]]; // Keep only the first welcome step
-        this.buildModelSteps();
-        this.createProgressDots();
+        // Register the session with the participant ID
+        await this.registerSession();
 
         // Close modal and start app
         document.getElementById('welcome-modal').style.display = 'none';
@@ -347,7 +379,7 @@ class ChatApp {
         const progressCircle = circularProgress.querySelector('.progress-circle');
 
         // Reset timer
-        this.welcomeState.timerSeconds = 5;
+        this.welcomeState.timerSeconds = 0;
         progressCircle.style.strokeDashoffset = '75';
 
         // Start countdown
@@ -425,18 +457,13 @@ class ChatApp {
     }
 
     async init() {
-        // Load configuration assignment first
-        await this.loadConfiguration();
-
-        // Continue with normal initialization
+        // Setup event listeners and UI
         this.setupEventListeners();
         this.updateBotName();
         this.createNewConversation();
         this.setupTextareaAutoResize();
         this.setupAdvancedAnimations();
         this.initializeBehaviorTracking();
-
-        // Finish button is already in HTML, just ensure it's visible
         this.setupFinishButton();
     }
 
@@ -624,30 +651,21 @@ class ChatApp {
         messageDiv.className = `message ${msgInfo.sender.toLowerCase()}`;
         messageDiv.dataset.msgId = msgInfo.msg_id;
 
-        // Create icon
+        // Create icon - use dynamic icon based on model
         const iconImg = document.createElement('img');
         iconImg.className = 'message-icon';
         iconImg.alt = msgInfo.sender;
-        iconImg.src = msgInfo.sender === 'User' ? 'images/user.png' : 'images/gpt.png';
 
-        // Create message content
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'message-content';
-
-        // Render content with markdown for bot messages, plain text for user messages
-        if (msgInfo.sender === 'Bot') {
-            // Use marked.js to parse markdown
-            contentDiv.innerHTML = marked.parse(msgInfo.content, {
-                breaks: true, // Convert line breaks to <br>
-                gfm: true,    // GitHub Flavored Markdown
-                sanitize: false // Allow HTML (be careful in production)
-            });
-
-            // Add click handlers for images
-            this.setupImageClickHandlers(contentDiv);
+        if (msgInfo.sender === 'User') {
+            iconImg.src = 'images/user.png';
         } else {
-            // User messages stay as plain text
-            contentDiv.textContent = msgInfo.content;
+            // Use the icon from the current configuration
+            const displayedModel = this.config?.displayName || '';
+            if (displayedModel.toLowerCase().includes('claude')) {
+                iconImg.src = 'images/claude.png';
+            } else {
+                iconImg.src = 'images/gpt.png';
+            }
         }
 
         // Add edit button for user messages
@@ -737,7 +755,7 @@ class ChatApp {
         try {
             console.log('🔄 Loading configuration...');
 
-            // First get configuration assignment
+            // Get configuration assignment (no participant ID needed yet)
             const response = await fetch('/api/configurations/assign', {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
@@ -761,16 +779,10 @@ class ChatApp {
                 };
 
                 console.log('🎯 Configuration loaded:', {
-                    participant: this.participantId,
                     displayed: this.config.givenModel,
                     actual: this.config.trueModel,
                     configId: this.configurationId
                 });
-
-                // Now register the session with participant ID
-                if (this.participantId) {
-                    await this.registerSession();
-                }
 
                 return true;
             } else {
@@ -778,17 +790,9 @@ class ChatApp {
             }
         } catch (error) {
             console.error('❌ Error loading configuration:', error);
-            // Fallback to default
-            this.config = {
-                givenModel: 'GPT-4',
-                trueModel: 'gpt-4-turbo',
-                displayName: 'GPT-4'
-            };
-
-            // Generate a fallback session ID
+            // Keep default configuration
             this.sessionId = `fallback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
             this.configurationId = 1;
-
             return false;
         }
     }
@@ -1672,6 +1676,12 @@ class ChatApp {
 
     async markSessionCompleted() {
         try {
+            console.log('🏁 Marking session as completed...', {
+                sessionId: this.sessionId,
+                participantId: this.participantId,
+                configurationId: this.configurationId
+            });
+
             const response = await fetch('/api/sessions/complete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1681,14 +1691,21 @@ class ChatApp {
                 })
             });
 
+            const responseText = await response.text();
+            console.log('📡 Session completion response:', response.status, responseText);
+
             if (!response.ok) {
-                console.warn('Failed to mark session as completed on server');
-            } else {
-                console.log('✅ Session marked as completed');
+                console.error('❌ Failed to mark session as completed:', response.status, responseText);
+                throw new Error(`HTTP ${response.status}: ${responseText}`);
             }
+
+            const result = JSON.parse(responseText);
+            console.log('✅ Session marked as completed:', result);
+
+            return result;
         } catch (error) {
-            console.warn('Error marking session complete:', error);
-            // Don't throw - this is not critical for the user experience
+            console.error('❌ Error marking session complete:', error);
+            throw error; // Re-throw so handleFinishStudy can catch it
         }
     }
 

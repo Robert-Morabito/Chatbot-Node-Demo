@@ -4,8 +4,8 @@
       "id": 1,
       "displayedModel": "GPT-3.5",
       "actualModel": "gpt-3.5-turbo-0125",
-      "completedSessions": 1,
-      "targetSessions": 12,
+      "completedSessions": 0,
+      "targetSessions": 1,
       "isActive": true
     },
     "2": {
@@ -13,7 +13,7 @@
       "displayedModel": "GPT-3.5",
       "actualModel": "gpt-4-turbo",
       "completedSessions": 0,
-      "targetSessions": 12,
+      "targetSessions": 1,
       "isActive": true
     },
     "3": {
@@ -21,7 +21,7 @@
       "displayedModel": "GPT-3.5",
       "actualModel": "o1-preview",
       "completedSessions": 0,
-      "targetSessions": 12,
+      "targetSessions": 1,
       "isActive": true
     },
     "4": {
@@ -29,7 +29,7 @@
       "displayedModel": "GPT-4",
       "actualModel": "gpt-3.5-turbo-0125",
       "completedSessions": 0,
-      "targetSessions": 12,
+      "targetSessions": 1,
       "isActive": true
     },
     "5": {
@@ -37,7 +37,7 @@
       "displayedModel": "GPT-4",
       "actualModel": "gpt-4-turbo",
       "completedSessions": 0,
-      "targetSessions": 12,
+      "targetSessions": 1,
       "isActive": true
     },
     "6": {
@@ -45,7 +45,7 @@
       "displayedModel": "GPT-4",
       "actualModel": "o1-preview",
       "completedSessions": 0,
-      "targetSessions": 12,
+      "targetSessions": 1,
       "isActive": true
     },
     "7": {
@@ -53,7 +53,7 @@
       "displayedModel": "o1-Preview",
       "actualModel": "gpt-3.5-turbo-0125",
       "completedSessions": 0,
-      "targetSessions": 12,
+      "targetSessions": 1,
       "isActive": true
     },
     "8": {
@@ -61,7 +61,7 @@
       "displayedModel": "o1-Preview",
       "actualModel": "gpt-4-turbo",
       "completedSessions": 0,
-      "targetSessions": 12,
+      "targetSessions": 1,
       "isActive": true
     },
     "9": {
@@ -69,24 +69,103 @@
       "displayedModel": "o1-Preview",
       "actualModel": "o1-preview",
       "completedSessions": 0,
-      "targetSessions": 12,
+      "targetSessions": 1,
+      "isActive": true
+    },
+    "10": {
+      "id": 10,
+      "displayedModel": "Claude 3.5 Haiku",
+      "actualModel": "claude-3-5-haiku-20241022",
+      "completedSessions": 0,
+      "targetSessions": 1,
+      "isActive": true
+    },
+    "11": {
+      "id": 11,
+      "displayedModel": "Claude 3.5 Haiku",
+      "actualModel": "claude-3-5-sonnet-20241022",
+      "completedSessions": 0,
+      "targetSessions": 1,
+      "isActive": true
+    },
+    "12": {
+      "id": 12,
+      "displayedModel": "Claude 3.5 Haiku",
+      "actualModel": "claude-3-opus-20240229",
+      "completedSessions": 0,
+      "targetSessions": 1,
+      "isActive": true
+    },
+    "13": {
+      "id": 13,
+      "displayedModel": "Claude 3.5 Sonnet",
+      "actualModel": "claude-3-5-haiku-20241022",
+      "completedSessions": 0,
+      "targetSessions": 1,
+      "isActive": true
+    },
+    "14": {
+      "id": 14,
+      "displayedModel": "Claude 3.5 Sonnet",
+      "actualModel": "claude-3-5-sonnet-20241022",
+      "completedSessions": 0,
+      "targetSessions": 1,
+      "isActive": true
+    },
+    "15": {
+      "id": 15,
+      "displayedModel": "Claude 3.5 Sonnet",
+      "actualModel": "claude-3-opus-20240229",
+      "completedSessions": 0,
+      "targetSessions": 1,
+      "isActive": true
+    },
+    "16": {
+      "id": 16,
+      "displayedModel": "Claude 3 Opus",
+      "actualModel": "claude-3-5-haiku-20241022",
+      "completedSessions": 0,
+      "targetSessions": 1,
+      "isActive": true
+    },
+    "17": {
+      "id": 17,
+      "displayedModel": "Claude 3 Opus",
+      "actualModel": "claude-3-5-sonnet-20241022",
+      "completedSessions": 0,
+      "targetSessions": 1,
+      "isActive": true
+    },
+    "18": {
+      "id": 18,
+      "displayedModel": "Claude 3 Opus",
+      "actualModel": "claude-3-opus-20240229",
+      "completedSessions": 0,
+      "targetSessions": 1,
+      "isActive": true
+    },
+    "19": {
+      "id": 19,
+      "displayedModel": "Claude 3.5 Sonnet",
+      "actualModel": "o1-preview",
+      "completedSessions": 0,
+      "targetSessions": 1,
+      "isActive": true
+    },
+    "20": {
+      "id": 20,
+      "displayedModel": "o1-Preview",
+      "actualModel": "claude-3-5-sonnet-20241022",
+      "completedSessions": 0,
+      "targetSessions": 1,
       "isActive": true
     }
   },
-  "sessions": {
-    "session_1752537317932_a00f3czj8": {
-      "sessionId": "session_1752537317932_a00f3czj8",
-      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-      "configurationId": 1,
-      "assignedAt": "2025-07-14T23:55:50.833Z",
-      "completed": true,
-      "completedAt": "2025-07-14T23:56:05.830Z"
-    }
-  },
+  "sessions": {},
   "metadata": {
-    "totalConfigurations": 9,
-    "totalTargetSessions": 108,
+    "totalConfigurations": 20,
+    "totalTargetSessions": 20,
     "createdAt": "2024-01-15T00:00:00.000Z",
-    "lastUpdated": "2025-07-14T23:56:05.831Z"
+    "lastUpdated": "2025-01-21T12:00:00.000Z"
   }
 }

@@ -4,31 +4,83 @@ import { OpenAIHandler } from '../handlers/openaiHandler.js';
 const router = express.Router();
 
 // Image detection utilities
-const IMAGE_KEYWORDS = [
+const GENERATION_KEYWORDS = [
     'generate an image', 'create an image', 'draw', 'make a picture',
     'generate a picture', 'create a picture', 'image of', 'picture of',
     'draw me', 'show me a picture', 'visualize', 'illustrate',
     'make an image', 'create a visual', 'show me an image'
 ];
 
-function isImageRequest(message) {
-    const content = message.toLowerCase();
-    return IMAGE_KEYWORDS.some(keyword => content.includes(keyword));
+const MODIFICATION_KEYWORDS = [
+    'make it', 'make the', 'make them', 'make this',
+    'change it', 'change the', 'change them',
+    'turn it', 'turn the', 'turn them',
+    'color it', 'color the', 'paint it', 'paint the',
+    'add', 'remove', 'delete', 'include', 'exclude',
+    'with', 'without', 'but with', 'now with',
+    'more', 'less', 'bigger', 'smaller', 'larger',
+    'brighter', 'darker', 'lighter',
+    'in the style', 'style of', 'like',
+    'modify', 'adjust', 'update', 'alter', 'transform',
+    'redo', 'remake', 'regenerate', 'try again',
+    'different', 'another', 'instead'
+];
+
+const COLOR_WORDS = [
+    'red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'brown',
+    'black', 'white', 'gray', 'grey', 'silver', 'gold', 'cyan', 'magenta',
+    'maroon', 'navy', 'olive', 'lime', 'aqua', 'teal', 'fuchsia'
+];
+
+function detectImageIntent(message, imageContext = {}) {
+    const content = message.toLowerCase().trim();
+
+    console.log('🔍 Detecting image intent for:', content);
+    console.log('📦 With context:', imageContext);
+
+    // Check direct generation
+    const isDirectGeneration = GENERATION_KEYWORDS.some(keyword =>
+        content.includes(keyword)
+    );
+
+    if (isDirectGeneration) {
+        console.log('✅ Direct generation detected');
+        return { isImageRequest: true, type: 'new' };
+    }
+
+    // If we have previous image context, check for modifications
+    if (imageContext?.lastPrompt) {
+        console.log('🖼️ Previous image context exists:', imageContext.lastPrompt);
+
+        const hasModificationKeyword = MODIFICATION_KEYWORDS.some(keyword =>
+            content.includes(keyword)
+        );
+
+        const startsWithModificationVerb = /^(make|change|turn|color|paint|add|remove|adjust|modify)/.test(content);
+        const hasColorWord = COLOR_WORDS.some(color => content.includes(color));
+        const isShortDirective = content.split(' ').length <= 5 && (hasColorWord || hasModificationKeyword);
+
+        if (hasModificationKeyword || startsWithModificationVerb || isShortDirective) {
+            console.log('✅ Modification detected');
+            return { isImageRequest: true, type: 'modification' };
+        }
+    }
+
+    console.log('❌ No image intent detected');
+    return { isImageRequest: false, type: 'none' };
 }
 
 function extractImagePrompt(message) {
     let prompt = message;
-    
-    // Remove common prefixes
+
     const prefixes = [
         'generate an image of', 'create an image of', 'draw me',
         'make a picture of', 'generate a picture of', 'create a picture of',
         'show me a picture of', 'image of', 'picture of', 'draw',
         'generate an image', 'create an image', 'make a picture',
-        'show me a picture', 'visualize', 'illustrate',
-        'make an image of', 'create a visual of'
+        'show me a picture', 'visualize', 'illustrate'
     ];
-    
+
     for (const prefix of prefixes) {
         const regex = new RegExp(`^${prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*`, 'i');
         if (regex.test(prompt)) {
@@ -36,22 +88,67 @@ function extractImagePrompt(message) {
             break;
         }
     }
-    
+
     return prompt || message;
 }
 
+function mergePromptWithModification(basePrompt, modification) {
+    const modLower = modification.toLowerCase();
+
+    console.log('🔄 Merging:', { basePrompt, modification });
+
+    // Handle color changes specifically
+    const colorMatch = modLower.match(/make (?:it|the|them|this) (\w+)/);
+    if (colorMatch && COLOR_WORDS.includes(colorMatch[1])) {
+        return `${basePrompt}, but ${colorMatch[1]} colored`;
+    }
+
+    // Handle "make the X Y" pattern
+    const makeTheMatch = modLower.match(/make the (\w+) (\w+)/);
+    if (makeTheMatch) {
+        return `${basePrompt}, but make the ${makeTheMatch[1]} ${makeTheMatch[2]}`;
+    }
+
+    // Handle other patterns
+    if (modLower.startsWith('make it ')) {
+        const change = modification.replace(/make it /i, '');
+        return `${basePrompt}, but ${change}`;
+    }
+
+    if (modLower.startsWith('add ')) {
+        return `${basePrompt}, ${modification}`;
+    }
+
+    if (modLower.startsWith('with ')) {
+        return `${basePrompt} ${modification}`;
+    }
+
+    if (modLower.includes('without') || modLower.includes('remove')) {
+        return `${basePrompt}, ${modification}`;
+    }
+
+    // For simple color words, assume it's a modification
+    if (COLOR_WORDS.some(color => modLower === color || modLower === `${color} one`)) {
+        return `${basePrompt}, but ${modification}`;
+    }
+
+    // Default: treat as instruction
+    return `${basePrompt}, ${modification}`;
+}
+
 router.post('/stream', async (req, res) => {
-    console.log('🚀 [Chat Route] Stream endpoint hit');
+    console.log('🚀 [Express Route] Stream endpoint hit');
+    console.log('📦 Request body:', req.body);
     
     try {
-        const { messages, model, sessionId, conversationId } = req.body;
+        const { messages, model, sessionId, conversationId, imageContext } = req.body;
         
         if (!messages || !Array.isArray(messages)) {
             return res.status(400).json({ error: 'Messages array is required' });
         }
 
         const lastMessage = messages[messages.length - 1];
-        console.log('📨 [Chat Route] Last message:', lastMessage);
+        console.log('💬 Last message:', lastMessage);
 
         // Set up SSE headers
         res.writeHead(200, {
@@ -64,32 +161,49 @@ router.post('/stream', async (req, res) => {
         // Send initial connection message
         res.write(`data: ${JSON.stringify({ type: 'connected', conversationId })}\n\n`);
 
-        // Check if this is an image request
-        if (lastMessage?.sender === 'User' && isImageRequest(lastMessage.content)) {
-            console.log('🎨 [Chat Route] Image request detected!');
-            
+        // Detect image intent with context
+        const imageIntent = detectImageIntent(lastMessage?.content || '', imageContext);
+        console.log('🔍 Image intent:', imageIntent);
+
+        if (lastMessage?.sender === 'User' && imageIntent.isImageRequest) {
+            console.log('🎨 Image generation request! Type:', imageIntent.type);
+
             res.write(`data: ${JSON.stringify({ type: 'image_request_detected' })}\n\n`);
 
             try {
-                // Initialize OpenAI handler
-                const openai = new OpenAIHandler(process.env.OPENAI_API_KEY);
-                
-                // Extract and clean the prompt
-                const imagePrompt = extractImagePrompt(lastMessage.content);
-                console.log('🖼️ [Chat Route] Image prompt:', imagePrompt);
+                const apiKey = process.env.OPENAI_API_KEY;
+                if (!apiKey) {
+                    throw new Error('OpenAI API key not configured');
+                }
 
-                // Generate the image
-                const result = await openai.generateImage(imagePrompt);
-                
-                // Create response with the image
-                const imageResponse = `I've generated an image for you:\n\n![Generated Image](${result.url})\n\n*Prompt: "${imagePrompt}"*`;
+                const openai = new OpenAIHandler(apiKey);
+                let finalPrompt;
 
-                // Send the image response
+                if (imageIntent.type === 'modification' && imageContext?.lastPrompt) {
+                    console.log('🔄 Modifying previous prompt:', imageContext.lastPrompt);
+                    finalPrompt = mergePromptWithModification(imageContext.lastPrompt, lastMessage.content);
+                } else {
+                    finalPrompt = extractImagePrompt(lastMessage.content);
+                }
+
+                console.log('🖼️ Final prompt:', finalPrompt);
+
+                const result = await openai.generateImage(finalPrompt);
+
+                let imageResponse;
+                if (imageIntent.type === 'modification') {
+                    imageResponse = `I've modified the image based on your request:\n\n![Generated Image](${result.url})\n\n*Updated prompt: "${finalPrompt}"*`;
+                } else {
+                    imageResponse = `I've generated an image for you:\n\n![Generated Image](${result.url})\n\n*Prompt: "${finalPrompt}"*`;
+                }
+
                 res.write(`data: ${JSON.stringify({
                     type: 'content',
                     content: imageResponse,
                     fullContent: imageResponse,
-                    imageUrl: result.url
+                    imageUrl: result.url,
+                    imagePrompt: finalPrompt,
+                    revisedPrompt: result.revisedPrompt || finalPrompt
                 })}\n\n`);
 
                 res.write(`data: ${JSON.stringify({
@@ -98,10 +212,10 @@ router.post('/stream', async (req, res) => {
                 })}\n\n`);
 
             } catch (error) {
-                console.error('❌ [Chat Route] Image generation error:', error);
-                
+                console.error('❌ Image generation error:', error);
+
                 const errorMessage = `I apologize, but I couldn't generate the image. Error: ${error.message}`;
-                
+
                 res.write(`data: ${JSON.stringify({
                     type: 'content',
                     content: errorMessage,
@@ -119,14 +233,19 @@ router.post('/stream', async (req, res) => {
         }
 
         // Regular chat request
-        console.log('💬 [Chat Route] Regular chat request');
-        
-        const openai = new OpenAIHandler(process.env.OPENAI_API_KEY);
-        
-        // Stream the chat response
+        console.log('💬 Processing regular chat request');
+
+        const apiKey = process.env.OPENAI_API_KEY;
+        if (!apiKey) {
+            throw new Error('OpenAI API key not configured');
+        }
+
+        const openai = new OpenAIHandler(apiKey);
+
+        // Use streamChat for all models (temporarily use OpenAI for all)
         for await (const chunk of openai.streamChat(messages, model)) {
             res.write(`data: ${JSON.stringify(chunk)}\n\n`);
-            
+
             if (chunk.type === 'done' || chunk.type === 'error') {
                 break;
             }
@@ -135,7 +254,7 @@ router.post('/stream', async (req, res) => {
         res.end();
 
     } catch (error) {
-        console.error('❌ [Chat Route] Stream error:', error);
+        console.error('❌ [Express Route] Stream error:', error);
         
         if (!res.headersSent) {
             res.writeHead(500, { 'Content-Type': 'application/json' });
@@ -144,31 +263,6 @@ router.post('/stream', async (req, res) => {
             res.write(`data: ${JSON.stringify({ type: 'error', error: error.message })}\n\n`);
             res.end();
         }
-    }
-});
-
-// Test endpoint for image generation
-router.post('/test-image', async (req, res) => {
-    console.log('🧪 [Chat Route] Testing image generation directly');
-    
-    try {
-        const { prompt = "a cute cat playing with yarn" } = req.body;
-        
-        const openai = new OpenAIHandler(process.env.OPENAI_API_KEY);
-        const result = await openai.generateImage(prompt);
-        
-        res.json({
-            success: true,
-            ...result
-        });
-        
-    } catch (error) {
-        console.error('❌ [Chat Route] Test image error:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-            details: error.response?.data || error
-        });
     }
 });
 
