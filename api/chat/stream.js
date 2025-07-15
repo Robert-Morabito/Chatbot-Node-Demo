@@ -69,6 +69,9 @@ export default async function handler(req, res) {
         // Detect image intent with context
         const imageIntent = detectImageIntent(lastMessage?.content || '', imageContext);
         console.log('🔍 [Vercel] Image intent:', imageIntent);
+        let shouldGenerateImage = false;
+        let imageGenerationData = null;
+
         if (lastMessage?.sender === 'User') {
             console.log('🔍 [Vercel] Checking for image intent with AI classification');
 
@@ -80,7 +83,6 @@ export default async function handler(req, res) {
                     body: JSON.stringify({
                         userMessage: lastMessage.content,
                         hasImageContext: !!(imageContext?.lastPrompt)
-                        // No model parameter needed - always uses GPT-3.5 for classification
                     })
                 });
 
@@ -90,76 +92,8 @@ export default async function handler(req, res) {
 
                     if (classifyData.intent === 'new_image' || classifyData.intent === 'modify_image') {
                         console.log('🎨 [Vercel] Image generation request detected!');
-
-                        // Show typing indicator (no mention of AI enhancement)
-                        res.write(`data: ${JSON.stringify({ type: 'image_request_detected' })}\n\n`);
-
-                        // Step 1: Enhance prompt (invisible to user)
-                        let userPrompt = lastMessage.content;
-                        console.log('🎨 [Vercel] Enhancing prompt invisibly...');
-
-                        const enhanceResponse = await fetch(`${req.headers.host.startsWith('localhost') ? 'http' : 'https'}://${req.headers.host}/api/image/enhance`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                userPrompt: userPrompt,
-                                model: model,
-                                previousPrompt: imageContext?.lastPrompt,
-                                modificationType: classifyData.intent === 'modify_image' ? 'modification' : 'new'
-                            })
-                        });
-
-                        if (!enhanceResponse.ok) {
-                            throw new Error(`Enhancement failed: ${enhanceResponse.status}`);
-                        }
-
-                        const enhanceData = await enhanceResponse.json();
-                        console.log('🎨 [Vercel] Enhanced prompt (hidden):', enhanceData.enhancedPrompt);
-
-                        // Step 2: Generate image with DALL-E
-                        const generateResponse = await fetch(`${req.headers.host.startsWith('localhost') ? 'http' : 'https'}://${req.headers.host}/api/image/generate`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                enhancedPrompt: enhanceData.enhancedPrompt,
-                                originalPrompt: userPrompt,
-                                model: model
-                            })
-                        });
-
-                        if (!generateResponse.ok) {
-                            throw new Error(`Image generation failed: ${generateResponse.status}`);
-                        }
-
-                        const generateData = await generateResponse.json();
-                        console.log('🖼️ [Vercel] Image generated:', generateData.imageUrl);
-
-                        // Step 3: Send clean response (no enhanced prompt shown)
-                        let imageResponse;
-                        if (classifyData.intent === 'modify_image') {
-                            imageResponse = `I've modified the image based on your request:\n\n![Generated Image](${generateData.imageUrl})`;
-                        } else {
-                            imageResponse = `I've generated an image for you:\n\n![Generated Image](${generateData.imageUrl})`;
-                        }
-
-                        res.write(`data: ${JSON.stringify({
-                            type: 'content',
-                            content: imageResponse,
-                            fullContent: imageResponse,
-                            imageUrl: generateData.imageUrl,
-                            imagePrompt: enhanceData.enhancedPrompt, // Store for context, but don't show
-                            originalPrompt: userPrompt,
-                            revisedPrompt: generateData.revisedPrompt
-                        })}\n\n`);
-
-                        res.write(`data: ${JSON.stringify({
-                            type: 'done',
-                            finishReason: 'image_generated'
-                        })}\n\n`);
-
-                        res.end();
-                        return;
-
+                        shouldGenerateImage = true;
+                        imageGenerationData = classifyData;
                     } else {
                         console.log('🔍 [Vercel] No image intent detected, proceeding with regular chat');
                     }
@@ -168,11 +102,93 @@ export default async function handler(req, res) {
                 }
             } catch (error) {
                 console.error('❌ [Vercel] Classification error:', error);
-                // If classification fails, proceed with regular chat
+                console.log('🔍 [Vercel] Falling back to regular chat due to classification error');
             }
         }
 
-        // Regular chat request - route to appropriate handler
+        // Handle image generation if detected
+        if (shouldGenerateImage && imageGenerationData) {
+            console.log('🎨 [Vercel] Processing image generation...');
+
+            try {
+                // Show typing indicator (no mention of AI enhancement)
+                res.write(`data: ${JSON.stringify({ type: 'image_request_detected' })}\n\n`);
+
+                // Step 1: Enhance prompt (invisible to user)
+                let userPrompt = lastMessage.content;
+                console.log('🎨 [Vercel] Enhancing prompt invisibly...');
+
+                const enhanceResponse = await fetch(`${req.headers.host.startsWith('localhost') ? 'http' : 'https'}://${req.headers.host}/api/image/enhance`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userPrompt: userPrompt,
+                        model: model,
+                        previousPrompt: imageContext?.lastPrompt,
+                        modificationType: imageGenerationData.intent === 'modify_image' ? 'modification' : 'new'
+                    })
+                });
+
+                if (!enhanceResponse.ok) {
+                    throw new Error(`Enhancement failed: ${enhanceResponse.status}`);
+                }
+
+                const enhanceData = await enhanceResponse.json();
+                console.log('🎨 [Vercel] Enhanced prompt (hidden):', enhanceData.enhancedPrompt);
+
+                // Step 2: Generate image with DALL-E
+                const generateResponse = await fetch(`${req.headers.host.startsWith('localhost') ? 'http' : 'https'}://${req.headers.host}/api/image/generate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        enhancedPrompt: enhanceData.enhancedPrompt,
+                        originalPrompt: userPrompt,
+                        model: model
+                    })
+                });
+
+                if (!generateResponse.ok) {
+                    throw new Error(`Image generation failed: ${generateResponse.status}`);
+                }
+
+                const generateData = await generateResponse.json();
+                console.log('🖼️ [Vercel] Image generated:', generateData.imageUrl);
+
+                // Step 3: Send clean response (no enhanced prompt shown)
+                let imageResponse;
+                if (imageGenerationData.intent === 'modify_image') {
+                    imageResponse = `I've modified the image based on your request:\n\n![Generated Image](${generateData.imageUrl})`;
+                } else {
+                    imageResponse = `I've generated an image for you:\n\n![Generated Image](${generateData.imageUrl})`;
+                }
+
+                res.write(`data: ${JSON.stringify({
+                    type: 'content',
+                    content: imageResponse,
+                    fullContent: imageResponse,
+                    imageUrl: generateData.imageUrl,
+                    imagePrompt: enhanceData.enhancedPrompt, // Store for context, but don't show
+                    originalPrompt: userPrompt,
+                    revisedPrompt: generateData.revisedPrompt
+                })}\n\n`);
+
+                res.write(`data: ${JSON.stringify({
+                    type: 'done',
+                    finishReason: 'image_generated'
+                })}\n\n`);
+
+                res.end();
+                return;
+
+            } catch (error) {
+                console.error('❌ [Vercel] Image generation error:', error);
+                console.log('🔍 [Vercel] Falling back to regular chat due to image generation error');
+
+                // Don't return here - let it fall through to regular chat
+                shouldGenerateImage = false;
+            }
+        }
+
         console.log('💬 [Vercel] Processing regular chat request with model:', model);
 
         try {
