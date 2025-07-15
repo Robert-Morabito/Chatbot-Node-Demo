@@ -208,39 +208,83 @@ export default async function handler(req, res) {
             res.write(`data: ${JSON.stringify({ type: 'image_request_detected' })}\n\n`);
 
             try {
-                const apiKey = process.env.OPENAI_API_KEY;
-                if (!apiKey) {
-                    throw new Error('OpenAI API key not configured');
-                }
-
-                const openai = new OpenAIHandler(apiKey);
-                let finalPrompt;
-
+                // Step 1: Extract user prompt
+                let userPrompt;
                 if (imageIntent.type === 'modification' && imageContext?.lastPrompt) {
-                    console.log('🔄 [Vercel] Modifying previous prompt:', imageContext.lastPrompt);
-                    finalPrompt = mergePromptWithModification(imageContext.lastPrompt, lastMessage.content);
+                    userPrompt = lastMessage.content; // The modification request
                 } else {
-                    finalPrompt = extractImagePrompt(lastMessage.content);
+                    userPrompt = extractImagePrompt(lastMessage.content);
                 }
 
-                console.log('🖼️ [Vercel] Final prompt:', finalPrompt);
+                console.log('🎨 [Vercel] User prompt:', userPrompt);
 
-                const result = await openai.generateImage(finalPrompt);
+                // Step 2: Enhance prompt with current LLM
+                res.write(`data: ${JSON.stringify({
+                    type: 'content',
+                    content: 'Enhancing your prompt with AI...',
+                    fullContent: 'Enhancing your prompt with AI...'
+                })}\n\n`);
 
+                console.log('🎨 [Vercel] Enhancing prompt with model:', model);
+
+                const enhanceResponse = await fetch(`${req.headers.host.startsWith('localhost') ? 'http' : 'https'}://${req.headers.host}/api/image/enhance`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userPrompt: userPrompt,
+                        model: model,
+                        previousPrompt: imageContext?.lastPrompt,
+                        modificationType: imageIntent.type
+                    })
+                });
+
+                if (!enhanceResponse.ok) {
+                    throw new Error(`Enhancement failed: ${enhanceResponse.status}`);
+                }
+
+                const enhanceData = await enhanceResponse.json();
+                console.log('🎨 [Vercel] Enhanced prompt:', enhanceData.enhancedPrompt);
+
+                // Step 3: Generate image with DALL-E
+                res.write(`data: ${JSON.stringify({
+                    type: 'content',
+                    content: 'Creating your image with DALL-E...',
+                    fullContent: 'Creating your image with DALL-E...'
+                })}\n\n`);
+
+                const generateResponse = await fetch(`${req.headers.host.startsWith('localhost') ? 'http' : 'https'}://${req.headers.host}/api/image/generate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        enhancedPrompt: enhanceData.enhancedPrompt,
+                        originalPrompt: userPrompt,
+                        model: model
+                    })
+                });
+
+                if (!generateResponse.ok) {
+                    throw new Error(`Image generation failed: ${generateResponse.status}`);
+                }
+
+                const generateData = await generateResponse.json();
+                console.log('🖼️ [Vercel] Image generated:', generateData.imageUrl);
+
+                // Step 4: Send final response
                 let imageResponse;
                 if (imageIntent.type === 'modification') {
-                    imageResponse = `I've modified the image based on your request:\n\n![Generated Image](${result.url})\n\n*Updated prompt: "${finalPrompt}"*`;
+                    imageResponse = `I've modified the image based on your request:\n\n![Generated Image](${generateData.imageUrl})\n\n*Enhanced prompt: "${enhanceData.enhancedPrompt}"*\n\n*Original request: "${userPrompt}"*`;
                 } else {
-                    imageResponse = `I've generated an image for you:\n\n![Generated Image](${result.url})\n\n*Prompt: "${finalPrompt}"*`;
+                    imageResponse = `I've generated an image for you:\n\n![Generated Image](${generateData.imageUrl})\n\n*Enhanced prompt: "${enhanceData.enhancedPrompt}"*\n\n*Original request: "${userPrompt}"*`;
                 }
 
                 res.write(`data: ${JSON.stringify({
                     type: 'content',
                     content: imageResponse,
                     fullContent: imageResponse,
-                    imageUrl: result.url,
-                    imagePrompt: finalPrompt,
-                    revisedPrompt: result.revisedPrompt || finalPrompt
+                    imageUrl: generateData.imageUrl,
+                    imagePrompt: enhanceData.enhancedPrompt, // Store enhanced prompt for context
+                    originalPrompt: userPrompt,
+                    revisedPrompt: generateData.revisedPrompt
                 })}\n\n`);
 
                 res.write(`data: ${JSON.stringify({
