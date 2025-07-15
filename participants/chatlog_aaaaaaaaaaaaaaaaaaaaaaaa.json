@@ -1,31 +1,52 @@
 {
   "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-  "sessionId": "session_1752547768755_vh33uh4ny",
-  "timestamp": "2025-07-15T02:49:45.498Z",
-  "modelConfig": {
-    "displayedModel": "GPT-3.5",
-    "actualModel": "gpt-3.5-turbo-0125",
-    "configurationId": 1
-  },
+  "sessionId": "session_1752548758271_wxlbua1u5",
   "conversations": {
-    "1752547769956": {
-      "id": "1752547769956",
+    "1752548759857": {
+      "id": "1752548759857",
       "title": "New Chat",
       "messages": [
         {
           "msg_id": 1,
           "sender": "User",
           "content": "Hi",
-          "timestamp": "2025-07-15T02:49:32.935Z"
+          "timestamp": "2025-07-15T03:06:02.005Z"
+        },
+        {
+          "msg_id": 2,
+          "sender": "User",
+          "content": "hehosief",
+          "timestamp": "2025-07-15T03:06:04.071Z"
         }
       ],
-      "createdAt": "2025-07-15T02:49:29.956Z",
-      "lastMessageAt": "2025-07-15T02:49:29.956Z"
+      "createdAt": "2025-07-15T03:05:59.857Z",
+      "lastMessageAt": "2025-07-15T03:05:59.857Z"
     }
   },
-  "metadata": {
-    "totalConversations": 1,
-    "totalMessages": 1,
-    "studyCompleted": true
-  }
+  "modelConfig": {
+    "displayedModel": "GPT-3.5",
+    "actualModel": "gpt-3.5-turbo-0125",
+    "configurationId": 1
+  },
+  "behaviorMetrics": {
+    "backspaceCount": 0,
+    "averageMessageLength": 5,
+    "totalMessages": 2,
+    "messagesPerConversation": 2,
+    "conversationCount": 1,
+    "editCount": 0,
+    "averageEditDistance": 0,
+    "totalIdleTime": 22401,
+    "messageTimes": [
+      "2025-07-15T03:06:02.005Z",
+      "2025-07-15T03:06:04.071Z"
+    ],
+    "conversationSwitches": 0,
+    "averageResponseTimeAfterBot": 0,
+    "totalKeystrokes": 13,
+    "averageTypingDuration": 1409.5,
+    "sessionDuration": 15624,
+    "keystrokesPerMessage": 6.5
+  },
+  "savedAt": "2025-07-15T03:06:13.827Z"
 }
