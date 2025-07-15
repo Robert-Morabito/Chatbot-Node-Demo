@@ -1,8 +1,3 @@
-/**
- * Configuration Assignment Handler
- * Assigns study configurations to chat sessions based on completion counts
- */
-
 import GitHubStorage from '../../utils/githubStorage.js';
 
 const githubStorage = new GitHubStorage();
@@ -13,11 +8,11 @@ export default async function handler(req, res) {
     }
 
     try {
-        console.log('Starting configuration assignment');
+        console.log('🎯 Starting configuration assignment...');
         
         // Load current configuration state from GitHub
         const configData = await githubStorage.loadConfigurationState();
-        console.log('Loaded configuration data:', {
+        console.log('📋 Loaded configuration data:', {
             totalConfigs: Object.keys(configData.configurations).length,
             sessions: Object.keys(configData.sessions).length
         });
@@ -42,7 +37,7 @@ export default async function handler(req, res) {
             });
         }
 
-        console.log('Selected configuration:', {
+        console.log('✅ Selected configuration:', {
             id: selectedConfig.id,
             displayed: selectedConfig.displayedModel,
             actual: selectedConfig.actualModel,
@@ -64,7 +59,7 @@ export default async function handler(req, res) {
         });
 
     } catch (error) {
-        console.error('Configuration assignment error:', error.message);
+        console.error('❌ Configuration assignment error:', error);
         res.status(500).json({
             error: 'Failed to assign configuration',
             details: error.message
