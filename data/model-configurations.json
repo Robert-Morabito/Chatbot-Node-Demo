@@ -190,7 +190,7 @@
       "sessionId": "session_1752650040364_lkfz1qgc5",
       "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
       "configurationId": 2,
-      "assignedAt": "2025-07-16T07:14:05.978Z",
+      "assignedAt": "2025-07-16T07:14:06.593Z",
       "completed": false,
       "completedAt": null
     }
@@ -199,6 +199,6 @@
     "totalConfigurations": 20,
     "totalTargetSessions": 20,
     "createdAt": "2024-01-15T00:00:00.000Z",
-    "lastUpdated": "2025-07-16T07:14:05.978Z"
+    "lastUpdated": "2025-07-16T07:14:06.593Z"
   }
 }
