@@ -4,7 +4,7 @@
       "id": 1,
       "displayedModel": "GPT-3.5",
       "actualModel": "gpt-3.5-turbo-0125",
-      "completedSessions": 1,
+      "completedSessions": 0,
       "targetSessions": 1,
       "isActive": false
     },
@@ -162,62 +162,7 @@
     }
   },
   "sessions": {
-    "session_1752558307672_nqr13b8pf": {
-      "sessionId": "session_1752558307672_nqr13b8pf",
-      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-      "configurationId": 1,
-      "assignedAt": "2025-07-15T05:45:13.236Z",
-      "completed": false,
-      "completedAt": null
-    },
-    "session_1752558656623_rlgwdnahc": {
-      "sessionId": "session_1752558656623_rlgwdnahc",
-      "participantId": "gagagagagggggggggggggggg",
-      "configurationId": 1,
-      "assignedAt": "2025-07-15T05:51:06.029Z",
-      "completed": false,
-      "completedAt": null
-    },
-    "session_1752605333696_5mk2taz5c": {
-      "sessionId": "session_1752605333696_5mk2taz5c",
-      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-      "configurationId": 2,
-      "assignedAt": "2025-07-15T18:49:05.682Z",
-      "completed": false,
-      "completedAt": null
-    },
-    "session_1752647809330_90n8iwycu": {
-      "sessionId": "session_1752647809330_90n8iwycu",
-      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-      "configurationId": 2,
-      "assignedAt": "2025-07-16T06:36:55.170Z",
-      "completed": false,
-      "completedAt": null
-    },
-    "session_1752648241195_ao4hanepb": {
-      "sessionId": "session_1752648241195_ao4hanepb",
-      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-      "configurationId": 2,
-      "assignedAt": "2025-07-16T06:44:10.099Z",
-      "completed": false,
-      "completedAt": null
-    },
-    "session_1752648608875_qnslcrash": {
-      "sessionId": "session_1752648608875_qnslcrash",
-      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-      "configurationId": 2,
-      "assignedAt": "2025-07-16T06:50:16.475Z",
-      "completed": false,
-      "completedAt": null
-    },
-    "session_1752648864293_yvkzm9fac": {
-      "sessionId": "session_1752648864293_yvkzm9fac",
-      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-      "configurationId": 2,
-      "assignedAt": "2025-07-16T06:54:30.169Z",
-      "completed": false,
-      "completedAt": null
-    }
+    
   },
   "metadata": {
     "totalConfigurations": 20,
