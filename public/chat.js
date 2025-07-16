@@ -269,7 +269,7 @@ class ChatApp {
 
         if (currentStep.type === 'prolific-id') {
             this.handleProlificIdSubmit();
-            return;
+            return; // This should prevent the rest from executing
         }
 
         if (this.welcomeState.currentStep < this.welcomeState.steps.length - 1) {
@@ -288,7 +288,7 @@ class ChatApp {
         const prolificId = input.value.trim();
 
         if (!/^[a-zA-Z0-9]{24}$/.test(prolificId)) {
-            return;
+            return; // Invalid ID, don't proceed
         }
 
         this.participantId = prolificId;
@@ -300,7 +300,6 @@ class ChatApp {
         document.getElementById('welcome-modal').style.display = 'none';
         this.init();
     }
-
     updateWelcomeContent() {
         const currentStep = this.welcomeState.steps[this.welcomeState.currentStep];
         const contentEl = document.getElementById('welcome-content');
@@ -545,65 +544,6 @@ class ChatApp {
         `;
     }
 
-    /*sendMessage() {
-        const messageInput = document.getElementById('message-input');
-        const message = messageInput.value.trim();
-
-        if (!message) return;
-
-        // Track typing duration
-        if (this.behaviorMetrics.typingPatterns.typingStartTime) {
-            const typingDuration = Date.now() - this.behaviorMetrics.typingPatterns.typingStartTime;
-            this.behaviorMetrics.typingPatterns.typingDurations.push(typingDuration);
-            this.behaviorMetrics.typingPatterns.typingStartTime = null;
-        }
-
-        // Track response time after bot
-        if (this.behaviorMetrics.lastBotMessageTime) {
-            const responseTime = Date.now() - this.behaviorMetrics.lastBotMessageTime;
-            this.behaviorMetrics.responseTimesAfterBot.push(responseTime);
-            this.behaviorMetrics.lastBotMessageTime = null;
-        }
-
-        // Track message metrics
-        this.behaviorMetrics.messageLengths.push(message.length);
-        this.behaviorMetrics.messageCount++;
-        this.behaviorMetrics.messageTimes.push(new Date().toISOString());
-
-        // Remove welcome message if it exists
-        const welcomeMsg = document.querySelector('.welcome-message');
-        if (welcomeMsg) {
-            welcomeMsg.remove();
-        }
-
-        // Create message info object
-        const msgId = ++this.messageIdCounter;
-        const msgInfo = {
-            msg_id: msgId,
-            sender: 'User',
-            content: message,
-            timestamp: new Date()
-        };
-
-        // Update chatlog and clear input
-        this.currentChatlog.push(msgInfo);
-        messageInput.value = '';
-        messageInput.style.height = 'auto';
-
-        // Render message
-        this.renderMessage(msgInfo);
-
-        // Update conversation title if it's the first message
-        this.updateConversationTitle(message);
-
-        // Auto-save conversation
-        this.autoSaveConversation();
-
-        // Show typing indicator and get response
-        this.showTypingIndicator();
-        setTimeout(() => this.getLLMResponse(), 500);
-    }*/
-
     sendMessage() {
         console.log('📤 [NEW] sendMessage() called');
 
@@ -653,45 +593,6 @@ class ChatApp {
         setTimeout(() => this.getLLMResponse(), 500);
     }
 
-    /*
-    showTypingIndicator() {
-        const messagesContainer = document.getElementById('messages');
-
-        const typingDiv = document.createElement('div');
-        typingDiv.className = 'typing-message';
-        typingDiv.id = 'typing-indicator';
-
-        const iconImg = document.createElement('img');
-        iconImg.className = 'message-icon';
-        iconImg.alt = 'Bot';
-        iconImg.src = 'images/gpt.png';
-
-        const typingContent = document.createElement('div');
-        typingContent.className = 'typing-content';
-
-        const dotsContainer = document.createElement('div');
-        dotsContainer.className = 'typing-dots';
-
-        for (let i = 0; i < 3; i++) {
-            const dot = document.createElement('div');
-            dot.className = 'typing-dot';
-            dotsContainer.appendChild(dot);
-        }
-
-        typingContent.appendChild(dotsContainer);
-        typingDiv.appendChild(iconImg);
-        typingDiv.appendChild(typingContent);
-        messagesContainer.appendChild(typingDiv);
-
-        this.scrollToBottom();
-    }
-
-    hideTypingIndicator() {
-        const typingIndicator = document.getElementById('typing-indicator');
-        if (typingIndicator) {
-            typingIndicator.remove();
-        }
-    }*/
     showTypingIndicator() {
         console.log('⏳ [NEW] Showing typing indicator');
 
@@ -740,58 +641,6 @@ class ChatApp {
         }
     }
 
-    /*
-    renderMessage(msgInfo, autoScroll = true) {
-        const messagesContainer = document.getElementById('messages');
-
-        // Create message element
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${msgInfo.sender.toLowerCase()}`;
-        messageDiv.dataset.msgId = msgInfo.msg_id;
-
-        // Create icon - use dynamic icon based on model
-        const iconImg = document.createElement('img');
-        iconImg.className = 'message-icon';
-        iconImg.alt = msgInfo.sender;
-
-        if (msgInfo.sender === 'User') {
-            iconImg.src = 'images/user.png';
-        } else {
-            // Use the icon from the current configuration
-            const displayedModel = this.config?.displayName || '';
-            if (displayedModel.toLowerCase().includes('claude')) {
-                iconImg.src = 'images/claude.png';
-            } else {
-                iconImg.src = 'images/gpt.png';
-            }
-        }
-
-        // Add edit button for user messages
-        if (msgInfo.sender === 'User') {
-            const editBtn = document.createElement('button');
-            editBtn.className = 'edit-btn';
-            editBtn.textContent = '✎';
-            editBtn.title = 'Edit message';
-            editBtn.onclick = () => this.editMessage(msgInfo.msg_id);
-            contentDiv.appendChild(editBtn);
-        }
-
-        // Assemble message
-        messageDiv.appendChild(iconImg);
-        messageDiv.appendChild(contentDiv);
-        messagesContainer.appendChild(messageDiv);
-
-        // Store reference
-        this.msgWidgets[msgInfo.msg_id] = {
-            element: messageDiv,
-            info: msgInfo
-        };
-
-        if (autoScroll) {
-            this.scrollToBottom();
-        }
-    }
-        */
     renderMessage(msgInfo, autoScroll = true) {
         console.log('🎨 [NEW] renderMessage() called for:', msgInfo.sender, msgInfo.content);
 
@@ -870,7 +719,7 @@ class ChatApp {
 
         console.log('✅ [NEW] Message rendered successfully');
     }
-    
+
     setupImageClickHandlers(contentDiv) {
         const images = contentDiv.querySelectorAll('img');
         images.forEach(img => {
@@ -995,237 +844,6 @@ class ChatApp {
         }
     }
 
-    async registerSession() {
-        try {
-            console.log('📝 Registering session with participant ID...');
-
-            const response = await fetch('/api/sessions/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    sessionId: this.sessionId,
-                    participantId: this.participantId,
-                    configurationId: this.configurationId
-                })
-            });
-
-            if (response.ok) {
-                console.log('✅ Session registered successfully');
-            } else {
-                console.warn('⚠️ Failed to register session');
-            }
-        } catch (error) {
-            console.warn('⚠️ Session registration error:', error);
-        }
-    }
-
-    /*
-    async getLLMResponse() {
-        try {
-            // Prepare the message data
-            const requestData = {
-                messages: this.currentChatlog,
-                model: this.config.trueModel,
-                sessionId: this.sessionId,
-                conversationId: this.currentConversationId,
-                // Include image context
-                imageContext: this.imageContext
-            };
-
-            console.log('🚀 Starting LLM request:', requestData);
-
-            // FRONTEND CHECK - Log what we're sending
-            const lastMessage = this.currentChatlog[this.currentChatlog.length - 1];
-            if (lastMessage && lastMessage.sender === 'User') {
-                const content = lastMessage.content.toLowerCase();
-                const imageKeywords = [
-                    'generate an image', 'create an image', 'draw', 'make a picture',
-                    'generate a picture', 'create a picture', 'image of', 'picture of',
-                    'draw me', 'show me a picture', 'visualize', 'illustrate'
-                ];
-
-                const isImageRequest = imageKeywords.some(keyword => content.includes(keyword));
-                console.log('🎨 Frontend detects image request:', isImageRequest);
-                console.log('📝 Message content:', content);
-
-                // Add the logging here, after lastMessage is defined
-                console.log('🚀 Sending to backend:', {
-                    endpoint: '/api/chat/stream',
-                    lastMessage: lastMessage?.content,
-                    isImageRequest: isImageRequest
-                });
-            }
-
-            // Use fetch for streaming
-            const response = await fetch('/api/chat/stream', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestData)
-            });
-
-            console.log('📥 Response status:', response.status);
-            console.log('📥 Response ok:', response.ok);
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('❌ HTTP Error:', response.status, errorText);
-                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-            }
-
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-
-            let botMsgId = ++this.messageIdCounter;
-            let fullResponse = '';
-            let botMessageElement = null;
-            let isImageGeneration = false;
-
-            // Remove typing indicator
-            this.hideTypingIndicator();
-
-            // Create initial bot message element
-            const botMsgInfo = {
-                msg_id: botMsgId,
-                sender: 'Bot',
-                content: '',
-                timestamp: new Date()
-            };
-
-            this.renderMessage(botMsgInfo);
-            botMessageElement = this.msgWidgets[botMsgId].element.querySelector('.message-content');
-
-            this.behaviorMetrics.lastBotMessageTime = Date.now();
-
-            try {
-                while (true) {
-                    const { done, value } = await reader.read();
-
-                    if (done) break;
-
-                    // Decode the chunk
-                    const chunk = decoder.decode(value, { stream: true });
-                    const lines = chunk.split('\n');
-
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            try {
-                                const data = JSON.parse(line.slice(6));
-                                console.log('📦 Stream data:', data.type, data);
-
-                                if (data.type === 'content') {
-                                    // Update the message content in real-time
-                                    fullResponse = data.fullContent;
-                                    if (botMessageElement) {
-                                        // Check for image content
-                                        if (fullResponse.includes('![Generated Image]')) {
-                                            console.log('🖼️ Image content detected in response');
-                                            isImageGeneration = true;
-                                        }
-
-                                        if (data.imageUrl) {
-                                            this.imageContext.lastPrompt = data.imagePrompt || data.revisedPrompt;
-                                            this.imageContext.lastImageUrl = data.imageUrl;
-                                            this.imageContext.conversationHasImage = true;
-                                            console.log('🖼️ Updated image context:', this.imageContext);
-                                            console.log('📤 This context will be sent with next request');
-                                        }
-
-                                        // Render markdown in real-time
-                                        botMessageElement.innerHTML = marked.parse(fullResponse, {
-                                            breaks: true,
-                                            gfm: true,
-                                            sanitize: false
-                                        });
-
-                                        // Setup image click handlers for new images
-                                        this.setupImageClickHandlers(botMessageElement);
-                                    }
-
-                                    // Auto-scroll to bottom
-                                    this.scrollToBottom();
-
-                                } else if (data.type === 'image_request_detected') {
-                                    console.log('🎨 Server confirmed image request - showing loading');
-                                    isImageGeneration = true;
-
-                                    // Show loading indicator
-                                    if (botMessageElement) {
-                                        botMessageElement.innerHTML = `
-                                            <div class="image-generating">
-                                                <div class="spinner"></div>
-                                                <div class="text">Generating image with DALL-E 3...</div>
-                                            </div>
-                                        `;
-                                    }
-
-                                } else if (data.type === 'done') {
-                                    console.log('✅ Stream completed:', data.finishReason);
-
-                                    if (isImageGeneration) {
-                                        console.log('🖼️ Image generation flow completed');
-                                    }
-
-                                    // Update final message in chatlog
-                                    const msgIndex = this.currentChatlog.findIndex(msg => msg.msg_id === botMsgId);
-                                    if (msgIndex !== -1) {
-                                        this.currentChatlog[msgIndex].content = fullResponse;
-                                    } else {
-                                        this.currentChatlog.push({
-                                            msg_id: botMsgId,
-                                            sender: 'Bot',
-                                            content: fullResponse,
-                                            timestamp: new Date()
-                                        });
-                                    }
-
-                                    // Auto-save the conversation
-                                    this.autoSaveConversation();
-                                    break;
-
-                                } else if (data.type === 'error') {
-                                    console.error('❌ Stream error:', data.error);
-                                    if (botMessageElement) {
-                                        botMessageElement.innerHTML = `<span style="color: #ef4444;">Error: ${data.error}</span>`;
-                                    }
-                                    break;
-
-                                } else if (data.type === 'connected') {
-                                    console.log('🔌 Stream connected:', data.conversationId);
-                                }
-
-                            } catch (parseError) {
-                                console.error('JSON parse error:', parseError, 'Line:', line);
-                            }
-                        }
-                    }
-                }
-            } catch (streamError) {
-                console.error('Stream reading error:', streamError);
-                if (botMessageElement) {
-                    botMessageElement.innerHTML = '<span style="color: #ef4444;">Error: Failed to receive response</span>';
-                }
-            }
-
-        } catch (error) {
-            console.error('LLM Request error:', error);
-            this.hideTypingIndicator();
-
-            // Show error message
-            const errorMsgId = ++this.messageIdCounter;
-            const errorMsgInfo = {
-                msg_id: errorMsgId,
-                sender: 'Bot',
-                content: `Sorry, I encountered an error: ${error.message}`,
-                timestamp: new Date()
-            };
-
-            this.currentChatlog.push(errorMsgInfo);
-            this.renderMessage(errorMsgInfo);
-        }
-    }
-        */
     async getLLMResponse() {
         console.log('🤖 [NEW] getLLMResponse() called');
 
@@ -2197,7 +1815,37 @@ class ChatApp {
     }
 
     setupEventListeners() {
-        // Send button and Enter key
+        // Remove any existing listeners to prevent duplicates
+        const sendBtn = document.getElementById('send-btn');
+        const messageInput = document.getElementById('message-input');
+        const newChatBtn = document.getElementById('new-chat-btn');
+        const saveChatBtn = document.getElementById('save-chat-btn');
+        const finishBtn = document.getElementById('finish-btn');
+        const themeSwitch = document.getElementById('theme-switch');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
+
+        // Clone nodes to remove all event listeners
+        const newSendBtn = sendBtn.cloneNode(true);
+        const newMessageInput = messageInput.cloneNode(true);
+        const newNewChatBtn = newChatBtn.cloneNode(true);
+        const newSaveChatBtn = saveChatBtn.cloneNode(true);
+        const newFinishBtn = finishBtn.cloneNode(true);
+        const newThemeSwitch = themeSwitch.cloneNode(true);
+        const newSidebarToggle = sidebarToggle.cloneNode(true);
+        const newMobileSidebarToggle = mobileSidebarToggle.cloneNode(true);
+
+        // Replace the elements
+        sendBtn.parentNode.replaceChild(newSendBtn, sendBtn);
+        messageInput.parentNode.replaceChild(newMessageInput, messageInput);
+        newChatBtn.parentNode.replaceChild(newNewChatBtn, newChatBtn);
+        saveChatBtn.parentNode.replaceChild(newSaveChatBtn, saveChatBtn);
+        finishBtn.parentNode.replaceChild(newFinishBtn, finishBtn);
+        themeSwitch.parentNode.replaceChild(newThemeSwitch, themeSwitch);
+        sidebarToggle.parentNode.replaceChild(newSidebarToggle, sidebarToggle);
+        mobileSidebarToggle.parentNode.replaceChild(newMobileSidebarToggle, mobileSidebarToggle);
+
+        // Now add the event listeners to the new elements
         document.getElementById('send-btn').addEventListener('click', () => this.sendMessage());
         document.getElementById('message-input').addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -2215,7 +1863,7 @@ class ChatApp {
         // Save chat button (manual save)
         document.getElementById('save-chat-btn').addEventListener('click', () => this.manualSave());
 
-        // Finish button - now references existing HTML element
+        // Finish button
         document.getElementById('finish-btn').addEventListener('click', () => this.handleFinishStudy());
 
         // Finish modal buttons
