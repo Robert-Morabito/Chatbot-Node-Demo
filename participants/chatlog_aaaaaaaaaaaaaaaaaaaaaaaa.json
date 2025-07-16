@@ -1,86 +1,26 @@
 {
   "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-  "sessionId": "session_1752605333696_5mk2taz5c",
+  "sessionId": "session_1752647809330_90n8iwycu",
   "conversations": {
-    "1752605346194": {
-      "id": "1752605346194",
-      "title": "Hi",
+    "1752647805882": {
+      "id": "1752647805882",
+      "title": "Generate a picture of a puppy",
       "messages": [
         {
           "msg_id": 1,
           "sender": "User",
-          "content": "Hi",
-          "timestamp": "2025-07-15T18:49:10.854Z"
+          "content": "Generate a picture of a puppy",
+          "timestamp": "2025-07-16T06:36:54.320Z"
         },
         {
           "msg_id": 2,
           "sender": "Bot",
-          "content": "Hello! How can I assist you today?",
-          "timestamp": "2025-07-15T18:49:12.174Z"
-        },
-        {
-          "msg_id": 3,
-          "sender": "User",
-          "content": "Generate an image of a cat",
-          "timestamp": "2025-07-15T18:49:16.053Z"
-        },
-        {
-          "msg_id": 4,
-          "sender": "Bot",
-          "content": "I've generated an image for you:\n\n![Generated Image](https://oaidalleapiprodscus.blob.core.windows.net/private/org-Yh76Y43H54S7cSzY2d7PJb2a/user-694Lha43voRkn4gGxaZbYrMv/img-yc2TgTFzSQdAxK2mVbbzjh2w.png?st=2025-07-15T17%3A49%3A34Z&se=2025-07-15T19%3A49%3A34Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=475fd488-6c59-44a5-9aa9-31c4db451bea&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-15T10%3A23%3A48Z&ske=2025-07-16T10%3A23%3A48Z&sks=b&skv=2024-08-04&sig=an4Kd%2BoUiU3IivGFXtkUinv47QcBqPhdeKcl82Hcg7g%3D)",
-          "timestamp": "2025-07-15T18:49:16.653Z"
-        },
-        {
-          "msg_id": 5,
-          "sender": "User",
-          "content": "Make it realistic and make it a tabby.",
-          "timestamp": "2025-07-15T18:49:55.339Z"
-        },
-        {
-          "msg_id": 6,
-          "sender": "Bot",
-          "content": "I've generated an image for you:\n\n![Generated Image](https://oaidalleapiprodscus.blob.core.windows.net/private/org-Yh76Y43H54S7cSzY2d7PJb2a/user-694Lha43voRkn4gGxaZbYrMv/img-EHZaa57g5KixIkhv57zf51ZU.png?st=2025-07-15T17%3A50%3A10Z&se=2025-07-15T19%3A50%3A10Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=475fd488-6c59-44a5-9aa9-31c4db451bea&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-15T06%3A52%3A10Z&ske=2025-07-16T06%3A52%3A10Z&sks=b&skv=2024-08-04&sig=7qNzEvhnvT9eATNCSbTYpPPfvWSorrcyBuBcXz0P9J0%3D)",
-          "timestamp": "2025-07-15T18:49:55.933Z"
-        },
-        {
-          "msg_id": 7,
-          "sender": "User",
-          "content": "Now make it an oil painting",
-          "timestamp": "2025-07-15T18:52:58.726Z"
-        },
-        {
-          "msg_id": 8,
-          "sender": "Bot",
-          "content": "I've generated an image for you:\n\n![Generated Image](https://oaidalleapiprodscus.blob.core.windows.net/private/org-Yh76Y43H54S7cSzY2d7PJb2a/user-694Lha43voRkn4gGxaZbYrMv/img-i7SGAaKtwu0J4F8uZTGeglj4.png?st=2025-07-15T17%3A53%3A13Z&se=2025-07-15T19%3A53%3A13Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=475fd488-6c59-44a5-9aa9-31c4db451bea&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-15T11%3A00%3A49Z&ske=2025-07-16T11%3A00%3A49Z&sks=b&skv=2024-08-04&sig=i9RGJblGUF9Z3g88SOIRZ4DvzfjRxZa6PSk8BnzkKYE%3D)",
-          "timestamp": "2025-07-15T18:52:59.327Z"
-        },
-        {
-          "msg_id": 9,
-          "sender": "User",
-          "content": "No, I meant make the cat picture an oil painting.",
-          "timestamp": "2025-07-15T18:53:36.672Z"
-        },
-        {
-          "msg_id": 10,
-          "sender": "Bot",
-          "content": "I've generated an image for you:\n\n![Generated Image](https://oaidalleapiprodscus.blob.core.windows.net/private/org-Yh76Y43H54S7cSzY2d7PJb2a/user-694Lha43voRkn4gGxaZbYrMv/img-7e3L35l7kOnBqG0pqzeX6G7U.png?st=2025-07-15T17%3A53%3A55Z&se=2025-07-15T19%3A53%3A55Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=475fd488-6c59-44a5-9aa9-31c4db451bea&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-15T14%3A45%3A42Z&ske=2025-07-16T14%3A45%3A42Z&sks=b&skv=2024-08-04&sig=GHYjIxxk5cVlSblHLr%2Buwfn3slmwTYcSzPb1id52UPs%3D)",
-          "timestamp": "2025-07-15T18:53:37.265Z"
-        },
-        {
-          "msg_id": 11,
-          "sender": "User",
-          "content": "Generate an image of a shopping cart racing in formula 1",
-          "timestamp": "2025-07-15T18:54:40.022Z"
-        },
-        {
-          "msg_id": 12,
-          "sender": "Bot",
-          "content": "I've generated an image for you:\n\n![Generated Image](https://oaidalleapiprodscus.blob.core.windows.net/private/org-Yh76Y43H54S7cSzY2d7PJb2a/user-694Lha43voRkn4gGxaZbYrMv/img-RDrS6ap1e0bvbXlPCEbjNWyC.png?st=2025-07-15T17%3A54%3A55Z&se=2025-07-15T19%3A54%3A55Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=475fd488-6c59-44a5-9aa9-31c4db451bea&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-15T18%3A54%3A55Z&ske=2025-07-16T18%3A54%3A55Z&sks=b&skv=2024-08-04&sig=OsvnqwlloG9rueevC6blxOE/loboPPRqahJtIc88oso%3D)",
-          "timestamp": "2025-07-15T18:54:40.615Z"
+          "content": "I've generated an image for you:\n\n![Generated Image](https://oaidalleapiprodscus.blob.core.windows.net/private/org-Yh76Y43H54S7cSzY2d7PJb2a/user-694Lha43voRkn4gGxaZbYrMv/img-ieMcNDcOmPsCpR7bCKgQIfaS.png?st=2025-07-16T05%3A37%3A22Z&se=2025-07-16T07%3A37%3A22Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=475fd488-6c59-44a5-9aa9-31c4db451bea&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-15T10%3A32%3A47Z&ske=2025-07-16T10%3A32%3A47Z&sks=b&skv=2024-08-04&sig=ViYcU4o9OCUp7vU86B0HRD1Nhmy9LGHXkad%2BT5fbLiQ%3D)",
+          "timestamp": "2025-07-16T06:36:54.989Z"
         }
       ],
-      "createdAt": "2025-07-15T18:49:06.194Z",
-      "lastMessageAt": "2025-07-15T18:49:06.194Z"
+      "createdAt": "2025-07-16T06:36:45.882Z",
+      "lastMessageAt": "2025-07-16T06:36:45.882Z"
     }
   },
   "modelConfig": {
@@ -89,28 +29,23 @@
     "configurationId": 2
   },
   "behaviorMetrics": {
-    "backspaceCount": 9,
-    "averageMessageLength": 33,
-    "totalMessages": 6,
-    "messagesPerConversation": 6,
+    "backspaceCount": 2,
+    "averageMessageLength": 29,
+    "totalMessages": 1,
+    "messagesPerConversation": 1,
     "conversationCount": 1,
     "editCount": 0,
     "averageEditDistance": 0,
-    "totalIdleTime": 613102,
+    "totalIdleTime": 14407,
     "messageTimes": [
-      "2025-07-15T18:49:10.853Z",
-      "2025-07-15T18:49:16.053Z",
-      "2025-07-15T18:49:55.339Z",
-      "2025-07-15T18:52:58.726Z",
-      "2025-07-15T18:53:36.672Z",
-      "2025-07-15T18:54:40.022Z"
+      "2025-07-16T06:36:54.320Z"
     ],
     "conversationSwitches": 0,
     "averageResponseTimeAfterBot": 0,
-    "totalKeystrokes": 229,
+    "totalKeystrokes": 35,
     "averageTypingDuration": 0,
-    "sessionDuration": 423806,
-    "keystrokesPerMessage": 38.166666666666664
+    "sessionDuration": 66547,
+    "keystrokesPerMessage": 35
   },
-  "savedAt": "2025-07-15T18:55:57.992Z"
+  "savedAt": "2025-07-16T06:37:55.857Z"
 }
