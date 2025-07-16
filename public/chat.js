@@ -940,44 +940,29 @@ class ChatApp {
         const saveButton = document.querySelector('.image-modal .save-button');
         const originalHTML = saveButton.innerHTML;
 
-        // Show loading
-        saveButton.innerHTML = '⏳';
-        saveButton.disabled = true;
-
         try {
-            // Fetch the image as a blob
-            const response = await fetch(imageUrl);
-            const blob = await response.blob();
+            // Show loading
+            saveButton.innerHTML = '⏳';
+            saveButton.disabled = true;
 
-            // Create object URL and download
-            const url = URL.createObjectURL(blob);
+            // Try direct download first
             const link = document.createElement('a');
-            link.href = url;
-            link.download = `generated_image_${Date.now()}.png`;
+            link.href = imageUrl;
+            link.download = '';  // Empty string lets browser decide filename
+            link.target = '_blank';
 
-            // Trigger download
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
 
-            // Clean up
-            URL.revokeObjectURL(url);
-
             // Show success
             saveButton.innerHTML = '✅';
-            this.showNotification('Image downloaded successfully!', 'success');
+            this.showNotification('Download started (or opened in new tab)', 'success');
 
         } catch (error) {
             console.error('Download failed:', error);
-
-            // Show error
             saveButton.innerHTML = '❌';
-            this.showNotification('Download failed. Opening in new tab - right-click to save.', 'warning');
-
-            // Fallback
-            setTimeout(() => {
-                window.open(imageUrl, '_blank');
-            }, 1000);
+            this.showNotification('Download failed', 'error');
         }
 
         // Reset button
@@ -986,7 +971,7 @@ class ChatApp {
             saveButton.disabled = false;
         }, 2000);
     }
-
+    
     async loadConfiguration() {
         try {
             console.log('🔄 Loading configuration...');
