@@ -1,72 +1,51 @@
 {
   "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-  "sessionId": "session_1752650643203_jbi82ezq6",
+  "sessionId": "session_1752673823039_0e0fx3xlu",
   "conversations": {
-    "1752650640417": {
-      "id": "1752650640417",
+    "1752676305012": {
+      "id": "1752676305012",
       "title": "Hi",
       "messages": [
         {
           "msg_id": 1,
           "sender": "User",
           "content": "Hi",
-          "timestamp": "2025-07-16T07:24:04.020Z"
+          "timestamp": "2025-07-16T14:31:58.466Z"
         },
         {
           "msg_id": 2,
           "sender": "Bot",
-          "content": "Hello! How can I assist you today?",
-          "timestamp": "2025-07-16T07:24:04.736Z"
+          "content": "",
+          "timestamp": "2025-07-16T14:31:59.921Z"
         }
       ],
-      "createdAt": "2025-07-16T07:24:00.417Z",
-      "lastMessageAt": "2025-07-16T07:24:00.417Z"
-    },
-    "1752650648394": {
-      "id": "1752650648394",
-      "title": "Badabing",
-      "messages": [
-        {
-          "msg_id": 3,
-          "sender": "User",
-          "content": "Badabing",
-          "timestamp": "2025-07-16T07:24:12.225Z"
-        },
-        {
-          "msg_id": 4,
-          "sender": "Bot",
-          "content": "Hello! It looks like you're referencing \"Bada Bing,\" a phrase popularized by shows like \"The Sopranos.\" It's often used to emphasize something happening swiftly and effectively. How can I assist you today?",
-          "timestamp": "2025-07-16T07:24:12.827Z"
-        }
-      ],
-      "createdAt": "2025-07-16T07:24:08.394Z",
-      "lastMessageAt": "2025-07-16T07:24:08.394Z"
+      "createdAt": "2025-07-16T14:31:45.012Z",
+      "lastMessageAt": "2025-07-16T14:31:45.012Z"
     }
   },
   "modelConfig": {
     "displayedModel": "GPT-3.5",
-    "actualModel": "gpt-4-turbo",
-    "configurationId": 2
+    "actualModel": "o1-preview",
+    "configurationId": 3
   },
   "behaviorMetrics": {
-    "backspaceCount": 1,
-    "averageMessageLength": 5,
-    "totalMessages": 2,
+    "backspaceCount": 0,
+    "averageMessageLength": 2,
+    "totalMessages": 1,
     "messagesPerConversation": 1,
-    "conversationCount": 2,
-    "editCount": 1,
+    "conversationCount": 1,
+    "editCount": 0,
     "averageEditDistance": 0,
-    "totalIdleTime": 32795,
+    "totalIdleTime": 5010958,
     "messageTimes": [
-      "2025-07-16T07:24:04.020Z",
-      "2025-07-16T07:24:12.225Z"
+      "2025-07-16T14:31:58.466Z"
     ],
-    "conversationSwitches": 1,
+    "conversationSwitches": 0,
     "averageResponseTimeAfterBot": 0,
-    "totalKeystrokes": 16,
+    "totalKeystrokes": 4,
     "averageTypingDuration": 0,
-    "sessionDuration": 27856,
-    "keystrokesPerMessage": 8
+    "sessionDuration": 2533293,
+    "keystrokesPerMessage": 4
   },
-  "savedAt": "2025-07-16T07:24:30.922Z"
+  "savedAt": "2025-07-16T14:32:36.366Z"
 }
