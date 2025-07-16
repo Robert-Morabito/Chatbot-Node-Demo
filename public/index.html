@@ -15,10 +15,18 @@
         <div class="modal-content welcome-modal-content">
             <h2 id="welcome-title">Welcome to the Study</h2>
 
-            <!-- Content Container with sliding animation -->
+            <!-- Content Container with persistent header -->
             <div class="welcome-content-container">
-                <div id="welcome-content" class="welcome-slide-content active">
-                    <!-- Content will be dynamically inserted here -->
+                <!-- Persistent header that doesn't slide -->
+                <div id="welcome-persistent-header" class="welcome-persistent-header" style="display: none;">
+                    <!-- Model name and year will be inserted here -->
+                </div>
+
+                <!-- Sliding content area -->
+                <div class="welcome-slide-area">
+                    <div id="welcome-content" class="welcome-slide-content active">
+                        <!-- Content will be dynamically inserted here -->
+                    </div>
                 </div>
             </div>
 
@@ -41,6 +49,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- Finish Study Button -->
     <button id="finish-btn" class="finish-btn" aria-label="Finish study and download data">

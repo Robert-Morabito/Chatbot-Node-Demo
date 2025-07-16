@@ -305,20 +305,19 @@ class ChatApp {
         const displayName = this.config?.displayName || 'GPT-4';
         const modelInfo = this.modelDescriptions[displayName] || this.modelDescriptions['GPT-4'];
 
-        // Add model intro step with persistent header
+        // Add model intro step
         this.welcomeState.steps.push({
             type: 'model-intro',
             title: 'Welcome to the Study',
             content: `
             <div class="model-info-point">
-                <div class="model-header-persistent">
-                    Today you will be using: ${displayName} (${modelInfo.year})
-                </div>
                 <p>Please read through the following information about this model:</p>
             </div>
         `,
             showTimer: true,
-            showBack: true
+            showBack: true,
+            showPersistentHeader: true,
+            persistentHeaderContent: `Today you will be using: ${displayName} (${modelInfo.year})`
         });
 
         // Add the 3 slides with sub-points
@@ -328,9 +327,6 @@ class ChatApp {
                 title: 'Welcome to the Study',
                 content: `
                 <div class="model-info-point">
-                    <div class="model-header-persistent">
-                        ${displayName} (${modelInfo.year})
-                    </div>
                     <div class="slide-title">
                         <h3>${slide.title}</h3>
                     </div>
@@ -345,7 +341,9 @@ class ChatApp {
                 </div>
             `,
                 showTimer: true,
-                showBack: true
+                showBack: true,
+                showPersistentHeader: true,
+                persistentHeaderContent: `${displayName} (${modelInfo.year})`
             });
         });
 
@@ -368,7 +366,8 @@ class ChatApp {
             </div>
         `,
             showTimer: false,
-            showBack: true
+            showBack: true,
+            showPersistentHeader: false
         });
     }
 
@@ -433,9 +432,18 @@ class ChatApp {
         const titleEl = document.getElementById('welcome-title');
         const continueBtn = document.getElementById('welcome-continue-btn');
         const backBtn = document.getElementById('welcome-back-btn');
+        const persistentHeader = document.getElementById('welcome-persistent-header');
 
         // Update title
         titleEl.textContent = currentStep.title;
+
+        // Handle persistent header
+        if (currentStep.showPersistentHeader) {
+            persistentHeader.style.display = 'block';
+            persistentHeader.textContent = currentStep.persistentHeaderContent;
+        } else {
+            persistentHeader.style.display = 'none';
+        }
 
         // Slide out current content
         contentEl.classList.remove('active');
@@ -443,13 +451,7 @@ class ChatApp {
 
         setTimeout(() => {
             // Update content
-            let content = currentStep.content;
-            if (currentStep.type === 'model-intro' || currentStep.type === 'model-point') {
-                const modelInfo = this.modelDescriptions[this.config.displayName] || this.modelDescriptions['GPT-4'];
-                content = content.replace(/\[MODEL_NAME\]/g, this.config.displayName);
-                content = content.replace(/\[MODEL_YEAR\]/g, modelInfo.year);
-            }
-            contentEl.innerHTML = content;
+            contentEl.innerHTML = currentStep.content;
 
             // Slide in new content
             contentEl.classList.remove('slide-out-left');
