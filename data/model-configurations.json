@@ -209,12 +209,20 @@
       "assignedAt": "2025-07-16T06:50:16.475Z",
       "completed": false,
       "completedAt": null
+    },
+    "session_1752648864293_yvkzm9fac": {
+      "sessionId": "session_1752648864293_yvkzm9fac",
+      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
+      "configurationId": 2,
+      "assignedAt": "2025-07-16T06:54:29.581Z",
+      "completed": false,
+      "completedAt": null
     }
   },
   "metadata": {
     "totalConfigurations": 20,
     "totalTargetSessions": 20,
     "createdAt": "2024-01-15T00:00:00.000Z",
-    "lastUpdated": "2025-07-16T06:50:16.475Z"
+    "lastUpdated": "2025-07-16T06:54:29.581Z"
   }
 }
