@@ -936,158 +936,56 @@ class ChatApp {
         document.addEventListener('keydown', handleKeydown);
     }
 
-    // Add this new method to handle image downloads
     async downloadImage(imageUrl, filename) {
         const saveButton = document.querySelector('.image-modal .save-button');
         const originalHTML = saveButton.innerHTML;
 
-        // Show loading state
-        saveButton.innerHTML = `
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M12 6v6l4 2"/>
-        </svg>
-    `;
+        // Show loading
+        saveButton.innerHTML = '⏳';
         saveButton.disabled = true;
 
         try {
-            // Generate filename
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-            const cleanFilename = filename ? filename.replace(/[^a-z0-9]/gi, '_').substring(0, 50) : 'generated_image';
-            const finalFilename = `${cleanFilename}_${timestamp}.png`;
+            // Get the image that's already loaded in the modal
+            const img = document.querySelector('.image-modal img');
 
-            // Method 1: Try to use the already-loaded image from the modal
-            const modalImage = document.querySelector('.image-modal img');
-            if (modalImage && modalImage.complete) {
-                try {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
+            // Create canvas and draw the image
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
 
-                    // Set canvas size to match image
-                    canvas.width = modalImage.naturalWidth;
-                    canvas.height = modalImage.naturalHeight;
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            ctx.drawImage(img, 0, 0);
 
-                    // Draw the image onto canvas
-                    ctx.drawImage(modalImage, 0, 0);
+            // Convert to blob and download
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `generated_image_${Date.now()}.png`;
 
-                    // Convert to blob and download
-                    canvas.toBlob((blob) => {
-                        if (blob) {
-                            const url = URL.createObjectURL(blob);
-                            const link = document.createElement('a');
-                            link.href = url;
-                            link.download = finalFilename;
-                            link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
 
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
+                URL.revokeObjectURL(url);
 
-                            // Clean up
-                            setTimeout(() => URL.revokeObjectURL(url), 1000);
+                // Show success
+                saveButton.innerHTML = '✅';
+                setTimeout(() => {
+                    saveButton.innerHTML = originalHTML;
+                    saveButton.disabled = false;
+                }, 1500);
 
-                            // Show success
-                            this.showDownloadSuccess(saveButton, originalHTML);
-                            return;
-                        }
-                        throw new Error('Failed to create blob');
-                    }, 'image/png');
-
-                    return; // Exit early if canvas method works
-
-                } catch (canvasError) {
-                    console.log('Canvas method failed:', canvasError);
-                    // Continue to fallback method
-                }
-            }
-
-            // Method 2: Server-side download (if we implement an API endpoint)
-            // This would be the most reliable method for CORS-restricted images
-            try {
-                const response = await fetch('/api/download-image', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        imageUrl: imageUrl,
-                        filename: finalFilename
-                    })
-                });
-
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = finalFilename;
-                    link.style.display = 'none';
-
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-
-                    setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-                    this.showDownloadSuccess(saveButton, originalHTML);
-                    return;
-                }
-            } catch (serverError) {
-                console.log('Server download failed:', serverError);
-                // Continue to fallback
-            }
-
-            // Method 3: Fallback - Show instructions for manual save
-            this.showManualSaveInstructions(saveButton, originalHTML, imageUrl);
+            }, 'image/png');
 
         } catch (error) {
             console.error('Download failed:', error);
-            this.showManualSaveInstructions(saveButton, originalHTML, imageUrl);
+            saveButton.innerHTML = '❌';
+            setTimeout(() => {
+                saveButton.innerHTML = originalHTML;
+                saveButton.disabled = false;
+            }, 2000);
         }
-    }
-
-    // Helper method for success state
-    showDownloadSuccess(saveButton, originalHTML) {
-        saveButton.innerHTML = `
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="20 6 9 17 4 12"/>
-        </svg>
-    `;
-
-        this.showNotification('Image downloaded successfully!', 'success');
-
-        setTimeout(() => {
-            saveButton.innerHTML = originalHTML;
-            saveButton.disabled = false;
-        }, 2000);
-    }
-
-    // Helper method for manual save instructions
-    showManualSaveInstructions(saveButton, originalHTML, imageUrl) {
-        // Show instruction icon
-        saveButton.innerHTML = `
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M12 16v-4"/>
-            <path d="M12 8h.01"/>
-        </svg>
-    `;
-
-        // Show detailed instructions
-        this.showNotification('Right-click on the image and select "Save image as..." to download', 'info');
-
-        // Also provide a direct link option
-        setTimeout(() => {
-            const confirmed = confirm('Automatic download not available. Would you like to open the image in a new tab? You can then right-click and save it.');
-            if (confirmed) {
-                window.open(imageUrl, '_blank');
-            }
-        }, 1000);
-
-        setTimeout(() => {
-            saveButton.innerHTML = originalHTML;
-            saveButton.disabled = false;
-        }, 3000);
     }
 
     async loadConfiguration() {
