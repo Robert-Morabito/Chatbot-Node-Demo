@@ -503,7 +503,7 @@ class ChatApp {
         const progressCircle = circularProgress.querySelector('.progress-circle');
 
         // Reset timer
-        this.welcomeState.timerSeconds = 0;
+        this.welcomeState.timerSeconds = 5;
         progressCircle.style.strokeDashoffset = '75';
 
         // Start countdown
