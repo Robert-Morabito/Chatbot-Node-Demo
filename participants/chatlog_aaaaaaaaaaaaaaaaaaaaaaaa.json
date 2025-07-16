@@ -1,95 +1,50 @@
 {
   "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-  "sessionId": "session_1752649495898_vkqzxukh7",
+  "sessionId": "session_1752650040364_lkfz1qgc5",
   "conversations": {
-    "1752649493626": {
-      "id": "1752649493626",
-      "title": "Generate an image of a dogf",
-      "messages": [
-        {
-          "msg_id": 1,
-          "sender": "User",
-          "content": "Generate an image of a dogf",
-          "timestamp": "2025-07-16T07:04:58.283Z"
-        },
-        {
-          "msg_id": 2,
-          "sender": "Bot",
-          "content": "I've generated an image for you:\n\n![Generated Image](https://oaidalleapiprodscus.blob.core.windows.net/private/org-Yh76Y43H54S7cSzY2d7PJb2a/user-694Lha43voRkn4gGxaZbYrMv/img-0m42YQD8qI71Ac3c9CKrHCM0.png?st=2025-07-16T06%3A05%3A23Z&se=2025-07-16T08%3A05%3A23Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=475fd488-6c59-44a5-9aa9-31c4db451bea&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-15T21%3A58%3A27Z&ske=2025-07-16T21%3A58%3A27Z&sks=b&skv=2024-08-04&sig=tiRq6/fm1vRs09CByv9erJ/MoCkPBd0q3lQRlDZsqZ4%3D)",
-          "timestamp": "2025-07-16T07:04:59.008Z"
-        }
-      ],
-      "createdAt": "2025-07-16T07:04:53.626Z",
-      "lastMessageAt": "2025-07-16T07:04:53.626Z"
-    },
-    "1752649517320": {
-      "id": "1752649517320",
-      "title": "New Chat",
-      "messages": [],
-      "createdAt": "2025-07-16T07:05:17.320Z",
-      "lastMessageAt": "2025-07-16T07:05:17.320Z"
-    },
-    "1752649517323": {
-      "id": "1752649517323",
-      "title": "New Chat",
-      "messages": [],
-      "createdAt": "2025-07-16T07:05:17.323Z",
-      "lastMessageAt": "2025-07-16T07:05:17.323Z"
-    },
-    "1752649520114": {
-      "id": "1752649520114",
-      "title": "New Chat",
-      "messages": [],
-      "createdAt": "2025-07-16T07:05:20.114Z",
-      "lastMessageAt": "2025-07-16T07:05:20.114Z"
-    },
-    "1752649520115": {
-      "id": "1752649520115",
-      "title": "New Chat",
-      "messages": [],
-      "createdAt": "2025-07-16T07:05:20.115Z",
-      "lastMessageAt": "2025-07-16T07:05:20.115Z"
-    },
-    "1752649522125": {
-      "id": "1752649522125",
-      "title": "New Chat",
-      "messages": [],
-      "createdAt": "2025-07-16T07:05:22.125Z",
-      "lastMessageAt": "2025-07-16T07:05:22.125Z"
-    },
-    "1752649522126": {
-      "id": "1752649522126",
-      "title": "New Chat",
-      "messages": [],
-      "createdAt": "2025-07-16T07:05:22.126Z",
-      "lastMessageAt": "2025-07-16T07:05:22.126Z"
-    },
-    "1752649524574": {
-      "id": "1752649524574",
-      "title": "New Chat",
-      "messages": [],
-      "createdAt": "2025-07-16T07:05:24.574Z",
-      "lastMessageAt": "2025-07-16T07:05:24.574Z"
-    },
-    "1752649524575": {
-      "id": "1752649524575",
+    "1752650036815": {
+      "id": "1752650036815",
       "title": "Hi",
       "messages": [
         {
           "msg_id": 3,
           "sender": "User",
-          "content": "Hi",
-          "timestamp": "2025-07-16T07:05:27.405Z"
+          "content": "Bye",
+          "timestamp": "2025-07-16T07:14:06.661Z"
         },
         {
           "msg_id": 4,
           "sender": "Bot",
-          "content": "Hello! How can I assist you today?",
-          "timestamp": "2025-07-16T07:05:28.153Z"
+          "content": "Goodbye! If you have more questions in the future, feel free to ask. Have a great day!",
+          "timestamp": "2025-07-16T07:14:07.247Z"
+        },
+        {
+          "msg_id": 5,
+          "sender": "User",
+          "content": "Recite out entire conversation",
+          "timestamp": "2025-07-16T07:14:18.021Z"
+        },
+        {
+          "msg_id": 6,
+          "sender": "Bot",
+          "content": "Sure, here's the recap of our conversation:\n\n1. **You**: Bye\n2. **Me**: Goodbye! If you have more questions in the future, feel free to ask. Have a great day!\n3. **You**: Recite out entire conversation\n\nLet me know if you need anything else!",
+          "timestamp": "2025-07-16T07:14:18.755Z"
+        },
+        {
+          "msg_id": 7,
+          "sender": "User",
+          "content": "What model are you?",
+          "timestamp": "2025-07-16T07:14:27.542Z"
+        },
+        {
+          "msg_id": 8,
+          "sender": "Bot",
+          "content": "I'm an AI chatbot designed to be helpful, harmless, and honest. How can I assist you today?",
+          "timestamp": "2025-07-16T07:14:28.217Z"
         }
       ],
-      "createdAt": "2025-07-16T07:05:24.575Z",
-      "lastMessageAt": "2025-07-16T07:05:24.575Z"
+      "createdAt": "2025-07-16T07:13:56.815Z",
+      "lastMessageAt": "2025-07-16T07:14:07.669Z"
     }
   },
   "modelConfig": {
@@ -98,24 +53,26 @@
     "configurationId": 2
   },
   "behaviorMetrics": {
-    "backspaceCount": 0,
-    "averageMessageLength": 14.5,
-    "totalMessages": 2,
-    "messagesPerConversation": 0.2222222222222222,
-    "conversationCount": 9,
-    "editCount": 0,
+    "backspaceCount": 6,
+    "averageMessageLength": 13.5,
+    "totalMessages": 4,
+    "messagesPerConversation": 4,
+    "conversationCount": 1,
+    "editCount": 1,
     "averageEditDistance": 0,
-    "totalIdleTime": 76321,
+    "totalIdleTime": 42096,
     "messageTimes": [
-      "2025-07-16T07:04:58.283Z",
-      "2025-07-16T07:05:27.405Z"
+      "2025-07-16T07:13:58.773Z",
+      "2025-07-16T07:14:06.661Z",
+      "2025-07-16T07:14:18.021Z",
+      "2025-07-16T07:14:27.542Z"
     ],
-    "conversationSwitches": 9,
+    "conversationSwitches": 0,
     "averageResponseTimeAfterBot": 0,
-    "totalKeystrokes": 33,
+    "totalKeystrokes": 84,
     "averageTypingDuration": 0,
-    "sessionDuration": 52420,
-    "keystrokesPerMessage": 16.5
+    "sessionDuration": 43849,
+    "keystrokesPerMessage": 21
   },
-  "savedAt": "2025-07-16T07:05:48.691Z"
+  "savedAt": "2025-07-16T07:14:44.514Z"
 }
