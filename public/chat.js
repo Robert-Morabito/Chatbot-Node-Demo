@@ -827,6 +827,9 @@ class ChatApp {
         const contentDiv = document.createElement('div');
         contentDiv.className = 'message-content';
 
+        // Make content div relatively positioned for edit button
+        contentDiv.style.position = 'relative';
+
         // For bot messages, parse markdown
         if (msgInfo.sender === 'Bot') {
             contentDiv.innerHTML = marked.parse(msgInfo.content, {
@@ -839,6 +842,14 @@ class ChatApp {
             this.setupImageClickHandlers(contentDiv);
         } else {
             contentDiv.textContent = msgInfo.content;
+
+            // Add edit button for user messages
+            const editBtn = document.createElement('button');
+            editBtn.className = 'edit-btn';
+            editBtn.textContent = '✎';
+            editBtn.title = 'Edit message';
+            editBtn.onclick = () => this.editMessage(msgInfo.msg_id);
+            contentDiv.appendChild(editBtn);
         }
 
         // Assemble message
@@ -859,7 +870,7 @@ class ChatApp {
 
         console.log('✅ [NEW] Message rendered successfully');
     }
-
+    
     setupImageClickHandlers(contentDiv) {
         const images = contentDiv.querySelectorAll('img');
         images.forEach(img => {
