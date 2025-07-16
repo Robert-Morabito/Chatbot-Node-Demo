@@ -59,6 +59,12 @@ class ChatApp {
             displayName: 'GPT-4'
         };
 
+        this.sessionTimer = {
+            startTime: null,
+            intervalId: null,
+            isRunning: false
+        };
+
         this.modelDescriptions = {
             'GPT-3.5': {
                 year: '2022',
@@ -462,6 +468,7 @@ class ChatApp {
         this.createNewConversation();
         this.setupTextareaAutoResize();
         this.setupAdvancedAnimations();
+        this.startSessionTimer();
         this.initializeBehaviorTracking();
         this.setupFinishButton();
     }
@@ -1312,6 +1319,8 @@ class ChatApp {
     }
 
     async onClose(event) {
+        this.stopSessionTimer();
+
         // Only auto-save if not already finishing
         if (this.isFinishing) return;
 
@@ -1634,6 +1643,8 @@ class ChatApp {
     }
 
     closeApplication() {
+        this.stopSessionTimer();
+        
         // Set flag to prevent duplicate saves
         this.isFinishing = true;
 
@@ -1979,6 +1990,66 @@ class ChatApp {
             imageGenIndicator.remove();
         }
     }
+
+    startSessionTimer() {
+        console.log('⏱️ Starting session timer');
+
+        if (this.sessionTimer.isRunning) {
+            console.log('⏱️ Timer already running');
+            return;
+        }
+
+        this.sessionTimer.startTime = Date.now();
+        this.sessionTimer.isRunning = true;
+
+        // Update timer immediately
+        this.updateTimerDisplay();
+
+        // Update every second
+        this.sessionTimer.intervalId = setInterval(() => {
+            this.updateTimerDisplay();
+        }, 1000);
+
+        console.log('⏱️ Session timer started');
+    }
+
+    stopSessionTimer() {
+        console.log('⏱️ Stopping session timer');
+
+        if (this.sessionTimer.intervalId) {
+            clearInterval(this.sessionTimer.intervalId);
+            this.sessionTimer.intervalId = null;
+        }
+
+        this.sessionTimer.isRunning = false;
+    }
+
+    updateTimerDisplay() {
+        if (!this.sessionTimer.startTime) return;
+
+        const elapsed = Date.now() - this.sessionTimer.startTime;
+        const formattedTime = this.formatElapsedTime(elapsed);
+
+        const timerDisplay = document.getElementById('timer-display');
+        if (timerDisplay) {
+            timerDisplay.textContent = formattedTime;
+        }
+    }
+
+    formatElapsedTime(milliseconds) {
+        const totalSeconds = Math.floor(milliseconds / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    getElapsedTime() {
+        if (!this.sessionTimer.startTime) return 0;
+        return Date.now() - this.sessionTimer.startTime;
+    }
+
 }
 
 // Initialize the app when page loads

@@ -2426,3 +2426,67 @@ body.light-theme {
         opacity: 1;
     }
 }
+.session-timer {
+    display: flex;
+    align-items: center;
+    background-color: var(--hover-dark);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-dark);
+    font-size: 14px;
+    margin-right: 12px;
+    gap: 8px;
+    min-width: 100px;
+    justify-content: center;
+}
+
+.light-theme .session-timer {
+    background-color: var(--hover-light);
+    border-color: var(--border-light);
+}
+
+.timer-icon {
+    font-size: 16px;
+    opacity: 0.8;
+}
+
+.timer-text {
+    font-family: monospace;
+    font-weight: bold;
+    color: var(--text-dark);
+    font-size: 14px;
+    letter-spacing: 0.5px;
+}
+
+.light-theme .timer-text {
+    color: var(--text-light);
+}
+
+/* Responsive timer */
+@media (max-width: 768px) {
+    .session-timer {
+        font-size: 12px;
+        padding: 6px 8px;
+        margin-right: 8px;
+        min-width: 85px;
+    }
+    
+    .timer-icon {
+        font-size: 14px;
+    }
+    
+    .timer-text {
+        font-size: 12px;
+    }
+}
+
+/* Very small screens - hide timer icon */
+@media (max-width: 480px) {
+    .timer-icon {
+        display: none;
+    }
+    
+    .session-timer {
+        min-width: 70px;
+    }
+}
