@@ -1,26 +1,26 @@
 {
   "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-  "sessionId": "session_1752648241195_ao4hanepb",
+  "sessionId": "session_1752648608875_qnslcrash",
   "conversations": {
-    "1752648240876": {
-      "id": "1752648240876",
+    "1752648607225": {
+      "id": "1752648607225",
       "title": "Generate a picture of a dog",
       "messages": [
         {
           "msg_id": 1,
           "sender": "User",
           "content": "Generate a picture of a dog",
-          "timestamp": "2025-07-16T06:44:06.123Z"
+          "timestamp": "2025-07-16T06:50:13.593Z"
         },
         {
           "msg_id": 2,
           "sender": "Bot",
-          "content": "I've generated an image for you:\n\n![Generated Image](https://oaidalleapiprodscus.blob.core.windows.net/private/org-Yh76Y43H54S7cSzY2d7PJb2a/user-694Lha43voRkn4gGxaZbYrMv/img-nmm83VpTupGZkpswp3FS2rVK.png?st=2025-07-16T05%3A44%3A30Z&se=2025-07-16T07%3A44%3A30Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=475fd488-6c59-44a5-9aa9-31c4db451bea&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-16T01%3A15%3A11Z&ske=2025-07-17T01%3A15%3A11Z&sks=b&skv=2024-08-04&sig=YEeWo7rhEGymBdf7VOC1srh2LxZggfp/RQ%2BULamc6m8%3D)",
-          "timestamp": "2025-07-16T06:44:06.809Z"
+          "content": "I've generated an image for you:\n\n![Generated Image](https://oaidalleapiprodscus.blob.core.windows.net/private/org-Yh76Y43H54S7cSzY2d7PJb2a/user-694Lha43voRkn4gGxaZbYrMv/img-rSSmEchQDuJP3bEjtsH0J2Ao.png?st=2025-07-16T05%3A50%3A42Z&se=2025-07-16T07%3A50%3A42Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=475fd488-6c59-44a5-9aa9-31c4db451bea&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-15T09%3A46%3A50Z&ske=2025-07-16T09%3A46%3A50Z&sks=b&skv=2024-08-04&sig=ig3emDqcb9tItcf48bKGddumVjNAUsDQIgYcrRnJ8ls%3D)",
+          "timestamp": "2025-07-16T06:50:14.261Z"
         }
       ],
-      "createdAt": "2025-07-16T06:44:00.876Z",
-      "lastMessageAt": "2025-07-16T06:44:00.876Z"
+      "createdAt": "2025-07-16T06:50:07.225Z",
+      "lastMessageAt": "2025-07-16T06:50:07.225Z"
     }
   },
   "modelConfig": {
@@ -29,23 +29,23 @@
     "configurationId": 2
   },
   "behaviorMetrics": {
-    "backspaceCount": 0,
+    "backspaceCount": 4,
     "averageMessageLength": 27,
     "totalMessages": 1,
     "messagesPerConversation": 1,
     "conversationCount": 1,
     "editCount": 0,
     "averageEditDistance": 0,
-    "totalIdleTime": 22776,
+    "totalIdleTime": 19557,
     "messageTimes": [
-      "2025-07-16T06:44:06.123Z"
+      "2025-07-16T06:50:13.592Z"
     ],
     "conversationSwitches": 0,
     "averageResponseTimeAfterBot": 0,
-    "totalKeystrokes": 29,
+    "totalKeystrokes": 37,
     "averageTypingDuration": 0,
-    "sessionDuration": 65583,
-    "keystrokesPerMessage": 29
+    "sessionDuration": 48077,
+    "keystrokesPerMessage": 37
   },
-  "savedAt": "2025-07-16T06:45:06.733Z"
+  "savedAt": "2025-07-16T06:50:56.962Z"
 }

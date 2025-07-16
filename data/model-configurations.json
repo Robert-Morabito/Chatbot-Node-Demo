@@ -201,12 +201,20 @@
       "assignedAt": "2025-07-16T06:44:10.099Z",
       "completed": false,
       "completedAt": null
+    },
+    "session_1752648608875_qnslcrash": {
+      "sessionId": "session_1752648608875_qnslcrash",
+      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
+      "configurationId": 2,
+      "assignedAt": "2025-07-16T06:50:16.475Z",
+      "completed": false,
+      "completedAt": null
     }
   },
   "metadata": {
     "totalConfigurations": 20,
     "totalTargetSessions": 20,
     "createdAt": "2024-01-15T00:00:00.000Z",
-    "lastUpdated": "2025-07-16T06:44:10.099Z"
+    "lastUpdated": "2025-07-16T06:50:16.475Z"
   }
 }
