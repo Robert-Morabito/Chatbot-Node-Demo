@@ -320,26 +320,22 @@ class ChatApp {
             persistentHeaderContent: `Today you will be using: ${displayName} (${modelInfo.year})`
         });
 
-        // Add the 3 slides with sub-points
         modelInfo.slides.forEach((slide, slideIndex) => {
             this.welcomeState.steps.push({
                 type: 'model-slide',
                 title: 'Welcome to the Study',
                 content: `
-                <div class="model-info-point">
-                    <div class="slide-title">
-                        <h3>${slide.title}</h3>
-                    </div>
-                    <div class="slide-content">
-                        <ul>
-                            ${slide.points.map(point => `<li>${point}</li>`).join('')}
-                        </ul>
-                    </div>
-                    <div class="slide-counter">
-                        Slide ${slideIndex + 1} of ${modelInfo.slides.length}
-                    </div>
+            <div class="model-info-point">
+                <div class="slide-title">
+                    <h3>${slide.title}</h3>
                 </div>
-            `,
+                <div class="slide-content">
+                    <ul>
+                        ${slide.points.map(point => `<li>${point}</li>`).join('')}
+                    </ul>
+                </div>
+            </div>
+        `,
                 showTimer: true,
                 showBack: true,
                 showPersistentHeader: true,

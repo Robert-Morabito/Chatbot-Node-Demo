@@ -2536,7 +2536,6 @@ body.light-theme {
 .slide-content li {
     margin: 12px 0;
     padding: 12px 16px;
-    background: rgba(255, 255, 255, 0.03);
     border-radius: 8px;
     color: var(--text-dark);
     font-size: 15px;
@@ -2546,7 +2545,6 @@ body.light-theme {
 }
 
 .light-theme .slide-content li {
-    background: rgba(0, 0, 0, 0.03);
     color: var(--text-light);
 }
 
@@ -2561,21 +2559,6 @@ body.light-theme {
 
 .light-theme .slide-content li::before {
     color: var(--user-msg-bg-light);
-}
-
-.slide-counter {
-    text-align: center;
-    font-size: 14px;
-    color: var(--text-secondary-dark);
-    margin-top: 20px;
-    padding: 8px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 15px;
-}
-
-.light-theme .slide-counter {
-    color: var(--text-secondary-light);
-    background: rgba(0, 0, 0, 0.03);
 }
 
 /* Ensure model header is always visible */
