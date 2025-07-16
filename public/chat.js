@@ -69,68 +69,181 @@ class ChatApp {
             'GPT-3.5': {
                 year: '2022',
                 generation: '3.5',
-                description: [
-                    '⚬ Generation 3.5 - Released March 2022'
+                slides: [
+                    {
+                        title: 'Background and Position',
+                        points: [
+                            'Released November 30, 2022, as the model that powered the original ChatGPT',
+                            'This is an earlier generation model that has been succeeded by GPT-4 and other newer models',
+                            'Designed for general conversation and text generation tasks'
+                        ]
+                    },
+                    {
+                        title: 'Performance Compared to Other Models',
+                        points: [
+                            'GPT-4 shows 40% higher accuracy on factual questions and handles complex tasks better',
+                            'Processes requests quickly but with less sophisticated reasoning than newer models',
+                            'Can work with about 16,000 words of conversation history'
+                        ]
+                    },
+                    {
+                        title: 'Capabilities and Limitations',
+                        points: [
+                            'Strengths: Fast responses, free access, handles basic writing and conversation well',
+                            'Knowledge Cutoff: Training data ends in September 2021, so lacks recent information',
+                            'More prone to factual errors compared to GPT-4 and other current models'
+                        ]
+                    }
                 ]
             },
             'GPT-4': {
                 year: '2023',
                 generation: '4.0',
-                description: [
-                    '⚬ Generation 4.0 - Released March 2023',
-                    '⚬ Advanced Reasoning - Better at complex problem-solving',
-                    '⚬ Improved Accuracy - More reliable and factual responses',
-                    '⚬ Multimodal Capable - Can understand context better',
-                    '⚬ Best For - Complex analysis, creative writing, detailed explanations',
-                    '⚬ Trade-offs - Slower than GPT-3.5, more expensive to operate'
+                slides: [
+                    {
+                        title: 'Background and Capabilities',
+                        points: [
+                            'Released March 14, 2023, succeeding GPT-3.5 with multimodal capabilities',
+                            'Can process both text and images, unlike GPT-3.5 which only handled text',
+                            'Demonstrates human-level performance on various professional and academic tests'
+                        ]
+                    },
+                    {
+                        title: 'Comparative Performance',
+                        points: [
+                            'Shows 40% higher accuracy on factual questions and better complex reasoning versus GPT-3.5',
+                            'GPT-4 responds faster but o1-preview performs better on mathematical and scientific problems',
+                            'Functions in 24 languages with better non-English performance than GPT-3.5'
+                        ]
+                    },
+                    {
+                        title: 'Access and Limitations',
+                        points: [
+                            'Requires ChatGPT Plus subscription or API access',
+                            'Still produces factual errors, though less frequently than GPT-3.5',
+                            'Primary use cases: Complex analysis, image understanding, and professional-level writing tasks'
+                        ]
+                    }
                 ]
             },
             'o1-Preview': {
                 year: '2024',
                 generation: 'o1',
-                description: [
-                    '⚬ Generation o1 - Released September 2024',
-                    '⚬ Reasoning Specialist - Designed for deep thinking and problem-solving',
-                    '⚬ Deliberate Processing - Takes time to "think through" complex problems',
-                    '⚬ STEM Excellence - Outstanding at math, science, coding, logic puzzles',
-                    '⚬ Best For - Research, analysis, complex reasoning tasks',
-                    '⚬ Trade-offs - Much slower responses, not ideal for casual conversation'
+                slides: [
+                    {
+                        title: 'Background and Approach',
+                        points: [
+                            'Released September 12, 2024, representing OpenAI\'s new reasoning-focused approach',
+                            'Takes additional time to process problems before responding, unlike faster models',
+                            'Designed specifically for complex reasoning tasks in math, science, and coding'
+                        ]
+                    },
+                    {
+                        title: 'Comparative Performance',
+                        points: [
+                            'Performs significantly better on mathematical problems (83% vs 13% success rate versus GPT-4)',
+                            'Ranks in 89th percentile of coding competitions',
+                            'Higher accuracy on complex problems but slower response times and usage restrictions'
+                        ]
+                    },
+                    {
+                        title: 'Access and Constraints',
+                        points: [
+                            'Limited to 30 messages per week for ChatGPT Plus subscribers',
+                            'More expensive per use than GPT-4 for API access',
+                            'Optimal use cases: Complex mathematical, scientific, and coding problems requiring deep analysis'
+                        ]
+                    }
                 ]
             },
             'Claude 3.5 Haiku': {
                 year: '2024',
                 generation: '3.5',
-                description: [
-                    '⚬ Generation 3.5 - Released October 2024',
-                    '⚬ Fast & Efficient - Optimized for speed and responsiveness',
-                    '⚬ Lightweight Model - Quick processing with solid performance',
-                    '⚬ Cost-Effective - Designed for high-volume, everyday tasks',
-                    '⚬ Best For - Simple conversations, basic analysis, quick responses',
-                    '⚬ Trade-offs - Less sophisticated than Sonnet or Opus variants'
+                slides: [
+                    {
+                        title: 'Background and Position',
+                        points: [
+                            'Released November 4, 2024, as the newest version of Anthropic\'s fastest model',
+                            'Newest small model in the Claude family, designed for speed and efficiency',
+                            'Training data through July 2024, more recent than other Claude models'
+                        ]
+                    },
+                    {
+                        title: 'Performance Compared to Other Models',
+                        points: [
+                            'Matches Claude 3 Opus performance on many benchmarks despite being smaller',
+                            'Faster responses but less capable on complex reasoning tasks versus Claude 3.5 Sonnet',
+                            'Scores 40.6% on SWE-bench coding test, competitive with larger models'
+                        ]
+                    },
+                    {
+                        title: 'Capabilities and Limitations',
+                        points: [
+                            'Strengths: Fast response times, efficient performance, good for high-volume applications',
+                            'Budget-friendly option in the Claude family while maintaining good performance',
+                            'Best use cases: Customer service, simple coding tasks, rapid data processing'
+                        ]
+                    }
                 ]
             },
             'Claude 3.5 Sonnet': {
                 year: '2024',
                 generation: '3.5',
-                description: [
-                    '⚬ Generation 3.5 - Released October 2024',
-                    '⚬ Balanced Performance - Optimal mix of speed and capability',
-                    '⚬ Strong Reasoning - Advanced problem-solving and analysis',
-                    '⚬ Versatile Applications - Excellent for diverse tasks',
-                    '⚬ Best For - Complex writing, coding, research, detailed analysis',
-                    '⚬ Current Flagship - Anthropic\'s most advanced widely-available model'
+                slides: [
+                    {
+                        title: 'Background and Position',
+                        points: [
+                            'Released June 20, 2024, as the mid-tier model in Anthropic\'s Claude 3.5 family',
+                            'Currently Anthropic\'s most widely used model, balancing capability and cost',
+                            'Updated version released October 22, 2024, with improved performance'
+                        ]
+                    },
+                    {
+                        title: 'Performance Compared to Other Models',
+                        points: [
+                            'Operates at twice the speed with competitive performance levels versus Claude 3 Opus',
+                            'More capable on complex tasks but slower response times versus Claude 3.5 Haiku',
+                            'Improved from 33.4% to 49.0% on SWE-bench coding benchmark'
+                        ]
+                    },
+                    {
+                        title: 'Capabilities and Limitations',
+                        points: [
+                            'Good balance of speed and capability, can process text and images',
+                            '200,000 token context window for processing long documents',
+                            'Mid-tier model offering balanced performance across different task types'
+                        ]
+                    }
                 ]
             },
             'Claude 3 Opus': {
                 year: '2024',
                 generation: '3.0',
-                description: [
-                    '⚬ Generation 3.0 - Released February 2024',
-                    '⚬ Maximum Capability - Anthropic\'s most powerful model',
-                    '⚬ Superior Reasoning - Exceptional at complex, nuanced tasks',
-                    '⚬ Careful & Thoughtful - Takes time for thorough analysis',
-                    '⚬ Best For - Research, complex writing, sophisticated analysis',
-                    '⚬ Trade-offs - Slower responses, higher computational cost'
+                slides: [
+                    {
+                        title: 'Background and Position',
+                        points: [
+                            'Released March 4, 2024, as the largest model in Anthropic\'s Claude 3 family',
+                            'This is an earlier generation model that has been succeeded by Claude 3.5 models',
+                            'Built for complex reasoning tasks but with slower response times'
+                        ]
+                    },
+                    {
+                        title: 'Performance Compared to Other Models',
+                        points: [
+                            'Claude 3.5 Sonnet operates at twice the speed with similar capabilities',
+                            'Newer Haiku model matches Opus performance on many tasks at much lower cost',
+                            'Can work with about 200,000 tokens (roughly 150,000 words) of conversation'
+                        ]
+                    },
+                    {
+                        title: 'Capabilities and Limitations',
+                        points: [
+                            'Handles complex reasoning tasks and can process both text and images',
+                            'Slower than newer Claude models despite similar performance levels',
+                            'Higher-tier model but has been superseded by more efficient options'
+                        ]
+                    }
                 ]
             }
         };
@@ -192,37 +305,45 @@ class ChatApp {
         const displayName = this.config?.displayName || 'GPT-4';
         const modelInfo = this.modelDescriptions[displayName] || this.modelDescriptions['GPT-4'];
 
-        // Add model intro step
+        // Add model intro step with persistent header
         this.welcomeState.steps.push({
             type: 'model-intro',
             title: 'Welcome to the Study',
             content: `
-        <div class="model-info-point">
-            <div class="model-header-persistent">
-                Today you will be using: ${displayName} (${modelInfo.year})
+            <div class="model-info-point">
+                <div class="model-header-persistent">
+                    Today you will be using: ${displayName} (${modelInfo.year})
+                </div>
+                <p>Please read through the following information about this model:</p>
             </div>
-            <p>Please read through the following information about this model:</p>
-        </div>
-    `,
+        `,
             showTimer: true,
             showBack: true
         });
 
-        // Add model description points
-        modelInfo.description.forEach((point, index) => {
+        // Add the 3 slides with sub-points
+        modelInfo.slides.forEach((slide, slideIndex) => {
             this.welcomeState.steps.push({
-                type: 'model-point',
+                type: 'model-slide',
                 title: 'Welcome to the Study',
                 content: `
-            <div class="model-info-point">
-                <div class="point-content">
-                    <p>${point}</p>
+                <div class="model-info-point">
+                    <div class="model-header-persistent">
+                        ${displayName} (${modelInfo.year})
+                    </div>
+                    <div class="slide-title">
+                        <h3>${slide.title}</h3>
+                    </div>
+                    <div class="slide-content">
+                        <ul>
+                            ${slide.points.map(point => `<li>${point}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="slide-counter">
+                        Slide ${slideIndex + 1} of ${modelInfo.slides.length}
+                    </div>
                 </div>
-                <div class="point-counter">
-                    Point ${index + 1} of ${modelInfo.description.length}
-                </div>
-            </div>
-        `,
+            `,
                 showTimer: true,
                 showBack: true
             });
@@ -233,19 +354,19 @@ class ChatApp {
             type: 'prolific-id',
             title: 'Welcome to the Study',
             content: `
-        <div class="prolific-id-section">
-            <h3>Enter Your Prolific ID</h3>
-            <p>Please enter your Prolific ID to begin the study:</p>
-            <input type="text" 
-                   id="prolific-id-input" 
-                   class="prolific-id-input" 
-                   placeholder="Enter your 24-character Prolific ID" 
-                   maxlength="24"
-                   autocomplete="off">
-            <div id="prolific-id-error" class="error-message"></div>
-            <p class="prolific-note">Your Prolific ID should be 24 characters long and contain only letters and numbers.</p>
-        </div>
-    `,
+            <div class="prolific-id-section">
+                <h3>Enter Your Prolific ID</h3>
+                <p>Please enter your Prolific ID to begin the study:</p>
+                <input type="text" 
+                       id="prolific-id-input" 
+                       class="prolific-id-input" 
+                       placeholder="Enter your 24-character Prolific ID" 
+                       maxlength="24"
+                       autocomplete="off">
+                <div id="prolific-id-error" class="error-message"></div>
+                <p class="prolific-note">Your Prolific ID should be 24 characters long and contain only letters and numbers.</p>
+            </div>
+        `,
             showTimer: false,
             showBack: true
         });
@@ -1644,7 +1765,7 @@ class ChatApp {
 
     closeApplication() {
         this.stopSessionTimer();
-        
+
         // Set flag to prevent duplicate saves
         this.isFinishing = true;
 
