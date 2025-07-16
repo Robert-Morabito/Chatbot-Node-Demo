@@ -2406,11 +2406,11 @@ body.light-theme {
     position: absolute;
     bottom: 20px;
     right: 20px;
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: 2px solid rgba(255, 255, 255, 0.3);
     color: white;
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
@@ -2418,25 +2418,45 @@ body.light-theme {
     justify-content: center;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    z-index: 2001;
 }
 
 .image-modal .save-button:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(1.1);
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: scale(1.15);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.image-modal .save-button:active {
+    transform: scale(1.05);
 }
 
 .image-modal .save-button svg {
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
+    stroke-width: 2.5;
+}
+
+.image-modal .save-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
 }
 
 /* Mobile responsive */
 @media (max-width: 768px) {
     .image-modal .save-button {
-        bottom: 70px;
-        right: 10px;
-        width: 45px;
-        height: 45px;
+        bottom: 80px;
+        right: 15px;
+        width: 55px;
+        height: 55px;
+    }
+    
+    .image-modal .save-button svg {
+        width: 24px;
+        height: 24px;
     }
 }
 

@@ -942,55 +942,188 @@ class ChatApp {
             // Show saving indicator
             const saveButton = document.querySelector('.image-modal .save-button');
             const originalHTML = saveButton.innerHTML;
-            saveButton.innerHTML = '⏳';
+            saveButton.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+            </svg>
+        `;
             saveButton.disabled = true;
-
-            // Fetch the image
-            const response = await fetch(imageUrl);
-            const blob = await response.blob();
-
-            // Create download link
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
 
             // Generate filename
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
             const cleanFilename = filename ? filename.replace(/[^a-z0-9]/gi, '_').substring(0, 50) : 'generated_image';
-            link.download = `${cleanFilename}_${timestamp}.png`;
+            const finalFilename = `${cleanFilename}_${timestamp}.png`;
 
-            // Trigger download
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // Method 1: Try direct download with fetch
+            try {
+                const response = await fetch(imageUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'image/*',
+                    }
+                });
 
-            // Clean up
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
-            // Show success
-            saveButton.innerHTML = '✅';
-            setTimeout(() => {
-                saveButton.innerHTML = originalHTML;
-                saveButton.disabled = false;
-            }, 2000);
+                const blob = await response.blob();
+
+                // Create download link
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = finalFilename;
+                link.style.display = 'none';
+
+                // Force download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // Clean up
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+                // Show success
+                saveButton.innerHTML = `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+            `;
+
+                setTimeout(() => {
+                    saveButton.innerHTML = originalHTML;
+                    saveButton.disabled = false;
+                }, 2000);
+
+                return; // Success, exit early
+
+            } catch (fetchError) {
+                console.log('Direct fetch failed, trying proxy method:', fetchError);
+
+                // Method 2: Try using a proxy approach for CORS issues
+                try {
+                    const proxyUrl = `https://cors-anywhere.herokuapp.com/${imageUrl}`;
+                    const response = await fetch(proxyUrl);
+
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = finalFilename;
+                        link.style.display = 'none';
+
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+
+                        setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+                        // Show success
+                        saveButton.innerHTML = `
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    `;
+
+                        setTimeout(() => {
+                            saveButton.innerHTML = originalHTML;
+                            saveButton.disabled = false;
+                        }, 2000);
+
+                        return; // Success, exit early
+                    }
+                } catch (proxyError) {
+                    console.log('Proxy method failed:', proxyError);
+                }
+            }
+
+            // Method 3: Canvas-based approach for same-origin images
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+
+                img.crossOrigin = 'anonymous';
+
+                img.onload = function () {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+
+                    canvas.toBlob((blob) => {
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = finalFilename;
+                        link.style.display = 'none';
+
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+
+                        setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+                        // Show success
+                        saveButton.innerHTML = `
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    `;
+
+                        setTimeout(() => {
+                            saveButton.innerHTML = originalHTML;
+                            saveButton.disabled = false;
+                        }, 2000);
+                    }, 'image/png');
+                };
+
+                img.onerror = function () {
+                    throw new Error('Failed to load image for canvas');
+                };
+
+                img.src = imageUrl;
+                return; // Canvas method initiated, exit early
+
+            } catch (canvasError) {
+                console.log('Canvas method failed:', canvasError);
+            }
+
+            // Method 4: Last resort - open in new tab with right-click save instruction
+            throw new Error('All download methods failed');
 
         } catch (error) {
-            console.error('Error downloading image:', error);
+            console.error('All download methods failed:', error);
 
-            // Show error
+            // Show error state
             const saveButton = document.querySelector('.image-modal .save-button');
             const originalHTML = saveButton.innerHTML;
-            saveButton.innerHTML = '❌';
+
+            saveButton.innerHTML = `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+        `;
+
+            // Show notification
+            this.showNotification('Download failed. Opening in new tab - right-click to save.', 'warning');
+
+            // Fallback: open in new tab
+            setTimeout(() => {
+                window.open(imageUrl, '_blank');
+            }, 1000);
+
             setTimeout(() => {
                 saveButton.innerHTML = originalHTML;
                 saveButton.disabled = false;
-            }, 2000);
-
-            // Fallback: open in new tab
-            window.open(imageUrl, '_blank');
+            }, 3000);
         }
     }
-
+    
     async loadConfiguration() {
         try {
             console.log('🔄 Loading configuration...');
