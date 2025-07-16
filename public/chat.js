@@ -945,46 +945,47 @@ class ChatApp {
         saveButton.disabled = true;
 
         try {
-            // Fetch the image as a blob
-            const response = await fetch(imageUrl);
-            const blob = await response.blob();
+            // Get the image that's already loaded in the modal
+            const img = document.querySelector('.image-modal img');
 
-            // Create object URL and download
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `generated_image_${Date.now()}.png`;
+            // Create canvas and draw the image
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
 
-            // Trigger download
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            ctx.drawImage(img, 0, 0);
 
-            // Clean up
-            URL.revokeObjectURL(url);
+            // Convert to blob and download
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `generated_image_${Date.now()}.png`;
 
-            // Show success
-            saveButton.innerHTML = '✅';
-            this.showNotification('Image downloaded successfully!', 'success');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                URL.revokeObjectURL(url);
+
+                // Show success
+                saveButton.innerHTML = '✅';
+                setTimeout(() => {
+                    saveButton.innerHTML = originalHTML;
+                    saveButton.disabled = false;
+                }, 1500);
+
+            }, 'image/png');
 
         } catch (error) {
             console.error('Download failed:', error);
-
-            // Show error
             saveButton.innerHTML = '❌';
-            this.showNotification('Download failed. Opening in new tab - right-click to save.', 'warning');
-
-            // Fallback
             setTimeout(() => {
-                window.open(imageUrl, '_blank');
-            }, 1000);
+                saveButton.innerHTML = originalHTML;
+                saveButton.disabled = false;
+            }, 2000);
         }
-
-        // Reset button
-        setTimeout(() => {
-            saveButton.innerHTML = originalHTML;
-            saveButton.disabled = false;
-        }, 2000);
     }
 
     async loadConfiguration() {
