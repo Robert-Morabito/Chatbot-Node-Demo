@@ -889,8 +889,21 @@ class ChatApp {
         closeButton.innerHTML = '×';
         closeButton.title = 'Close (Esc)';
 
+        // Create save button
+        const saveButton = document.createElement('button');
+        saveButton.className = 'save-button';
+        saveButton.title = 'Save image';
+        saveButton.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+    `;
+
         modal.appendChild(img);
         modal.appendChild(closeButton);
+        modal.appendChild(saveButton);
         document.body.appendChild(modal);
 
         // Show modal with animation
@@ -907,6 +920,12 @@ class ChatApp {
             if (e.target === modal) closeModal();
         });
 
+        // Save handler
+        saveButton.addEventListener('click', async (e) => {
+            e.stopPropagation(); // Prevent modal from closing
+            await this.downloadImage(imageSrc, altText);
+        });
+
         // Keyboard handler
         const handleKeydown = (e) => {
             if (e.key === 'Escape') {
@@ -915,6 +934,61 @@ class ChatApp {
             }
         };
         document.addEventListener('keydown', handleKeydown);
+    }
+
+    // Add this new method to handle image downloads
+    async downloadImage(imageUrl, filename) {
+        try {
+            // Show saving indicator
+            const saveButton = document.querySelector('.image-modal .save-button');
+            const originalHTML = saveButton.innerHTML;
+            saveButton.innerHTML = '⏳';
+            saveButton.disabled = true;
+
+            // Fetch the image
+            const response = await fetch(imageUrl);
+            const blob = await response.blob();
+
+            // Create download link
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+
+            // Generate filename
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            const cleanFilename = filename ? filename.replace(/[^a-z0-9]/gi, '_').substring(0, 50) : 'generated_image';
+            link.download = `${cleanFilename}_${timestamp}.png`;
+
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Clean up
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+            // Show success
+            saveButton.innerHTML = '✅';
+            setTimeout(() => {
+                saveButton.innerHTML = originalHTML;
+                saveButton.disabled = false;
+            }, 2000);
+
+        } catch (error) {
+            console.error('Error downloading image:', error);
+
+            // Show error
+            const saveButton = document.querySelector('.image-modal .save-button');
+            const originalHTML = saveButton.innerHTML;
+            saveButton.innerHTML = '❌';
+            setTimeout(() => {
+                saveButton.innerHTML = originalHTML;
+                saveButton.disabled = false;
+            }, 2000);
+
+            // Fallback: open in new tab
+            window.open(imageUrl, '_blank');
+        }
     }
 
     async loadConfiguration() {
