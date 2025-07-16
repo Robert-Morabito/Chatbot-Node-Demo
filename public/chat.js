@@ -71,7 +71,7 @@ class ChatApp {
                 generation: '3.5',
                 slides: [
                     {
-                        title: 'Background and Position',
+                        title: 'Background',
                         points: [
                             'Released November 30, 2022, as the model that powered the original ChatGPT',
                             'This is an earlier generation model that has been succeeded by GPT-4 and other newer models',
@@ -89,8 +89,8 @@ class ChatApp {
                     {
                         title: 'Capabilities and Limitations',
                         points: [
-                            'Strengths: Fast responses, free access, handles basic writing and conversation well',
-                            'Knowledge Cutoff: Training data ends in September 2021, so lacks recent information',
+                            'Fast responses, free access, handles basic writing and conversation well',
+                            'Training data ends in September 2021, so lacks recent information',
                             'More prone to factual errors compared to GPT-4 and other current models'
                         ]
                     }
