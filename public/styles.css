@@ -2402,44 +2402,6 @@ body.light-theme {
     }
 }
 
-.image-modal .save-button {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-}
-
-.image-modal .save-button:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(1.1);
-}
-
-.image-modal .save-button svg {
-    width: 24px;
-    height: 24px;
-}
-
-/* Mobile responsive */
-@media (max-width: 768px) {
-    .image-modal .save-button {
-        bottom: 70px;
-        right: 10px;
-        width: 45px;
-        height: 45px;
-    }
-}
-
 /* Image generation indicator */
 .image-generating-text {
     color: var(--text-secondary-dark);
