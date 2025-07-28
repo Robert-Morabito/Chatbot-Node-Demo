@@ -21,6 +21,7 @@ export default async function handler(req, res) {
 
         console.log('Processing session completion:', { sessionId, participantId });
         
+        // Load from GitHub Storage repo
         const configData = await githubStorage.loadConfigurationState();
         const session = configData.sessions[sessionId];
         
@@ -56,6 +57,7 @@ export default async function handler(req, res) {
             // Update metadata
             configData.metadata.lastUpdated = new Date().toISOString();
             
+            // Save back to GitHub Storage repo
             await githubStorage.saveConfigurationState(configData);
             console.log('Session completion processed successfully');
         } else {

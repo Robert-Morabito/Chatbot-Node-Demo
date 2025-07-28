@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     try {
         console.log('🎯 Starting configuration assignment...');
         
-        // Load current configuration state from GitHub
+        // Load current configuration state from GitHub Storage repo
         const configData = await githubStorage.loadConfigurationState();
         console.log('📋 Loaded configuration data:', {
             totalConfigs: Object.keys(configData.configurations).length,

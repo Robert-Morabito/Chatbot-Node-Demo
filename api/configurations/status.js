@@ -10,6 +10,7 @@ export default async function handler(req, res) {
     try {
         console.log('📊 Getting configuration status...');
         
+        // Load from GitHub Storage repo instead of local file
         const configData = await githubStorage.loadConfigurationState();
         
         const status = {

@@ -12,7 +12,7 @@
       "id": 2,
       "displayedModel": "GPT-3.5",
       "actualModel": "gpt-4-turbo",
-      "completedSessions": 1,
+      "completedSessions": 0,
       "targetSessions": 1,
       "isActive": false
     },
@@ -20,7 +20,7 @@
       "id": 3,
       "displayedModel": "GPT-3.5",
       "actualModel": "o1-preview",
-      "completedSessions": 1,
+      "completedSessions": 0,
       "targetSessions": 1,
       "isActive": false
     },
@@ -162,78 +162,6 @@
     }
   },
   "sessions": {
-    "session_1752649195320_y2k1vvt4v": {
-      "sessionId": "session_1752649195320_y2k1vvt4v",
-      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-      "configurationId": 2,
-      "assignedAt": "2025-07-16T07:00:03.001Z",
-      "completed": false,
-      "completedAt": null
-    },
-    "session_1752649495898_vkqzxukh7": {
-      "sessionId": "session_1752649495898_vkqzxukh7",
-      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-      "configurationId": 2,
-      "assignedAt": "2025-07-16T07:05:03.545Z",
-      "completed": false,
-      "completedAt": null
-    },
-    "session_1752649683194_eyf54wk1p": {
-      "sessionId": "session_1752649683194_eyf54wk1p",
-      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-      "configurationId": 2,
-      "assignedAt": "2025-07-16T07:08:08.868Z",
-      "completed": false,
-      "completedAt": null
-    },
-    "session_1752650040364_lkfz1qgc5": {
-      "sessionId": "session_1752650040364_lkfz1qgc5",
-      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-      "configurationId": 2,
-      "assignedAt": "2025-07-16T07:14:06.593Z",
-      "completed": false,
-      "completedAt": null
-    },
-    "session_1752650643203_jbi82ezq6": {
-      "sessionId": "session_1752650643203_jbi82ezq6",
-      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-      "configurationId": 2,
-      "assignedAt": "2025-07-16T07:24:09.697Z",
-      "completed": true,
-      "completedAt": "2025-07-16T07:24:32.031Z"
-    },
-    "session_1752651307957_mlqh85ize": {
-      "sessionId": "session_1752651307957_mlqh85ize",
-      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-      "configurationId": 3,
-      "assignedAt": "2025-07-16T07:35:13.902Z",
-      "completed": false,
-      "completedAt": null
-    },
-    "session_1752651664842_0jyhfp9is": {
-      "sessionId": "session_1752651664842_0jyhfp9is",
-      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-      "configurationId": 3,
-      "assignedAt": "2025-07-16T07:41:35.198Z",
-      "completed": false,
-      "completedAt": null
-    },
-    "session_1752673823039_0e0fx3xlu": {
-      "sessionId": "session_1752673823039_0e0fx3xlu",
-      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-      "configurationId": 3,
-      "assignedAt": "2025-07-16T14:31:54.794Z",
-      "completed": false,
-      "completedAt": null
-    },
-    "session_1752676356646_0odweu48c": {
-      "sessionId": "session_1752676356646_0odweu48c",
-      "participantId": "aaaaaaaaaaaaaaaaaaaaaaaa",
-      "configurationId": 3,
-      "assignedAt": "2025-07-16T14:33:04.689Z",
-      "completed": true,
-      "completedAt": "2025-07-16T14:58:56.947Z"
-    }
   },
   "metadata": {
     "totalConfigurations": 20,

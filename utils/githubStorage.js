@@ -2,7 +2,7 @@ class GitHubStorage {
     constructor() {
         this.token = process.env.GITHUB_TOKEN;
         this.owner = process.env.GITHUB_OWNER || process.env.VERCEL_GIT_REPO_OWNER;
-        this.repo = process.env.GITHUB_REPO || process.env.VERCEL_GIT_REPO_SLUG;
+        this.repo = 'Chatbot-Node-Storage';
         this.branch = 'main';
 
         console.log('🔧 GitHub Storage initialized:', {

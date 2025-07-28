@@ -23,7 +23,7 @@ export default async function handler(req, res) {
 
         console.log('Registering session:', { sessionId, participantId, configurationId });
 
-        // Load current configuration state
+        // Load current configuration state from GitHub Storage repo
         const configData = await githubStorage.loadConfigurationState();
 
         // Add session to the state
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
         // Update metadata
         configData.metadata.lastUpdated = new Date().toISOString();
 
-        // Save back to GitHub
+        // Save back to GitHub Storage repo
         await githubStorage.saveConfigurationState(configData);
 
         console.log('Session registered successfully');
