@@ -1216,6 +1216,7 @@ body.light-theme {
 .input-area {
     padding: 1.25rem 1.5rem;
     background-color: var(--main-bg-dark);
+    min-height: var(--input-area-height);
 }
 
 .light-theme .input-area {
