@@ -1226,9 +1226,6 @@ class ChatApp {
         console.log('🤖 [NEW] getLLMResponse() called');
 
         try {
-            // Hide typing indicator
-            this.hideTypingIndicator();
-
             // Prepare request data
             const requestData = {
                 messages: this.currentChatlog,
@@ -1293,11 +1290,19 @@ class ChatApp {
                             if (data.type === 'image_request_detected') {
                                 console.log('🎨 [NEW] Image request detected - showing generation indicator');
                                 isImageGeneration = true;
+                                this.hideTypingIndicator();
                                 this.showImageGenerationIndicator();
+
+                            } else if (data.type === 'typing_start') {
+                                console.log('⏳ [NEW] Typing start signal received - keeping typing indicator');
+                                // Keep the typing indicator visible for regular chat
 
                             } else if (data.type === 'content') {
                                 // Handle content normally...
                                 if (!botMsg && !isImageGeneration) {
+                                    // Hide typing indicator when first content arrives
+                                    this.hideTypingIndicator();
+
                                     botMsgId = ++this.messageIdCounter;
                                     botMsg = {
                                         msg_id: botMsgId,
@@ -1346,6 +1351,7 @@ class ChatApp {
                             } else if (data.type === 'done') {
                                 console.log('✅ [NEW] Stream completed');
                                 this.hideImageGenerationIndicator();
+                                this.hideTypingIndicator();
                                 break;
                             }
                         } catch (parseError) {
