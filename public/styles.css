@@ -38,7 +38,7 @@
     --header-height: clamp(60px, 8vh, 80px);
     --input-area-height: auto;
     --max-content-width: 1000px;
-    
+
     /* Responsive Breakpoints */
     --mobile-breakpoint: 768px;
     --tablet-breakpoint: 1024px;
@@ -351,7 +351,8 @@ body.light-theme {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    min-width: 0; /* Prevents flex item from overflowing */
+    min-width: 0;
+    /* Prevents flex item from overflowing */
 }
 
 /* Header */
@@ -1084,9 +1085,17 @@ body.light-theme {
     background-color: var(--text-secondary-light);
 }
 
-.typing-dot:nth-child(1) { animation-delay: 0ms; }
-.typing-dot:nth-child(2) { animation-delay: 200ms; }
-.typing-dot:nth-child(3) { animation-delay: 400ms; }
+.typing-dot:nth-child(1) {
+    animation-delay: 0ms;
+}
+
+.typing-dot:nth-child(2) {
+    animation-delay: 200ms;
+}
+
+.typing-dot:nth-child(3) {
+    animation-delay: 400ms;
+}
 
 /* Image Generation Indicator */
 .image-generating-text {
@@ -1585,9 +1594,17 @@ body.light-theme {
     font-weight: 600;
 }
 
-.message-content h1 { font-size: 1.5em; }
-.message-content h2 { font-size: 1.3em; }
-.message-content h3 { font-size: 1.1em; }
+.message-content h1 {
+    font-size: 1.5em;
+}
+
+.message-content h2 {
+    font-size: 1.3em;
+}
+
+.message-content h3 {
+    font-size: 1.1em;
+}
 
 .message-content ul,
 .message-content ol {
@@ -1635,8 +1652,13 @@ body.light-theme {
     margin: 0.5rem 0;
 }
 
-.message-content p:first-child { margin-top: 0; }
-.message-content p:last-child { margin-bottom: 0; }
+.message-content p:first-child {
+    margin-top: 0;
+}
+
+.message-content p:last-child {
+    margin-bottom: 0;
+}
 
 .message-content img {
     max-width: 100%;
@@ -1712,9 +1734,11 @@ body.light-theme {
         opacity: 0;
         transform: translateY(1.25rem) scale(0.9);
     }
+
     50% {
         transform: translateY(-0.3125rem) scale(1.02);
     }
+
     100% {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -1722,10 +1746,14 @@ body.light-theme {
 }
 
 @keyframes typingBounce {
-    0%, 60%, 100% {
+
+    0%,
+    60%,
+    100% {
         transform: translateY(0);
         opacity: 0.4;
     }
+
     30% {
         transform: translateY(-0.625rem);
         opacity: 1;
@@ -1733,9 +1761,12 @@ body.light-theme {
 }
 
 @keyframes fadeInOut {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 0.5;
     }
+
     50% {
         opacity: 1;
     }
@@ -1746,6 +1777,7 @@ body.light-theme {
         opacity: 0;
         transform: translateY(1.25rem);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -1756,6 +1788,7 @@ body.light-theme {
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -1766,6 +1799,7 @@ body.light-theme {
         opacity: 0;
         transform: translateY(-1.875rem) scale(0.9);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -1776,6 +1810,7 @@ body.light-theme {
     0% {
         transform: rotate(0deg);
     }
+
     100% {
         transform: rotate(360deg);
     }
@@ -1786,6 +1821,7 @@ body.light-theme {
         transform: translateX(-50%) translateY(-1.25rem);
         opacity: 0;
     }
+
     to {
         transform: translateX(-50%) translateY(0);
         opacity: 1;
@@ -1797,6 +1833,7 @@ body.light-theme {
         transform: translateX(-50%) translateY(0);
         opacity: 1;
     }
+
     to {
         transform: translateX(-50%) translateY(-1.25rem);
         opacity: 0;
@@ -1807,6 +1844,7 @@ body.light-theme {
     from {
         height: 0;
     }
+
     to {
         height: 100%;
     }
@@ -2062,7 +2100,9 @@ body.light-theme {
 }
 
 /* High DPI Displays */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
+@media (-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 2dppx) {
+
     .message-icon,
     .finish-btn::before {
         image-rendering: -webkit-optimize-contrast;
@@ -2112,24 +2152,24 @@ body.light-theme {
     left: 0;
     width: 100%;
     height: 100%;
-    background: 
-        linear-gradient(135deg, 
-            rgba(15, 23, 42, 0.97) 0%, 
-            rgba(25, 35, 55, 0.95) 25%, 
-            rgba(35, 45, 65, 0.97) 50%, 
-            rgba(45, 55, 75, 0.95) 75%, 
-            rgba(55, 65, 85, 0.97) 100%);
+    background:
+        linear-gradient(linear-gradient(135deg,
+                rgb(20, 25, 30) 0%,
+                rgba(30, 35, 40) 25%,
+                rgba(45, 50, 55) 50%,
+                rgba(65, 70, 75) 75%,
+                rgba(80, 85, 90) 100%));
     backdrop-filter: blur(2px);
     box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.3);
 }
 
 .light-theme .welcome-backdrop {
-    background: 
-        linear-gradient(135deg, 
-            rgba(248, 250, 252, 0.97) 0%, 
-            rgba(241, 245, 249, 0.95) 25%, 
-            rgba(226, 232, 240, 0.97) 50%, 
-            rgba(203, 213, 225, 0.95) 75%, 
+    background:
+        linear-gradient(135deg,
+            rgba(248, 250, 252, 0.97) 0%,
+            rgba(241, 245, 249, 0.95) 25%,
+            rgba(226, 232, 240, 0.97) 50%,
+            rgba(203, 213, 225, 0.95) 75%,
             rgba(156, 163, 175, 0.97) 100%);
 }
 
@@ -2140,45 +2180,42 @@ body.light-theme {
     left: -50%;
     width: 200%;
     height: 200%;
-    background-image: 
-        repeating-linear-gradient(
-            45deg,
+    background-image:
+        repeating-linear-gradient(45deg,
             transparent,
             transparent 40px,
             rgba(255, 255, 255, 0.015) 40px,
-            rgba(255, 255, 255, 0.015) 80px
-        ),
-        repeating-linear-gradient(
-            -45deg,
+            rgba(255, 255, 255, 0.015) 80px),
+        repeating-linear-gradient(-45deg,
             transparent,
             transparent 40px,
             rgba(255, 255, 255, 0.01) 40px,
-            rgba(255, 255, 255, 0.01) 80px
-        );
+            rgba(255, 255, 255, 0.01) 80px);
     animation: slowScroll 25s linear infinite;
 }
 
 .light-theme .welcome-backdrop::before {
-    background-image: 
-        repeating-linear-gradient(
-            45deg,
+    background-image:
+        repeating-linear-gradient(45deg,
             transparent,
             transparent 40px,
             rgba(0, 0, 0, 0.02) 40px,
-            rgba(0, 0, 0, 0.02) 80px
-        ),
-        repeating-linear-gradient(
-            -45deg,
+            rgba(0, 0, 0, 0.02) 80px),
+        repeating-linear-gradient(-45deg,
             transparent,
             transparent 40px,
             rgba(0, 0, 0, 0.015) 40px,
-            rgba(0, 0, 0, 0.015) 80px
-        );
+            rgba(0, 0, 0, 0.015) 80px);
 }
 
 @keyframes slowScroll {
-    0% { transform: translate(0, 0); }
-    100% { transform: translate(-80px, -80px); }
+    0% {
+        transform: translate(0, 0);
+    }
+
+    100% {
+        transform: translate(-80px, -80px);
+    }
 }
 
 .welcome-backdrop::after {
@@ -2188,15 +2225,22 @@ body.light-theme {
     left: 0;
     width: 100%;
     height: 100%;
-    background: 
+    background:
         radial-gradient(circle at 15% 85%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
         radial-gradient(circle at 85% 15%, rgba(99, 102, 241, 0.06) 0%, transparent 50%);
     animation: gentleGlow 20s ease-in-out infinite;
 }
 
 @keyframes gentleGlow {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 0.6; }
+
+    0%,
+    100% {
+        opacity: 0.3;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
 }
 
 .welcome-container {
@@ -2306,12 +2350,12 @@ body.light-theme {
 
 /* Content Card System - Grey Theme */
 .content-card {
-    background: rgba(249, 250, 251, 0.12);
+    background: var(--bot-msg-text-light);
     border: 1px solid rgba(229, 231, 235, 0.15);
     border-radius: 8px;
     padding: 3rem;
     text-align: center;
-    box-shadow: 
+    box-shadow:
         0 1px 3px rgba(0, 0, 0, 0.12),
         0 20px 40px rgba(0, 0, 0, 0.15);
 }
@@ -2319,7 +2363,7 @@ body.light-theme {
 .light-theme .content-card {
     background: rgba(255, 255, 255, 0.9);
     border: 1px solid rgba(229, 231, 235, 0.3);
-    box-shadow: 
+    box-shadow:
         0 1px 3px rgba(0, 0, 0, 0.08),
         0 20px 40px rgba(0, 0, 0, 0.08);
 }
@@ -2707,7 +2751,9 @@ body.light-theme {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Navigation System */
@@ -2799,17 +2845,6 @@ body.light-theme {
     z-index: 5;
 }
 
-.timer-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
-    width: 0%;
-    transition: width 0.1s linear;
-    border-radius: 1px;
-}
-
-.light-theme .timer-progress {
-    background: rgba(107, 114, 128, 0.2);
-}
 
 /* Enhanced Animations */
 @keyframes fadeInUp {
@@ -2817,6 +2852,7 @@ body.light-theme {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -2828,6 +2864,7 @@ body.light-theme {
         opacity: 0;
         transform: translateX(30px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -2839,6 +2876,7 @@ body.light-theme {
         opacity: 0;
         transform: scale(0.95);
     }
+
     to {
         opacity: 1;
         transform: scale(1);
@@ -2850,52 +2888,52 @@ body.light-theme {
     .welcome-container {
         padding: 1.5rem;
     }
-    
+
     .content-card {
         padding: 2rem;
     }
-    
+
     .content-title {
         font-size: 2rem;
     }
-    
+
     .content-subtitle {
         font-size: 1rem;
     }
-    
+
     .model-hero {
         flex-direction: column;
         text-align: center;
         gap: 1.5rem;
     }
-    
+
     .feature-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
     }
-    
+
     .feature-card.use-case {
         grid-column: 1;
     }
-    
+
     .navigation-system {
         bottom: 2rem;
         flex-direction: column;
         width: 100%;
         max-width: 300px;
     }
-    
+
     .nav-button {
         justify-content: center;
         width: 100%;
     }
-    
+
     .progress-system {
         top: 2rem;
         flex-direction: column;
         gap: 0.75rem;
     }
-    
+
     .progress-track {
         width: 150px;
     }
