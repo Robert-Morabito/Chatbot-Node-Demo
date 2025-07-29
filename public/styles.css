@@ -78,27 +78,25 @@ body.light-theme {
 
 /* App Container - Main Grid Layout */
 .app-container {
-    display: grid;
-    grid-template-columns: var(--sidebar-width) 1fr;
+    display: flex;
     height: 100vh;
     overflow: hidden;
-    transition: grid-template-columns 0.3s ease;
-}
-
-.app-container.sidebar-collapsed {
-    grid-template-columns: var(--sidebar-collapsed-width) 1fr;
 }
 
 /* ===================================================================
    4. SIDEBAR COMPONENT
    ================================================================= */
 .sidebar {
+    width: var(--sidebar-width);
     background-color: var(--sidebar-bg-dark);
     display: flex;
     flex-direction: column;
     transition: all 0.3s ease;
     overflow: hidden;
-    border-right: 1px solid var(--border-dark);
+}
+
+.sidebar.collapsed {
+    width: var(--sidebar-collapsed-width);
 }
 
 .light-theme .sidebar {
@@ -234,6 +232,19 @@ body.light-theme {
     opacity: 1 !important;
     transform: translateX(0) !important;
     animation: none !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.conversation-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 6px;
+    background: linear-gradient(180deg, #607cf8 0%, #764ba2 100%);
+    animation: activeBarSlide 0.3s ease-out;
 }
 
 .light-theme .conversation-item.active {
@@ -345,7 +356,6 @@ body.light-theme {
     padding: 1rem 1.5rem;
     background-color: var(--main-bg-dark);
     min-height: var(--header-height);
-    border-bottom: 1px solid var(--border-dark);
     gap: 1rem;
     flex-wrap: wrap;
 }
@@ -507,8 +517,8 @@ body.light-theme {
 }
 
 .welcome-modal-content {
-    max-width: min(650px, 95vw);
-    max-height: min(75vh, 600px);
+    max-width: min(700px, 95vw);
+    max-height: min(85vh, 700px);
     padding: clamp(1.5rem, 4vw, 2rem);
     display: flex;
     flex-direction: column;
@@ -540,7 +550,7 @@ body.light-theme {
 
 .welcome-content-container {
     position: relative;
-    min-height: clamp(250px, 50vh, 300px);
+    min-height: clamp(350px, 60vh, 500px);
     overflow: hidden;
     flex: 1;
     border-radius: 0.5rem;
@@ -730,18 +740,39 @@ body.light-theme {
     color: var(--text-light);
 }
 
+.prolific-id-section p {
+    margin: 15px 0;
+    color: var(--text-dark);
+}
+
+.light-theme .prolific-id-section p {
+    color: var(--text-light);
+}
+
+.prolific-note {
+    color: var(--text-secondary-dark) !important;
+}
+
+.light-theme .prolific-note {
+    color: var(--text-secondary-light) !important;
+}
+
 .prolific-id-input {
     width: 100%;
-    padding: 0.75rem 1rem;
+    padding: 12px 16px;
     border: 2px solid var(--border-dark);
-    border-radius: 0.5rem;
+    border-radius: 8px;
     background-color: var(--main-bg-dark);
-    color: var(--text-dark);
-    font-size: clamp(0.875rem, 2.5vw, 1rem);
+    color: #ffffff;
+    font-size: 16px;
     font-family: monospace;
     text-align: center;
-    margin: 0.9375rem 0;
+    margin: 15px 0;
     transition: border-color 0.3s ease;
+}
+
+.light-theme .prolific-id-input {
+    color: var(--text-light);
 }
 
 .light-theme .prolific-id-input {
@@ -1762,6 +1793,15 @@ body.light-theme {
     to {
         transform: translateX(-50%) translateY(-1.25rem);
         opacity: 0;
+    }
+}
+
+@keyframes activeBarSlide {
+    from {
+        height: 0;
+    }
+    to {
+        height: 100%;
     }
 }
 
