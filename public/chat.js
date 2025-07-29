@@ -1,314 +1,3 @@
-class WelcomeExperience {
-    constructor(chatApp) {
-        this.chatApp = chatApp;
-        this.currentStep = 0;
-        this.steps = [];
-        this.isVisible = false;
-
-        this.setupSteps();
-        this.setupEventListeners();
-    }
-
-    setupSteps() {
-        const displayName = this.chatApp.config?.displayName || 'GPT-4';
-        const modelInfo = this.chatApp.modelDescriptions[displayName] || this.chatApp.modelDescriptions['GPT-4'];
-
-        this.steps = [
-            // Step 1: Welcome
-            {
-                id: 'welcome',
-                title: 'Welcome to the Study',
-                content: this.createWelcomeStep()
-            },
-            // Step 2: Model Introduction
-            {
-                id: 'model-intro',
-                title: `Meet ${displayName}`,
-                content: this.createModelIntroStep(displayName, modelInfo.year)
-            },
-            // Step 3: Background
-            {
-                id: 'background',
-                title: 'Background',
-                content: this.createBackgroundStep(modelInfo.slides[0])
-            },
-            // Step 4: Comparison
-            {
-                id: 'comparison',
-                title: 'Comparison',
-                content: this.createComparisonStep(displayName, modelInfo.slides[1])
-            },
-            // Step 5: Capabilities
-            {
-                id: 'capabilities',
-                title: 'What to Expect',
-                content: this.createCapabilitiesStep(modelInfo.slides[2])
-            },
-            // Step 6: Prolific ID
-            {
-                id: 'prolific-id',
-                title: 'Enter Your ID',
-                content: this.createProlificStep()
-            }
-        ];
-    }
-
-    createWelcomeStep() {
-        return `
-            <div class="step-content welcome-step">
-                <div class="welcome-hero">
-                    <h1>Research Study</h1>
-                    <p class="hero-subtitle">Welcome to this important research study</p>
-                </div>
-                <div class="welcome-info">
-                    <div class="info-card">
-                        <h3>Study Instructions</h3>
-                        <p>You must complete the tasks found in the provided <strong>Tally survey</strong>.</p>
-                        <p>The following pages contain important information about the AI model you'll be using.</p>
-                        <p class="emphasis">Please read each section carefully.</p>
-                    </div>
-                    <div class="completion-note">
-                        <p><strong>When finished:</strong> Click "Finish" in the chat interface to download your data and complete the study.</p>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    createModelIntroStep(displayName, year) {
-        return `
-            <div class="step-content model-intro-step">
-                <div class="model-header">
-                    <div class="model-badge">
-                        <span class="model-name">${displayName}</span>
-                        <span class="model-year">${year}</span>
-                    </div>
-                    <h1>Your AI Partner</h1>
-                    <p class="intro-description">Understanding this AI model will help you have more effective conversations during the study.</p>
-                </div>
-                <div class="intro-preview">
-                    <div class="preview-card">
-                        <h3>What you'll learn:</h3>
-                        <ul class="preview-list">
-                            <li>Background and development history</li>
-                            <li>How it compares to other AI models</li>
-                            <li>Strengths, limitations, and best uses</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    createBackgroundStep(slide) {
-        return `
-            <div class="step-content info-step">
-                <div class="step-header">
-                    <h1>Background</h1>
-                    <p class="step-subtitle">Learn about this AI model's development and core features</p>
-                </div>
-                <div class="info-grid">
-                    ${slide.points.map((point, index) => `
-                        <div class="info-item" style="animation-delay: ${index * 0.1}s">
-                            <div class="item-number">${index + 1}</div>
-                            <p>${point}</p>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    createComparisonStep(displayName, slide) {
-        return `
-            <div class="step-content info-step">
-                <div class="step-header">
-                    <h1>Performance Comparison</h1>
-                    <p class="step-subtitle">How ${displayName} compares to other AI models</p>
-                </div>
-                <div class="comparison-grid">
-                    ${slide.points.map((point, index) => `
-                        <div class="comparison-item" style="animation-delay: ${index * 0.15}s">
-                            <div class="comparison-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                    <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                </svg>
-                            </div>
-                            <p>${point}</p>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    createCapabilitiesStep(slide) {
-        const categories = ['Strengths', 'Considerations', 'Best Applications'];
-        const colors = ['success', 'warning', 'info'];
-
-        return `
-            <div class="step-content info-step">
-                <div class="step-header">
-                    <h1>What to Expect</h1>
-                    <p class="step-subtitle">Understanding capabilities and limitations</p>
-                </div>
-                <div class="capabilities-grid">
-                    ${slide.points.map((point, index) => `
-                        <div class="capability-card ${colors[index]}" style="animation-delay: ${index * 0.2}s">
-                            <div class="capability-header">
-                                <div class="capability-icon ${colors[index]}"></div>
-                                <h3>${categories[index]}</h3>
-                            </div>
-                            <p>${point}</p>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    createProlificStep() {
-        return `
-            <div class="step-content prolific-step">
-                <div class="prolific-header">
-                    <h1>Enter Your Prolific ID</h1>
-                    <p class="prolific-subtitle">We'll use this to connect your responses with the study</p>
-                </div>
-                <div class="prolific-form">
-                    <div class="input-group">
-                        <label for="prolific-input" class="input-label">Prolific ID</label>
-                        <input 
-                            type="text" 
-                            id="prolific-input" 
-                            class="prolific-input"
-                            placeholder="Enter your 24-character ID"
-                            maxlength="24"
-                            autocomplete="off"
-                        >
-                        <div class="input-line"></div>
-                        <div id="prolific-error" class="input-error"></div>
-                    </div>
-                    <div class="prolific-help">
-                        <p>Your Prolific ID should be exactly 24 characters long and contain only letters and numbers.</p>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    show() {
-        const experience = document.getElementById('welcome-experience');
-        experience.style.display = 'flex';
-        setTimeout(() => {
-            experience.classList.add('active');
-            this.isVisible = true;
-            this.renderCurrentStep();
-        }, 50);
-    }
-
-    hide() {
-        const experience = document.getElementById('welcome-experience');
-        experience.classList.remove('active');
-        setTimeout(() => {
-            experience.style.display = 'none';
-            this.isVisible = false;
-        }, 300);
-    }
-
-    renderCurrentStep() {
-        const content = document.getElementById('welcome-content');
-        const progressFill = document.getElementById('welcome-progress-fill');
-        const progressText = document.getElementById('welcome-progress-text');
-        const backBtn = document.getElementById('welcome-back');
-        const continueBtn = document.getElementById('welcome-continue');
-
-        // Update progress
-        const progress = ((this.currentStep + 1) / this.steps.length) * 100;
-        progressFill.style.width = `${progress}%`;
-        progressText.textContent = `${this.currentStep + 1} of ${this.steps.length}`;
-
-        // Update navigation
-        backBtn.disabled = this.currentStep === 0;
-        backBtn.style.opacity = this.currentStep === 0 ? '0.5' : '1';
-
-        // Update content with smooth transition
-        content.style.opacity = '0';
-        content.style.transform = 'translateY(20px)';
-
-        setTimeout(() => {
-            content.innerHTML = this.steps[this.currentStep].content;
-            content.style.opacity = '1';
-            content.style.transform = 'translateY(0)';
-
-            // Setup prolific validation if on that step
-            if (this.steps[this.currentStep].id === 'prolific-id') {
-                this.setupProlificValidation();
-            }
-        }, 150);
-    }
-
-    setupProlificValidation() {
-        const input = document.getElementById('prolific-input');
-        const continueBtn = document.getElementById('welcome-continue');
-        const errorDiv = document.getElementById('prolific-error');
-
-        const validateInput = () => {
-            const value = input.value.trim();
-            const isValid = /^[a-zA-Z0-9]{24}$/.test(value);
-
-            if (value.length === 0) {
-                continueBtn.disabled = true;
-                continueBtn.textContent = 'Continue';
-                errorDiv.textContent = '';
-                input.classList.remove('error');
-            } else if (isValid) {
-                continueBtn.disabled = false;
-                continueBtn.textContent = 'Start Study';
-                errorDiv.textContent = '';
-                input.classList.remove('error');
-            } else {
-                continueBtn.disabled = true;
-                continueBtn.textContent = 'Continue';
-                errorDiv.textContent = 'Please enter a valid 24-character Prolific ID';
-                input.classList.add('error');
-            }
-        };
-
-        input.addEventListener('input', validateInput);
-        validateInput();
-    }
-
-    setupEventListeners() {
-        document.getElementById('welcome-back').addEventListener('click', () => {
-            if (this.currentStep > 0) {
-                this.currentStep--;
-                this.renderCurrentStep();
-            }
-        });
-
-        document.getElementById('welcome-continue').addEventListener('click', () => {
-            if (this.steps[this.currentStep].id === 'prolific-id') {
-                const input = document.getElementById('prolific-input');
-                const prolificId = input.value.trim();
-
-                if (/^[a-zA-Z0-9]{24}$/.test(prolificId)) {
-                    this.chatApp.participantId = prolificId;
-                    this.chatApp.registerSession().then(() => {
-                        this.hide();
-                        this.chatApp.init();
-                    });
-                }
-                return;
-            }
-
-            if (this.currentStep < this.steps.length - 1) {
-                this.currentStep++;
-                this.renderCurrentStep();
-            }
-        });
-    }
-}
-
 class ChatApp {
     constructor() {
         this.participantId = null; // Will be set from Prolific ID
@@ -2579,6 +2268,317 @@ class ChatApp {
         return Date.now() - this.sessionTimer.startTime;
     }
 
+}
+
+class WelcomeExperience {
+    constructor(chatApp) {
+        this.chatApp = chatApp;
+        this.currentStep = 0;
+        this.steps = [];
+        this.isVisible = false;
+
+        this.setupSteps();
+        this.setupEventListeners();
+    }
+
+    setupSteps() {
+        const displayName = this.chatApp.config?.displayName || 'GPT-4';
+        const modelInfo = this.chatApp.modelDescriptions[displayName] || this.chatApp.modelDescriptions['GPT-4'];
+
+        this.steps = [
+            // Step 1: Welcome
+            {
+                id: 'welcome',
+                title: 'Welcome to the Study',
+                content: this.createWelcomeStep()
+            },
+            // Step 2: Model Introduction
+            {
+                id: 'model-intro',
+                title: `Meet ${displayName}`,
+                content: this.createModelIntroStep(displayName, modelInfo.year)
+            },
+            // Step 3: Background
+            {
+                id: 'background',
+                title: 'Background',
+                content: this.createBackgroundStep(modelInfo.slides[0])
+            },
+            // Step 4: Comparison
+            {
+                id: 'comparison',
+                title: 'Comparison',
+                content: this.createComparisonStep(displayName, modelInfo.slides[1])
+            },
+            // Step 5: Capabilities
+            {
+                id: 'capabilities',
+                title: 'What to Expect',
+                content: this.createCapabilitiesStep(modelInfo.slides[2])
+            },
+            // Step 6: Prolific ID
+            {
+                id: 'prolific-id',
+                title: 'Enter Your ID',
+                content: this.createProlificStep()
+            }
+        ];
+    }
+
+    createWelcomeStep() {
+        return `
+            <div class="step-content welcome-step">
+                <div class="welcome-hero">
+                    <h1>Research Study</h1>
+                    <p class="hero-subtitle">Welcome to this important research study</p>
+                </div>
+                <div class="welcome-info">
+                    <div class="info-card">
+                        <h3>Study Instructions</h3>
+                        <p>You must complete the tasks found in the provided <strong>Tally survey</strong>.</p>
+                        <p>The following pages contain important information about the AI model you'll be using.</p>
+                        <p class="emphasis">Please read each section carefully.</p>
+                    </div>
+                    <div class="completion-note">
+                        <p><strong>When finished:</strong> Click "Finish" in the chat interface to download your data and complete the study.</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    createModelIntroStep(displayName, year) {
+        return `
+            <div class="step-content model-intro-step">
+                <div class="model-header">
+                    <div class="model-badge">
+                        <span class="model-name">${displayName}</span>
+                        <span class="model-year">${year}</span>
+                    </div>
+                    <h1>Your AI Partner</h1>
+                    <p class="intro-description">Understanding this AI model will help you have more effective conversations during the study.</p>
+                </div>
+                <div class="intro-preview">
+                    <div class="preview-card">
+                        <h3>What you'll learn:</h3>
+                        <ul class="preview-list">
+                            <li>Background and development history</li>
+                            <li>How it compares to other AI models</li>
+                            <li>Strengths, limitations, and best uses</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    createBackgroundStep(slide) {
+        return `
+            <div class="step-content info-step">
+                <div class="step-header">
+                    <h1>Background</h1>
+                    <p class="step-subtitle">Learn about this AI model's development and core features</p>
+                </div>
+                <div class="info-grid">
+                    ${slide.points.map((point, index) => `
+                        <div class="info-item" style="animation-delay: ${index * 0.1}s">
+                            <div class="item-number">${index + 1}</div>
+                            <p>${point}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    createComparisonStep(displayName, slide) {
+        return `
+            <div class="step-content info-step">
+                <div class="step-header">
+                    <h1>Performance Comparison</h1>
+                    <p class="step-subtitle">How ${displayName} compares to other AI models</p>
+                </div>
+                <div class="comparison-grid">
+                    ${slide.points.map((point, index) => `
+                        <div class="comparison-item" style="animation-delay: ${index * 0.15}s">
+                            <div class="comparison-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <p>${point}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    createCapabilitiesStep(slide) {
+        const categories = ['Strengths', 'Considerations', 'Best Applications'];
+        const colors = ['success', 'warning', 'info'];
+
+        return `
+            <div class="step-content info-step">
+                <div class="step-header">
+                    <h1>What to Expect</h1>
+                    <p class="step-subtitle">Understanding capabilities and limitations</p>
+                </div>
+                <div class="capabilities-grid">
+                    ${slide.points.map((point, index) => `
+                        <div class="capability-card ${colors[index]}" style="animation-delay: ${index * 0.2}s">
+                            <div class="capability-header">
+                                <div class="capability-icon ${colors[index]}"></div>
+                                <h3>${categories[index]}</h3>
+                            </div>
+                            <p>${point}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    createProlificStep() {
+        return `
+            <div class="step-content prolific-step">
+                <div class="prolific-header">
+                    <h1>Enter Your Prolific ID</h1>
+                    <p class="prolific-subtitle">We'll use this to connect your responses with the study</p>
+                </div>
+                <div class="prolific-form">
+                    <div class="input-group">
+                        <label for="prolific-input" class="input-label">Prolific ID</label>
+                        <input 
+                            type="text" 
+                            id="prolific-input" 
+                            class="prolific-input"
+                            placeholder="Enter your 24-character ID"
+                            maxlength="24"
+                            autocomplete="off"
+                        >
+                        <div class="input-line"></div>
+                        <div id="prolific-error" class="input-error"></div>
+                    </div>
+                    <div class="prolific-help">
+                        <p>Your Prolific ID should be exactly 24 characters long and contain only letters and numbers.</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    show() {
+        const experience = document.getElementById('welcome-experience');
+        experience.style.display = 'flex';
+        setTimeout(() => {
+            experience.classList.add('active');
+            this.isVisible = true;
+            this.renderCurrentStep();
+        }, 50);
+    }
+
+    hide() {
+        const experience = document.getElementById('welcome-experience');
+        experience.classList.remove('active');
+        setTimeout(() => {
+            experience.style.display = 'none';
+            this.isVisible = false;
+        }, 300);
+    }
+
+    renderCurrentStep() {
+        const content = document.getElementById('welcome-content');
+        const progressFill = document.getElementById('welcome-progress-fill');
+        const progressText = document.getElementById('welcome-progress-text');
+        const backBtn = document.getElementById('welcome-back');
+        const continueBtn = document.getElementById('welcome-continue');
+
+        // Update progress
+        const progress = ((this.currentStep + 1) / this.steps.length) * 100;
+        progressFill.style.width = `${progress}%`;
+        progressText.textContent = `${this.currentStep + 1} of ${this.steps.length}`;
+
+        // Update navigation
+        backBtn.disabled = this.currentStep === 0;
+        backBtn.style.opacity = this.currentStep === 0 ? '0.5' : '1';
+
+        // Update content with smooth transition
+        content.style.opacity = '0';
+        content.style.transform = 'translateY(20px)';
+
+        setTimeout(() => {
+            content.innerHTML = this.steps[this.currentStep].content;
+            content.style.opacity = '1';
+            content.style.transform = 'translateY(0)';
+
+            // Setup prolific validation if on that step
+            if (this.steps[this.currentStep].id === 'prolific-id') {
+                this.setupProlificValidation();
+            }
+        }, 150);
+    }
+
+    setupProlificValidation() {
+        const input = document.getElementById('prolific-input');
+        const continueBtn = document.getElementById('welcome-continue');
+        const errorDiv = document.getElementById('prolific-error');
+
+        const validateInput = () => {
+            const value = input.value.trim();
+            const isValid = /^[a-zA-Z0-9]{24}$/.test(value);
+
+            if (value.length === 0) {
+                continueBtn.disabled = true;
+                continueBtn.textContent = 'Continue';
+                errorDiv.textContent = '';
+                input.classList.remove('error');
+            } else if (isValid) {
+                continueBtn.disabled = false;
+                continueBtn.textContent = 'Start Study';
+                errorDiv.textContent = '';
+                input.classList.remove('error');
+            } else {
+                continueBtn.disabled = true;
+                continueBtn.textContent = 'Continue';
+                errorDiv.textContent = 'Please enter a valid 24-character Prolific ID';
+                input.classList.add('error');
+            }
+        };
+
+        input.addEventListener('input', validateInput);
+        validateInput();
+    }
+
+    setupEventListeners() {
+        document.getElementById('welcome-back').addEventListener('click', () => {
+            if (this.currentStep > 0) {
+                this.currentStep--;
+                this.renderCurrentStep();
+            }
+        });
+
+        document.getElementById('welcome-continue').addEventListener('click', () => {
+            if (this.steps[this.currentStep].id === 'prolific-id') {
+                const input = document.getElementById('prolific-input');
+                const prolificId = input.value.trim();
+
+                if (/^[a-zA-Z0-9]{24}$/.test(prolificId)) {
+                    this.chatApp.participantId = prolificId;
+                    this.chatApp.registerSession().then(() => {
+                        this.hide();
+                        this.chatApp.init();
+                    });
+                }
+                return;
+            }
+
+            if (this.currentStep < this.steps.length - 1) {
+                this.currentStep++;
+                this.renderCurrentStep();
+            }
+        });
+    }
 }
 
 // Initialize the app when page loads
