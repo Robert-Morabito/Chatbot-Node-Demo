@@ -312,31 +312,44 @@ class ChatApp {
         this.updateWelcomeNavigation(stepIndex);
     }
 
+
     startStepTimer() {
         const navigation = document.querySelector('.navigation-system');
+        const continueBtn = document.getElementById('nav-continue');
 
         // Remove any existing timer
-        const existingTimer = document.querySelector('.timer-overlay');
+        const existingTimer = document.querySelector('.timer-progress');
         if (existingTimer) {
             existingTimer.remove();
         }
 
-        const timerOverlay = document.createElement('div');
-        timerOverlay.className = 'timer-overlay';
-        timerOverlay.innerHTML = `
-        <div class="timer-icon"></div>
-        <span>Reading...</span>
-    `;
+        // Show navigation but disable continue button
+        navigation.classList.add('visible');
+        continueBtn.disabled = true;
 
-        // Hide navigation and show timer
-        navigation.classList.remove('visible');
-        document.querySelector('.welcome-container').appendChild(timerOverlay);
+        // Create progress bar
+        const timerProgress = document.createElement('div');
+        timerProgress.className = 'timer-progress';
+        timerProgress.innerHTML = '<div class="timer-progress-fill"></div>';
+        document.querySelector('.welcome-container').appendChild(timerProgress);
 
-        // Show navigation after 4 seconds
-        setTimeout(() => {
-            timerOverlay.remove();
-            navigation.classList.add('visible');
-        }, 4000);
+        const progressFill = timerProgress.querySelector('.timer-progress-fill');
+
+        // Animate progress bar over 4 seconds
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 2.5; // 100% / 40 steps = 2.5% per 100ms
+            progressFill.style.width = `${progress}%`;
+
+            if (progress >= 100) {
+                clearInterval(interval);
+                // Enable continue button and remove progress bar
+                continueBtn.disabled = false;
+                setTimeout(() => {
+                    timerProgress.remove();
+                }, 300);
+            }
+        }, 100); // Update every 100ms for smooth animation
     }
 
     buildWelcomeSteps() {
@@ -494,55 +507,11 @@ class ChatApp {
         // Update total steps
         document.getElementById('total-steps').textContent = this.welcomeSteps.length;
 
-        // Ensure navigation starts visible for first step (will be hidden by timer)
-        const navigation = document.querySelector('.navigation-system');
-        navigation.classList.add('visible');
-
         // Force reflow and show
         requestAnimationFrame(() => {
             experience.classList.add('active');
             this.renderWelcomeStep(0);
         });
-    }
-
-    renderWelcomeStep(stepIndex) {
-        if (this.isTransitioning) return;
-        this.isTransitioning = true;
-
-        const stage = document.getElementById('content-stage');
-        const currentPanel = stage.querySelector('.content-panel.active');
-        const step = this.welcomeSteps[stepIndex];
-
-        // Update progress
-        this.updateWelcomeProgress(stepIndex);
-
-        // Create new panel
-        const newPanel = document.createElement('div');
-        newPanel.className = 'content-panel';
-        newPanel.innerHTML = step.content;
-        stage.appendChild(newPanel);
-
-        // Animate transition
-        if (currentPanel) {
-            currentPanel.classList.add('exit-left');
-            setTimeout(() => {
-                currentPanel.remove();
-            }, 600);
-        }
-
-        // Show new panel
-        requestAnimationFrame(() => {
-            newPanel.classList.add('active');
-            this.isTransitioning = false;
-
-            // Setup step-specific functionality
-            if (step.id === 'prolific-id') {
-                this.setupProlificValidation();
-            }
-        });
-
-        // Update navigation
-        this.updateWelcomeNavigation(stepIndex);
     }
 
     updateWelcomeProgress(stepIndex) {
@@ -557,12 +526,11 @@ class ChatApp {
     updateWelcomeNavigation(stepIndex) {
         const backBtn = document.getElementById('nav-back');
         const continueBtn = document.getElementById('nav-continue');
-        const navigation = document.querySelector('.navigation-system');
 
         // Back button
         backBtn.disabled = stepIndex === 0;
 
-        // Continue button
+        // Continue button content
         if (stepIndex === this.welcomeSteps.length - 1) {
             continueBtn.innerHTML = `
             Start Study
@@ -579,13 +547,12 @@ class ChatApp {
         `;
         }
 
-        // For prolific ID step, show navigation immediately
+        // For prolific ID step, enable immediately but validation will disable if needed
         if (this.welcomeSteps[stepIndex].id === 'prolific-id') {
             continueBtn.disabled = true; // Will be enabled by validation
-            navigation.classList.add('visible');
         } else {
+            // Will be disabled by timer, then enabled after 4 seconds
             continueBtn.disabled = false;
-            // Don't add visible class here - let startStepTimer handle it
         }
     }
 
