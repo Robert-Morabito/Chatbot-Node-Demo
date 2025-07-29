@@ -305,167 +305,173 @@ class ChatApp {
         const displayName = this.config?.displayName || 'GPT-4';
         const modelInfo = this.modelDescriptions[displayName] || this.modelDescriptions['GPT-4'];
 
-        // Add elegant model intro step
+        // Add sleek model intro step
         this.welcomeState.steps.push({
             type: 'model-intro',
-            title: 'Meet Your AI Partner',
+            title: 'Your AI Partner',
             content: `
-            <div class="model-intro-card">
-                <div class="model-intro-content">
-                    <div class="intro-header">
-                        <h3>You'll be chatting with ${displayName}</h3>
-                        <p class="model-tagline">Understanding your AI partner creates better conversations</p>
-                    </div>
-                    <div class="intro-message">
-                        <p>The following information will help you have more effective conversations during the study.</p>
-                    </div>
+        <div class="intro-container">
+            <div class="intro-content">
+                <div class="model-badge">
+                    <span class="model-name">${displayName}</span>
+                    <span class="model-year">${modelInfo.year}</span>
                 </div>
+                <h3>Meet your conversation partner</h3>
+                <p class="intro-description">The following pages contain essential information to help you have more effective conversations during this study.</p>
             </div>
-        `,
+        </div>
+    `,
             showTimer: true,
             showBack: true,
             showPersistentHeader: true,
-            persistentHeaderContent: `${displayName} (${modelInfo.year})`
+            persistentHeaderContent: `${displayName} • ${modelInfo.year}`
         });
 
-        // Transform slides into refined story format
-        modelInfo.slides.forEach((slide, slideIndex) => {
-            let enhancedContent = '';
-
-            if (slideIndex === 0) {
-                // First slide - Background/Capabilities
-                enhancedContent = `
-                <div class="info-slide">
-                    <div class="slide-header">
-                        <div class="slide-indicator">${slideIndex + 1}</div>
-                        <h3>Background</h3>
-                    </div>
-                    <div class="slide-content">
-                        ${slide.points.map((point, i) => `
-                            <div class="info-point ${i === 0 ? 'primary' : ''}">
-                                <div class="point-marker"></div>
-                                <p>${point}</p>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>`;
-            } else if (slideIndex === 1) {
-                // Second slide - Performance comparison
-                enhancedContent = `
-                <div class="info-slide">
-                    <div class="slide-header">
-                        <div class="slide-indicator">${slideIndex + 1}</div>
-                        <h3>Performance Comparison</h3>
-                    </div>
-                    <div class="slide-content">
-                        <div class="comparison-intro">
-                            <p>How ${displayName} compares to other AI models:</p>
-                        </div>
-                        ${slide.points.map((point, i) => `
-                            <div class="info-point">
-                                <div class="point-marker"></div>
-                                <p>${point}</p>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>`;
-            } else {
-                // Third slide - Capabilities and limitations
-                enhancedContent = `
-                <div class="info-slide">
-                    <div class="slide-header">
-                        <div class="slide-indicator">${slideIndex + 1}</div>
-                        <h3>What to Expect</h3>
-                    </div>
-                    <div class="slide-content">
-                        ${slide.points.map((point, i) => `
-                            <div class="expectation-item ${i === 0 ? 'strengths' : i === 1 ? 'considerations' : 'applications'}">
-                                <div class="expectation-header">
-                                    <div class="expectation-marker ${i === 0 ? 'strength' : i === 1 ? 'consideration' : 'application'}"></div>
-                                    <span class="expectation-label">${i === 0 ? 'Strengths' : i === 1 ? 'Considerations' : 'Best Applications'}</span>
-                                </div>
-                                <p>${point}</p>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>`;
-            }
-
-            this.welcomeState.steps.push({
-                type: 'model-slide',
-                title: 'Meet Your AI Partner',
-                content: enhancedContent,
-                showTimer: true,
-                showBack: true,
-                showPersistentHeader: true,
-                persistentHeaderContent: `${displayName} (${modelInfo.year})`
-            });
-        });
-
-        // Add completion step
+        // Slide 1: Background
         this.welcomeState.steps.push({
-            type: 'model-ready',
-            title: 'Ready to Begin',
+            type: 'model-slide',
+            title: 'Your AI Partner',
             content: `
-            <div class="ready-section">
-                <div class="ready-content">
-                    <h3>You're ready to start</h3>
-                    <p class="ready-message">You now understand the key aspects of ${displayName} that will help you have more effective conversations.</p>
-                    <div class="ready-summary">
-                        <div class="summary-row">
-                            <span class="summary-label">AI Partner</span>
-                            <span class="summary-value">${displayName}</span>
+        <div class="slide-container">
+            <div class="slide-header">
+                <div class="slide-number">1</div>
+                <h3>Background</h3>
+            </div>
+            <div class="slide-content">
+                ${modelInfo.slides[0].points.map((point, i) => `
+                    <div class="content-point" style="animation-delay: ${i * 0.1}s">
+                        <div class="point-indicator"></div>
+                        <p>${point}</p>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `,
+            showTimer: true,
+            showBack: true,
+            showPersistentHeader: true,
+            persistentHeaderContent: `${displayName} • ${modelInfo.year}`
+        });
+
+        // Slide 2: Comparison to Other Models
+        this.welcomeState.steps.push({
+            type: 'model-slide',
+            title: 'Your AI Partner',
+            content: `
+        <div class="slide-container">
+            <div class="slide-header">
+                <div class="slide-number">2</div>
+                <h3>Comparison to Other Models</h3>
+            </div>
+            <div class="slide-content">
+                <div class="comparison-note">
+                    <p>Understanding how ${displayName} compares to other AI models:</p>
+                </div>
+                ${modelInfo.slides[1].points.map((point, i) => `
+                    <div class="content-point" style="animation-delay: ${i * 0.1}s">
+                        <div class="point-indicator"></div>
+                        <p>${point}</p>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `,
+            showTimer: true,
+            showBack: true,
+            showPersistentHeader: true,
+            persistentHeaderContent: `${displayName} • ${modelInfo.year}`
+        });
+
+        // Slide 3: Strengths, Limitations, and Best Use Cases
+        this.welcomeState.steps.push({
+            type: 'model-slide',
+            title: 'Your AI Partner',
+            content: `
+        <div class="slide-container">
+            <div class="slide-header">
+                <div class="slide-number">3</div>
+                <h3>What to Expect</h3>
+            </div>
+            <div class="slide-content">
+                ${modelInfo.slides[2].points.map((point, i) => {
+                const categories = ['Strengths', 'Considerations', 'Best Applications'];
+                const colors = ['success', 'warning', 'info'];
+                return `
+                        <div class="expectation-card ${colors[i]}" style="animation-delay: ${i * 0.15}s">
+                            <div class="card-header">
+                                <div class="card-dot"></div>
+                                <span class="card-label">${categories[i]}</span>
+                            </div>
+                            <p>${point}</p>
                         </div>
-                        <div class="summary-row">
-                            <span class="summary-label">Released</span>
-                            <span class="summary-value">${modelInfo.year}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span class="summary-label">Status</span>
-                            <span class="summary-value">Ready</span>
-                        </div>
+                    `;
+            }).join('')}
+            </div>
+        </div>
+    `,
+            showTimer: true,
+            showBack: true,
+            showPersistentHeader: true,
+            persistentHeaderContent: `${displayName} • ${modelInfo.year}`
+        });
+
+        // Summary step (without "ready" language)
+        this.welcomeState.steps.push({
+            type: 'model-summary',
+            title: 'Summary',
+            content: `
+        <div class="summary-container">
+            <div class="summary-content">
+                <h3>You're all set</h3>
+                <p class="summary-description">You now understand the key aspects of ${displayName} that will enhance your conversation experience.</p>
+                <div class="summary-card">
+                    <div class="summary-row">
+                        <span class="summary-label">AI Model</span>
+                        <span class="summary-value">${displayName}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Released</span>
+                        <span class="summary-value">${modelInfo.year}</span>
                     </div>
                 </div>
             </div>
-        `,
+        </div>
+    `,
             showTimer: true,
             showBack: true,
             showPersistentHeader: false
         });
 
-        // Add refined Prolific ID step
+        // Refined Prolific ID step
         this.welcomeState.steps.push({
             type: 'prolific-id',
             title: 'Enter Your ID',
             content: `
-            <div class="prolific-section">
-                <div class="id-entry-form">
-                    <div class="form-header">
-                        <h3>Enter Your Prolific ID</h3>
-                        <p class="form-description">We'll use this to connect your responses with the study.</p>
-                    </div>
-                    <div class="input-group">
-                        <input type="text" 
-                            id="prolific-id-input" 
-                            class="prolific-id-input" 
-                            placeholder="24-character Prolific ID" 
-                            maxlength="24"
-                            autocomplete="off">
-                        <div class="input-underline"></div>
-                    </div>
-                    <div id="prolific-id-error" class="error-message"></div>
-                    <div class="form-help">
-                        <span>Your ID should be exactly 24 characters (letters and numbers only)</span>
-                    </div>
+        <div class="id-container">
+            <div class="id-content">
+                <h3>Enter Your Prolific ID</h3>
+                <p class="id-description">We'll use this to connect your responses with the study.</p>
+                <div class="input-wrapper">
+                    <input type="text" 
+                           id="prolific-id-input" 
+                           class="prolific-input" 
+                           placeholder="24-character Prolific ID" 
+                           maxlength="24"
+                           autocomplete="off">
+                </div>
+                <div id="prolific-id-error" class="error-message"></div>
+                <div class="id-help">
+                    <span>Your ID should be exactly 24 characters (letters and numbers only)</span>
                 </div>
             </div>
-        `,
+        </div>
+    `,
             showTimer: false,
             showBack: true,
             showPersistentHeader: false
         });
     }
-
+    
     handleWelcomeBack() {
         if (this.welcomeState.currentStep > 0) {
             // Clear any existing timer
