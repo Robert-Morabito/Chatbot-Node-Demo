@@ -59,27 +59,41 @@ export default async function handler(req, res) {
             Respond with only: YES or NO`;
         }
 
+        // Create fake conversation for classification
+        const messages = [
+            { sender: 'User', content: classificationPrompt }
+        ];
+
         console.log('🔍 [Image Classify] Classifying with GPT-3.5...');
 
-        // Use simple completion instead of streaming
-        const classification = await classifier.simpleCompletion(classificationPrompt, 'gpt-3.5-turbo-0125');
+        // Get classification using GPT-3.5 (fast and reliable)
+        let classification = '';
+        for await (const chunk of classifier.streamChat(messages, 'gpt-3.5-turbo-0125')) {
+            if (chunk.type === 'content') {
+                classification += chunk.content;
+            } else if (chunk.type === 'done') {
+                break;
+            } else if (chunk.type === 'error') {
+                throw new Error(chunk.error);
+            }
+        }
 
         // Clean up classification
-        const cleanClassification = classification.trim().toUpperCase();
-        console.log('🔍 [Image Classify] Raw classification:', cleanClassification);
+        classification = classification.trim().toUpperCase();
+        console.log('🔍 [Image Classify] Raw classification:', classification);
 
         // Determine intent
         let intent;
         if (hasImageContext) {
-            if (cleanClassification.includes('NEW')) {
+            if (classification.includes('NEW')) {
                 intent = 'new_image';
-            } else if (cleanClassification.includes('MODIFY')) {
+            } else if (classification.includes('MODIFY')) {
                 intent = 'modify_image';
             } else {
                 intent = 'none';
             }
         } else {
-            if (cleanClassification.includes('YES')) {
+            if (classification.includes('YES')) {
                 intent = 'new_image';
             } else {
                 intent = 'none';
@@ -91,7 +105,7 @@ export default async function handler(req, res) {
         res.json({
             success: true,
             intent: intent,
-            classification: cleanClassification,
+            classification: classification,
             userMessage: userMessage
         });
 

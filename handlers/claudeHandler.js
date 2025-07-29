@@ -60,27 +60,4 @@ export class ClaudeHandler {
             };
         }
     }
-    
-    async simpleCompletion(prompt, model) {
-        console.log('💬 [Claude] Simple completion with model:', model);
-
-        try {
-            const response = await this.client.messages.create({
-                model: model,
-                max_tokens: 500,
-                messages: [
-                    {
-                        role: 'user',
-                        content: prompt
-                    }
-                ],
-                system: 'You are a helpful AI assistant. Provide concise, accurate responses.'
-            });
-
-            return response.content[0].text;
-        } catch (error) {
-            console.error('❌ [Claude] Simple completion error:', error);
-            throw error;
-        }
-    }
 }

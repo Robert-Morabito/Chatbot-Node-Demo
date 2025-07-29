@@ -116,35 +116,5 @@ export class OpenAIHandler {
         }
     }
 
-    async simpleCompletion(prompt, model) {
-        const actualModel = this.modelMapping[model] || model;
-        console.log('💬 [OpenAI] Simple completion with model:', actualModel);
-
-        try {
-            const messages = [
-                {
-                    role: 'system',
-                    content: 'You are a helpful AI assistant. Provide concise, accurate responses.'
-                },
-                {
-                    role: 'user',
-                    content: prompt
-                }
-            ];
-
-            const completion = await this.client.chat.completions.create({
-                model: actualModel,
-                messages: messages,
-                ...(actualModel.startsWith('o1')
-                    ? { max_completion_tokens: 1000 }
-                    : { max_tokens: 500, temperature: 0.3 }
-                )
-            });
-
-            return completion.choices[0].message.content;
-        } catch (error) {
-            console.error('❌ [OpenAI] Simple completion error:', error);
-            throw error;
-        }
-    }
+    // Remove the duplicate chatStreamTextOnly method - just use streamChat
 }
