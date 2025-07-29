@@ -362,27 +362,24 @@ class ChatApp {
                 id: 'welcome',
                 title: 'Welcome to Our Study',
                 content: `
-                <div class="content-card">
-                    <h1 class="content-title">Research Study</h1>
-                    <p class="content-subtitle">Thank you for participating in this important research</p>
-                    <div class="content-body">
-                        <div class="info-grid">
-                            <div class="info-item" style="animation: fadeInUp 0.6s ease-out 0.1s both">
-                                <h4>Study Requirements</h4>
-                                <p>Complete all tasks in the provided Tally survey alongside this conversation interface.</p>
-                            </div>
-                            <div class="info-item" style="animation: fadeInUp 0.6s ease-out 0.2s both">
-                                <h4>Important Information</h4>
-                                <p>The following screens contain essential details about your AI conversation partner.</p>
-                            </div>
-                            <div class="info-item" style="animation: fadeInUp 0.6s ease-out 0.3s both">
-                                <h4>Study Completion</h4>
-                                <p>Click "Finish" when done to download your data and complete the study.</p>
-                            </div>
+            <div class="content-card">
+                <h1 class="content-title">Research Study</h1>
+                <p class="content-subtitle">Thank you for participating in this important research</p>
+                <div class="content-body">
+                    <div class="info-grid">
+                        <div class="info-item" style="animation: fadeInUp 0.6s ease-out 0.1s both">
+                            <p>Complete all tasks in the provided Tally survey alongside this conversation interface.</p>
+                        </div>
+                        <div class="info-item" style="animation: fadeInUp 0.6s ease-out 0.2s both">
+                            <p>The following screens contain essential details about your AI conversation partner.</p>
+                        </div>
+                        <div class="info-item" style="animation: fadeInUp 0.6s ease-out 0.3s both">
+                            <p>Click "Finish" when done to download your data and complete the study.</p>
                         </div>
                     </div>
                 </div>
-            `
+            </div>
+        `
             },
 
             // Step 2: Model Introduction
@@ -390,20 +387,20 @@ class ChatApp {
                 id: 'model-intro',
                 title: 'Meet Your AI Partner',
                 content: `
-                <div class="content-card">
-                    <h1 class="content-title">Meet ${displayName}</h1>
-                    <p class="content-subtitle">Your conversation partner for this study</p>
-                    <div class="model-hero">
-                        <div class="model-info">
-                            <h3>${displayName}</h3>
-                            <p>Released ${modelInfo.year} • Advanced AI Language Model</p>
-                        </div>
-                    </div>
-                    <div class="content-body">
-                        <p>Understanding your AI partner's capabilities and characteristics will help you have more effective conversations during this study.</p>
+            <div class="content-card">
+                <h1 class="content-title">Meet ${displayName}</h1>
+                <p class="content-subtitle">Your conversation partner for this study</p>
+                <div class="model-hero">
+                    <div class="model-info">
+                        <h3>${displayName}</h3>
+                        <p>Released ${modelInfo.year} • Advanced AI Language Model</p>
                     </div>
                 </div>
-            `
+                <div class="content-body">
+                    <p>Understanding your AI partner's capabilities and characteristics will help you have more effective conversations during this study.</p>
+                </div>
+            </div>
+        `
             },
 
             // Step 3: Background
@@ -411,19 +408,18 @@ class ChatApp {
                 id: 'background',
                 title: 'Background & Development',
                 content: `
-                <div class="content-card">
-                    <h1 class="content-title">Development Story</h1>
-                    <p class="content-subtitle">The journey behind ${displayName}</p>
-                    <div class="info-grid">
-                        ${modelInfo.slides[0].points.map((point, index) => `
-                            <div class="info-item" style="animation: fadeInUp 0.6s ease-out ${index * 0.1}s both">
-                                <h4>Development Insight ${index + 1}</h4>
-                                <p>${point}</p>
-                            </div>
-                        `).join('')}
-                    </div>
+            <div class="content-card">
+                <h1 class="content-title">Development Story</h1>
+                <p class="content-subtitle">The journey behind ${displayName}</p>
+                <div class="info-grid">
+                    ${modelInfo.slides[0].points.map((point, index) => `
+                        <div class="info-item info-item-large" style="animation: fadeInUp 0.6s ease-out ${index * 0.1}s both">
+                            <p>${point}</p>
+                        </div>
+                    `).join('')}
                 </div>
-            `
+            </div>
+        `
             },
 
             // Step 4: Comparison
@@ -431,19 +427,18 @@ class ChatApp {
                 id: 'comparison',
                 title: 'Performance Landscape',
                 content: `
-                <div class="content-card">
-                    <h1 class="content-title">How ${displayName} Compares</h1>
-                    <p class="content-subtitle">Understanding its position in the AI landscape</p>
-                    <div class="info-grid">
-                        ${modelInfo.slides[1].points.map((point, index) => `
-                            <div class="info-item" style="animation: slideInRight 0.6s ease-out ${index * 0.15}s both">
-                                <h4>Performance Factor ${index + 1}</h4>
-                                <p>${point}</p>
-                            </div>
-                        `).join('')}
-                    </div>
+            <div class="content-card">
+                <h1 class="content-title">How ${displayName} Compares</h1>
+                <p class="content-subtitle">Understanding its position in the AI landscape</p>
+                <div class="info-grid">
+                    ${modelInfo.slides[1].points.map((point, index) => `
+                        <div class="info-item info-item-large" style="animation: slideInRight 0.6s ease-out ${index * 0.15}s both">
+                            <p>${point}</p>
+                        </div>
+                    `).join('')}
                 </div>
-            `
+            </div>
+        `
             },
 
             // Step 5: Capabilities
@@ -451,24 +446,24 @@ class ChatApp {
                 id: 'capabilities',
                 title: 'What to Expect',
                 content: `
-                <div class="content-card">
-                    <h1 class="content-title">Capabilities Overview</h1>
-                    <p class="content-subtitle">Strengths, considerations, and optimal use cases</p>
-                    <div class="feature-grid">
-                        ${modelInfo.slides[2].points.map((point, index) => {
+            <div class="content-card">
+                <h1 class="content-title">Capabilities Overview</h1>
+                <p class="content-subtitle">Strengths, considerations, and optimal use cases</p>
+                <div class="feature-grid">
+                    ${modelInfo.slides[2].points.map((point, index) => {
                     const types = ['strength', 'consideration', 'use-case'];
                     const titles = ['Strengths', 'Considerations', 'Best Applications'];
                     return `
-                                <div class="feature-card ${types[index]}" style="animation: scaleIn 0.6s ease-out ${index * 0.2}s both">
-                                    <div class="feature-indicator"></div>
-                                    <h4>${titles[index]}</h4>
-                                    <p>${point}</p>
-                                </div>
-                            `;
+                            <div class="feature-card ${types[index]}" style="animation: scaleIn 0.6s ease-out ${index * 0.2}s both">
+                                <div class="feature-indicator"></div>
+                                <h4>${titles[index]}</h4>
+                                <p>${point}</p>
+                            </div>
+                        `;
                 }).join('')}
-                    </div>
                 </div>
-            `
+            </div>
+        `
             },
 
             // Step 6: Prolific ID
@@ -476,25 +471,25 @@ class ChatApp {
                 id: 'prolific-id',
                 title: 'Study Registration',
                 content: `
-                <div class="content-card">
-                    <h1 class="content-title">Enter Your ID</h1>
-                    <p class="content-subtitle">We'll use this to connect your responses with the study</p>
-                    <div class="id-input-system">
-                        <div class="input-group">
-                            <input 
-                                type="text" 
-                                id="prolific-input" 
-                                class="input-field"
-                                placeholder="24-character Prolific ID"
-                                maxlength="24"
-                                autocomplete="off"
-                            >
-                            <div id="input-error" class="input-error"></div>
-                            <div class="input-hint">Your ID should contain exactly 24 letters and numbers</div>
-                        </div>
+            <div class="content-card">
+                <h1 class="content-title">Enter Your ID</h1>
+                <p class="content-subtitle">We'll use this to connect your responses with the study</p>
+                <div class="id-input-system">
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            id="prolific-input" 
+                            class="input-field"
+                            placeholder="24-character Prolific ID"
+                            maxlength="24"
+                            autocomplete="off"
+                        >
+                        <div id="input-error" class="input-error"></div>
+                        <div class="input-hint">Your ID should contain exactly 24 letters and numbers</div>
                     </div>
                 </div>
-            `
+            </div>
+        `
             }
         ];
     }
