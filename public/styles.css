@@ -2184,13 +2184,13 @@ body.light-theme {
         repeating-linear-gradient(45deg,
             transparent,
             transparent 40px,
-            rgba(255, 255, 255) 40px,
-            rgba(255, 255, 255) 80px),
+            rgba(255, 255, 255, 0.015) 40px,
+            rgba(255, 255, 255, 0.015) 80px),
         repeating-linear-gradient(-45deg,
             transparent,
             transparent 40px,
-            rgba(255, 255, 255) 40px,
-            rgba(255, 255, 255) 80px);
+            rgba(255, 255, 255, 0.01) 40px,
+            rgba(255, 255, 255, 0.01) 80px);
     animation: slowScroll 15s linear infinite;
 }
 
