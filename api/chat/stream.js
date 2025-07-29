@@ -1,3 +1,150 @@
+import { OpenAIHandler } from '../../handlers/openaiHandler.js';
+import { ClaudeHandler } from '../../handlers/claudeHandler.js';
+
+// Model validation
+function validateModel(model) {
+    console.log(`✅ [Stream] Validating model: "${model}"`);
+
+    const validOpenAIModels = ['gpt-3.5-turbo-0125', 'gpt-4-turbo', 'o1-preview'];
+    const validClaudeModels = ['claude-3-5-haiku-20241022', 'claude-3-5-sonnet-20241022', 'claude-3-opus-20240229'];
+
+    if (validOpenAIModels.includes(model)) {
+        console.log(`✅ [Stream] Valid OpenAI model: ${model}`);
+        return { isValid: true, type: 'openai' };
+    }
+
+    if (validClaudeModels.includes(model)) {
+        console.log(`✅ [Stream] Valid Claude model: ${model}`);
+        return { isValid: true, type: 'claude' };
+    }
+
+    console.log(`❌ [Stream] Invalid model: ${model}`);
+    return { isValid: false, type: 'unknown' };
+}
+
+// Image classification function
+async function classifyImageIntent(userMessage, hasImageContext, req) {
+    console.log('🔍 [Stream] Calling classify.js API...');
+
+    try {
+        const classifyResponse = await fetch(`${req.headers.host.startsWith('localhost') ? 'http' : 'https'}://${req.headers.host}/api/image/classify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userMessage: userMessage,
+                hasImageContext: hasImageContext
+            })
+        });
+
+        if (!classifyResponse.ok) {
+            console.log('❌ [Stream] Classify API failed:', classifyResponse.status);
+            return { intent: 'none' };
+        }
+
+        const classifyData = await classifyResponse.json();
+        console.log('✅ [Stream] Classify API result:', classifyData);
+
+        return {
+            intent: classifyData.intent,
+            classification: classifyData.classification
+        };
+
+    } catch (error) {
+        console.error('❌ [Stream] Classify API error:', error);
+        return { intent: 'none' };
+    }
+}
+
+// Image generation function
+async function generateImage(userMessage, model, imageContext, intent, req, res) {
+    console.log('🎨 [Stream] Starting image generation...');
+
+    try {
+        // Step 1: Enhance prompt
+        console.log('🎨 [Stream] Enhancing prompt...');
+
+        const enhanceResponse = await fetch(`${req.headers.host.startsWith('localhost') ? 'http' : 'https'}://${req.headers.host}/api/image/enhance`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userPrompt: userMessage,
+                model: model,
+                previousPrompt: imageContext?.lastPrompt,
+                modificationType: intent === 'modify_image' ? 'modification' : 'new'
+            })
+        });
+
+        if (!enhanceResponse.ok) {
+            throw new Error(`Enhancement failed: ${enhanceResponse.status}`);
+        }
+
+        const enhanceData = await enhanceResponse.json();
+        console.log('🎨 [Stream] Enhanced prompt:', enhanceData.enhancedPrompt);
+
+        // Step 2: Generate image
+        console.log('🖼️ [Stream] Generating image...');
+
+        const generateResponse = await fetch(`${req.headers.host.startsWith('localhost') ? 'http' : 'https'}://${req.headers.host}/api/image/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                enhancedPrompt: enhanceData.enhancedPrompt,
+                originalPrompt: userMessage,
+                model: model
+            })
+        });
+
+        if (!generateResponse.ok) {
+            throw new Error(`Image generation failed: ${generateResponse.status}`);
+        }
+
+        const generateData = await generateResponse.json();
+        console.log('🖼️ [Stream] Image generated successfully');
+
+        // Step 3: Send response
+        let imageResponse;
+        if (intent === 'modify_image') {
+            imageResponse = `I've modified the image based on your request:\n\n![Generated Image](${generateData.imageUrl})`;
+        } else {
+            imageResponse = `I've generated an image for you:\n\n![Generated Image](${generateData.imageUrl})`;
+        }
+
+        res.write(`data: ${JSON.stringify({
+            type: 'content',
+            content: imageResponse,
+            fullContent: imageResponse,
+            imageUrl: generateData.imageUrl,
+            imagePrompt: enhanceData.enhancedPrompt,
+            originalPrompt: userMessage,
+            revisedPrompt: generateData.revisedPrompt
+        })}\n\n`);
+
+        res.write(`data: ${JSON.stringify({
+            type: 'done',
+            finishReason: 'image_generated'
+        })}\n\n`);
+
+        return true;
+
+    } catch (error) {
+        console.error('❌ [Stream] Image generation error:', error);
+
+        const errorMessage = `I apologize, but I couldn't generate the image. Error: ${error.message}`;
+        res.write(`data: ${JSON.stringify({
+            type: 'content',
+            content: errorMessage,
+            fullContent: errorMessage
+        })}\n\n`);
+
+        res.write(`data: ${JSON.stringify({
+            type: 'done',
+            finishReason: 'error'
+        })}\n\n`);
+
+        return false;
+    }
+}
+
 // Main handler
 export default async function handler(req, res) {
     console.log('🌐 [Stream] Function called:', req.method, req.url);
@@ -79,7 +226,7 @@ export default async function handler(req, res) {
             }
         }
 
-        // Send typing indicator start signal for regular chat
+        // Send typing start signal for regular chat (this keeps the typing indicator visible)
         res.write(`data: ${JSON.stringify({ type: 'typing_start' })}\n\n`);
 
         // Handle regular chat
@@ -143,3 +290,12 @@ export default async function handler(req, res) {
         }
     }
 }
+
+export const config = {
+    api: {
+        bodyParser: {
+            sizeLimit: '10mb',
+        },
+        responseLimit: false,
+    },
+};
