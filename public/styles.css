@@ -1005,6 +1005,118 @@ body.light-theme {
     color: rgba(55, 65, 81, 0.9) !important;
 }
 
+/* Info items with headers and blue styling */
+.info-item-with-header {
+    padding: 0 !important;
+    background: rgba(249, 250, 251, 0.06) !important;
+    border: 1px solid rgba(229, 231, 235, 0.12) !important;
+    border-radius: 6px !important;
+    overflow: hidden !important;
+    position: relative !important;
+}
+
+.light-theme .info-item-with-header {
+    background: rgba(17, 24, 39, 0.03) !important;
+    border: 1px solid rgba(209, 213, 219, 0.2) !important;
+}
+
+.info-item-top-bar {
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+    width: 100%;
+}
+
+.info-item-content {
+    padding: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.info-item-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #3b82f6;
+    box-shadow: 0 0 6px rgba(59, 130, 246, 0.4);
+    flex-shrink: 0;
+    margin-top: 0.25rem;
+}
+
+.info-item-text {
+    flex: 1;
+}
+
+.info-item-text h4 {
+    margin: 0 0 0.5rem 0 !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    color: rgba(249, 250, 251, 0.95) !important;
+}
+
+.light-theme .info-item-text h4 {
+    color: rgba(17, 24, 39, 0.9) !important;
+}
+
+.info-item-text p {
+    margin: 0 !important;
+    font-size: 0.9375rem !important;
+    line-height: 1.5 !important;
+    color: rgba(229, 231, 235, 0.9) !important;
+}
+
+.light-theme .info-item-text p {
+    color: rgba(55, 65, 81, 0.8) !important;
+}
+
+/* Enhanced welcome instructions */
+.welcome-instructions {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    border-radius: 8px;
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.welcome-instructions::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+}
+
+.light-theme .welcome-instructions {
+    background: rgba(59, 130, 246, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.welcome-instructions h3 {
+    color: rgba(249, 250, 251, 0.95);
+    margin: 0 0 1rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.light-theme .welcome-instructions h3 {
+    color: rgba(17, 24, 39, 0.9);
+}
+
+.welcome-instructions p {
+    margin: 0;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    color: rgba(229, 231, 235, 0.9);
+}
+
+.light-theme .welcome-instructions p {
+    color: rgba(55, 65, 81, 0.8);
+}
+
 /* Message Components */
 .message {
     display: flex;

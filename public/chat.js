@@ -356,8 +356,38 @@ class ChatApp {
         const displayName = this.config?.displayName || 'GPT-4';
         const modelInfo = this.modelDescriptions[displayName] || this.modelDescriptions['GPT-4'];
 
+        // Define concise headers for each model's points
+        const modelHeaders = {
+            'GPT-3.5': {
+                background: ['ChatGPT Foundation', 'Earlier Generation', 'Basic Text Tasks'],
+                comparison: ['GPT-4 More Accurate', 'Faster Responses', 'Limited Memory'],
+            },
+            'GPT-4': {
+                background: ['Major Advancement', 'Multimodal Pioneer', 'Human-Level Tests'],
+                comparison: ['40% Better Accuracy', 'Faster Than o1', '24 Languages'],
+            },
+            'o1-Preview': {
+                background: ['Thinking Approach', 'Takes Extra Time', 'Complex Reasoning'],
+                comparison: ['83% Math Success', '89th Percentile Coding', 'Slower But Accurate'],
+            },
+            'Claude 3.5 Haiku': {
+                background: ['Newest Fastest', 'Matches Larger Models', 'Latest Training Data'],
+                comparison: ['Matches Opus Performance', 'Faster Than Sonnet', 'Strong Coding Skills'],
+            },
+            'Claude 3.5 Sonnet': {
+                background: ['Balanced Mid-Tier', 'Most Widely Used', 'Twice Opus Speed'],
+                comparison: ['2x Faster Than Opus', 'Slower Than Haiku', 'Improved Coding'],
+            },
+            'Claude 3 Opus': {
+                background: ['Largest Claude 3', 'Previous Generation', 'Original Flagship'],
+                comparison: ['Sonnet Now Faster', 'Haiku Matches Performance', 'Large Context Window'],
+            }
+        };
+
+        const headers = modelHeaders[displayName] || modelHeaders['GPT-4'];
+
         this.welcomeSteps = [
-            // Step 1: Welcome
+            // Step 1: Welcome - Consolidated instruction block
             {
                 id: 'welcome',
                 title: 'Welcome to Our Study',
@@ -366,16 +396,9 @@ class ChatApp {
                 <h1 class="content-title">Research Study</h1>
                 <p class="content-subtitle">Thank you for participating in this important research</p>
                 <div class="content-body">
-                    <div class="info-grid">
-                        <div class="info-item" style="animation: fadeInUp 0.6s ease-out 0.1s both">
-                            <p>Complete all tasks in the provided Tally survey alongside this conversation interface.</p>
-                        </div>
-                        <div class="info-item" style="animation: fadeInUp 0.6s ease-out 0.2s both">
-                            <p>The following screens contain essential details about your AI conversation partner.</p>
-                        </div>
-                        <div class="info-item" style="animation: fadeInUp 0.6s ease-out 0.3s both">
-                            <p>Click "Finish" when done to download your data and complete the study.</p>
-                        </div>
+                    <div class="welcome-instructions">
+                        <h3>Study Instructions</h3>
+                        <p>Complete all tasks in the provided Tally survey alongside this conversation interface. The following screens contain essential details about your AI conversation partner. Click "Finish" when done to download your data and complete the study.</p>
                     </div>
                 </div>
             </div>
@@ -413,8 +436,15 @@ class ChatApp {
                 <p class="content-subtitle">The journey behind ${displayName}</p>
                 <div class="info-grid">
                     ${modelInfo.slides[0].points.map((point, index) => `
-                        <div class="info-item info-item-large" style="animation: fadeInUp 0.6s ease-out ${index * 0.1}s both">
-                            <p>${point}</p>
+                        <div class="info-item info-item-with-header" style="animation: fadeInUp 0.6s ease-out ${index * 0.1}s both">
+                            <div class="info-item-top-bar"></div>
+                            <div class="info-item-content">
+                                <div class="info-item-dot"></div>
+                                <div class="info-item-text">
+                                    <h4>${headers.background[index]}</h4>
+                                    <p>${point}</p>
+                                </div>
+                            </div>
                         </div>
                     `).join('')}
                 </div>
@@ -432,8 +462,15 @@ class ChatApp {
                 <p class="content-subtitle">Understanding its position in the AI landscape</p>
                 <div class="info-grid">
                     ${modelInfo.slides[1].points.map((point, index) => `
-                        <div class="info-item info-item-large" style="animation: slideInRight 0.6s ease-out ${index * 0.15}s both">
-                            <p>${point}</p>
+                        <div class="info-item info-item-with-header" style="animation: slideInRight 0.6s ease-out ${index * 0.15}s both">
+                            <div class="info-item-top-bar"></div>
+                            <div class="info-item-content">
+                                <div class="info-item-dot"></div>
+                                <div class="info-item-text">
+                                    <h4>${headers.comparison[index]}</h4>
+                                    <p>${point}</p>
+                                </div>
+                            </div>
                         </div>
                     `).join('')}
                 </div>
@@ -441,7 +478,7 @@ class ChatApp {
         `
             },
 
-            // Step 5: Capabilities
+            // Step 5: Capabilities (keep existing structure)
             {
                 id: 'capabilities',
                 title: 'What to Expect',
