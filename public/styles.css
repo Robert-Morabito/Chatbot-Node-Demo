@@ -36,7 +36,7 @@
     --sidebar-width: 320px;
     --sidebar-collapsed-width: 60px;
     --header-height: clamp(60px, 8vh, 80px);
-    --input-area-height: auto;
+    --input-area-height: clamp(80px, 12vh, 120px); /* Add this line */
     --max-content-width: 1000px;
 
     /* Responsive Breakpoints */
