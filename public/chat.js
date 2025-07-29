@@ -262,7 +262,7 @@ class ChatApp {
         this.setupWelcomeEventListeners();
     }
 
-    renderWelcomeStep(stepIndex) {
+    renderWelcomeStep(stepIndex, skipTimer = false) {
         if (this.isTransitioning) return;
         this.isTransitioning = true;
 
@@ -295,9 +295,16 @@ class ChatApp {
             // Setup step-specific functionality
             if (step.id === 'prolific-id') {
                 this.setupProlificValidation();
-            } else {
+                // Show navigation immediately for ID step
+                const navigation = document.querySelector('.navigation-system');
+                navigation.classList.add('visible');
+            } else if (!skipTimer) {
                 // Start timer for other steps
                 this.startStepTimer();
+            } else {
+                // Show navigation immediately if skipping timer
+                const navigation = document.querySelector('.navigation-system');
+                navigation.classList.add('visible');
             }
         });
 
@@ -307,6 +314,13 @@ class ChatApp {
 
     startStepTimer() {
         const navigation = document.querySelector('.navigation-system');
+
+        // Remove any existing timer
+        const existingTimer = document.querySelector('.timer-overlay');
+        if (existingTimer) {
+            existingTimer.remove();
+        }
+
         const timerOverlay = document.createElement('div');
         timerOverlay.className = 'timer-overlay';
         timerOverlay.innerHTML = `
@@ -340,15 +354,15 @@ class ChatApp {
                     <p class="content-subtitle">Thank you for participating in this important research</p>
                     <div class="content-body">
                         <div class="info-grid">
-                            <div class="info-item floating-element" style="animation-delay: 0.1s">
+                            <div class="info-item" style="animation: fadeInUp 0.6s ease-out 0.1s both">
                                 <h4>Study Requirements</h4>
                                 <p>Complete all tasks in the provided Tally survey alongside this conversation interface.</p>
                             </div>
-                            <div class="info-item floating-element" style="animation-delay: 0.2s">
+                            <div class="info-item" style="animation: fadeInUp 0.6s ease-out 0.2s both">
                                 <h4>Important Information</h4>
                                 <p>The following screens contain essential details about your AI conversation partner.</p>
                             </div>
-                            <div class="info-item floating-element" style="animation-delay: 0.3s">
+                            <div class="info-item" style="animation: fadeInUp 0.6s ease-out 0.3s both">
                                 <h4>Study Completion</h4>
                                 <p>Click "Finish" when done to download your data and complete the study.</p>
                             </div>
@@ -367,7 +381,7 @@ class ChatApp {
                     <h1 class="content-title">Meet ${displayName}</h1>
                     <p class="content-subtitle">Your conversation partner for this study</p>
                     <div class="model-hero">
-                        <div class="model-avatar floating-element">${displayName.charAt(0)}</div>
+                        <div class="model-avatar">${displayName.charAt(0)}</div>
                         <div class="model-info">
                             <h3>${displayName}</h3>
                             <p>Released ${modelInfo.year} • Advanced AI Language Model</p>
@@ -420,7 +434,7 @@ class ChatApp {
             `
             },
 
-            // Step 5: Capabilities - Updated with color coding
+            // Step 5: Capabilities
             {
                 id: 'capabilities',
                 title: 'What to Expect',
@@ -679,24 +693,36 @@ class ChatApp {
 
         setTimeout(() => {
             experience.style.display = 'none';
+
+            // Show main app
+            const appContainer = document.querySelector('.app-container');
+            appContainer.classList.add('ready');
+
             this.init(); // Start the main app
         }, 600);
     }
 
-    // Update the main initialization
     async initializeApp() {
+        // Show welcome experience immediately, load config in background
+        this.initializeWelcomeExperience();
+        this.showWelcomeExperience();
+
+        // Load configuration in the background
         try {
             await this.loadConfiguration();
             console.log('✅ Configuration loaded:', this.config);
 
-            // Initialize and show welcome experience
-            this.initializeWelcomeExperience();
-            this.showWelcomeExperience();
+            // Update welcome steps with loaded configuration
+            this.buildWelcomeSteps();
+
+            // If we're still on the model intro step or later, refresh the content
+            if (this.currentStepIndex >= 1) {
+                this.renderWelcomeStep(this.currentStepIndex, true); // true = skip timer
+            }
 
         } catch (error) {
             console.error('❌ Failed to load configuration:', error);
-            this.initializeWelcomeExperience();
-            this.showWelcomeExperience();
+            // Continue with default config - welcome experience already shown
         }
     }
 
