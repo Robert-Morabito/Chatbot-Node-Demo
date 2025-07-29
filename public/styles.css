@@ -2184,14 +2184,14 @@ body.light-theme {
         repeating-linear-gradient(45deg,
             transparent,
             transparent 40px,
-            rgba(255, 255, 255, 0.015) 40px,
-            rgba(255, 255, 255, 0.015) 80px),
+            rgba(255, 255, 255) 40px,
+            rgba(255, 255, 255) 80px),
         repeating-linear-gradient(-45deg,
             transparent,
             transparent 40px,
-            rgba(255, 255, 255, 0.01) 40px,
-            rgba(255, 255, 255, 0.01) 80px);
-    animation: slowScroll 25s linear infinite;
+            rgba(255, 255, 255) 40px,
+            rgba(255, 255, 255) 80px);
+    animation: slowScroll 15s linear infinite;
 }
 
 .light-theme .welcome-backdrop::before {
@@ -2412,9 +2412,10 @@ body.light-theme {
     gap: 2rem;
     margin: 2rem 0;
     padding: 2rem;
-    background: rgba(59, 130, 246, 0.08);
+    background: rgba(59, 131, 246, 0.356);
     border-radius: 6px;
     border: 1px solid rgba(59, 130, 246, 0.15);
+    justify-content: center;
 }
 
 .model-avatar {
@@ -2831,20 +2832,6 @@ body.light-theme {
     height: 18px;
     fill: currentColor;
 }
-
-.timer-progress {
-    position: absolute;
-    bottom: 3.5rem;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60px;
-    height: 2px;
-    background: rgba(229, 231, 235, 0.2);
-    border-radius: 1px;
-    overflow: hidden;
-    z-index: 5;
-}
-
 
 /* Enhanced Animations */
 @keyframes fadeInUp {
