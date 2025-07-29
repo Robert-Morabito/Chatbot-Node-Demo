@@ -73,25 +73,25 @@ class ChatApp {
                     {
                         title: 'Background',
                         points: [
-                            'Released November 30, 2022, as the model that powered the original ChatGPT',
-                            'This is an earlier generation model that has been succeeded by GPT-4 and other newer models',
-                            'Designed for general conversation and text generation tasks'
+                            'Released November 2022 as the foundation model powering the original ChatGPT',
+                            'Represents an earlier AI generation, succeeded by newer models like GPT-4',
+                            'Built primarily for everyday conversation and basic text generation tasks'
                         ]
                     },
                     {
                         title: 'Performance Compared to Other Models',
                         points: [
-                            'GPT-4 shows 40% higher accuracy on factual questions and handles complex tasks better',
-                            'Processes requests quickly but with less sophisticated reasoning than newer models',
-                            'Can work with about 16,000 words of conversation history'
+                            'GPT-4 demonstrates 40% higher accuracy on factual questions and complex reasoning',
+                            'Offers faster response times but with less sophisticated problem-solving abilities',
+                            'Limited conversation memory compared to newer models with larger context windows'
                         ]
                     },
                     {
                         title: 'Capabilities and Limitations',
                         points: [
-                            'Fast responses, free access, handles basic writing and conversation well',
-                            'Training data ends in September 2021, so lacks recent information',
-                            'More prone to factual errors compared to GPT-4 and other current models'
+                            'Quick responses, often available for free, handles basic writing and chat well',
+                            'Training knowledge cutoff in September 2021 means it lacks recent information',
+                            'More likely to make factual errors compared to GPT-4 and other current models'
                         ]
                     }
                 ]
@@ -101,27 +101,27 @@ class ChatApp {
                 generation: '4.0',
                 slides: [
                     {
-                        title: 'Background and Capabilities',
+                        title: 'Background',
                         points: [
-                            'Released March 14, 2023, succeeding GPT-3.5 with multimodal capabilities',
-                            'Can process both text and images, unlike GPT-3.5 which only handled text',
-                            'Demonstrates human-level performance on various professional and academic tests'
+                            'Released March 2023 as OpenAI\'s major advancement beyond GPT-3.5',
+                            'First mainstream model to handle both text and images in conversations',
+                            'Achieved human-level performance on many professional and academic tests'
                         ]
                     },
                     {
-                        title: 'Comparative Performance',
+                        title: 'Performance Compared to Other Models',
                         points: [
-                            'Shows 40% higher accuracy on factual questions and better complex reasoning versus GPT-3.5',
-                            'GPT-4 responds faster but o1-preview performs better on mathematical and scientific problems',
-                            'Functions in 24 languages with better non-English performance than GPT-3.5'
+                            'Shows 40% better accuracy than GPT-3.5 on factual questions and complex reasoning',
+                            'Faster responses than o1-preview but weaker on advanced math and science problems',
+                            'Supports 24 languages with significantly better non-English performance than GPT-3.5'
                         ]
                     },
                     {
-                        title: 'Access and Limitations',
+                        title: 'Capabilities and Limitations',
                         points: [
-                            'Requires ChatGPT Plus subscription or API access',
-                            'Still produces factual errors, though less frequently than GPT-3.5',
-                            'Primary use cases: Complex analysis, image understanding, and professional-level writing tasks'
+                            'Excels at complex analysis, understanding images, and professional-level writing',
+                            'Still produces occasional factual errors, though less frequently than GPT-3.5',
+                            'Requires paid subscription or API access for most uses'
                         ]
                     }
                 ]
@@ -131,27 +131,27 @@ class ChatApp {
                 generation: 'o1',
                 slides: [
                     {
-                        title: 'Background and Approach',
+                        title: 'Background',
                         points: [
-                            'Released September 12, 2024, representing OpenAI\'s new reasoning-focused approach',
-                            'Takes additional time to process problems before responding, unlike faster models',
-                            'Designed specifically for complex reasoning tasks in math, science, and coding'
+                            'Released September 2024 with OpenAI\'s new "thinking before responding" approach',
+                            'Takes extra time to process problems, unlike traditional fast-response models',
+                            'Specifically designed for complex reasoning in math, science, and coding challenges'
                         ]
                     },
                     {
-                        title: 'Comparative Performance',
+                        title: 'Performance Compared to Other Models',
                         points: [
-                            'Performs significantly better on mathematical problems (83% vs 13% success rate versus GPT-4)',
-                            'Ranks in 89th percentile of coding competitions',
-                            'Higher accuracy on complex problems but slower response times and usage restrictions'
+                            'Achieves 83% vs GPT-4\'s 13% success rate on challenging math competition problems',
+                            'Ranks in 89th percentile of competitive programming contests',
+                            'Slower response times and higher costs but superior accuracy on complex problems'
                         ]
                     },
                     {
-                        title: 'Access and Constraints',
+                        title: 'Capabilities and Limitations',
                         points: [
-                            'Limited to 30 messages per week for ChatGPT Plus subscribers',
-                            'More expensive per use than GPT-4 for API access',
-                            'Optimal use cases: Complex mathematical, scientific, and coding problems requiring deep analysis'
+                            'Exceptional performance on mathematical, scientific, and complex coding problems',
+                            'Limited to 30 messages per week for regular users due to computational costs',
+                            'Best suited for research, technical analysis, and problems requiring deep reasoning'
                         ]
                     }
                 ]
@@ -161,27 +161,27 @@ class ChatApp {
                 generation: '3.5',
                 slides: [
                     {
-                        title: 'Background and Position',
+                        title: 'Background',
                         points: [
-                            'Released November 4, 2024, as the newest version of Anthropic\'s fastest model',
-                            'Newest small model in the Claude family, designed for speed and efficiency',
-                            'Training data through July 2024, more recent than other Claude models'
+                            'Released November 2024 as Anthropic\'s newest and fastest model',
+                            'Built to match larger models\' performance while maintaining exceptional speed',
+                            'Features the most recent training data of any Claude model (through July 2024)'
                         ]
                     },
                     {
                         title: 'Performance Compared to Other Models',
                         points: [
-                            'Matches Claude 3 Opus performance on many benchmarks despite being smaller',
-                            'Faster responses but less capable on complex reasoning tasks versus Claude 3.5 Sonnet',
-                            'Scores 40.6% on SWE-bench coding test, competitive with larger models'
+                            'Matches Claude 3 Opus performance on many tasks despite being much smaller',
+                            'Significantly faster than Claude 3.5 Sonnet with competitive capabilities',
+                            'Scores 40.6% on coding benchmarks, outperforming many larger models'
                         ]
                     },
                     {
                         title: 'Capabilities and Limitations',
                         points: [
-                            'Strengths: Fast response times, efficient performance, good for high-volume applications',
-                            'Budget-friendly option in the Claude family while maintaining good performance',
-                            'Best use cases: Customer service, simple coding tasks, rapid data processing'
+                            'Lightning-fast responses ideal for real-time applications and customer service',
+                            'Most cost-effective option in the Claude family while maintaining quality',
+                            'Perfect for high-volume tasks like content moderation and quick data processing'
                         ]
                     }
                 ]
@@ -191,27 +191,27 @@ class ChatApp {
                 generation: '3.5',
                 slides: [
                     {
-                        title: 'Background and Position',
+                        title: 'Background',
                         points: [
-                            'Released June 20, 2024, as the mid-tier model in Anthropic\'s Claude 3.5 family',
-                            'Currently Anthropic\'s most widely used model, balancing capability and cost',
-                            'Updated version released October 22, 2024, with improved performance'
+                            'Released June 2024 as Anthropic\'s balanced mid-tier model, updated in October',
+                            'Most widely-used Claude model, balancing capability with practical efficiency',
+                            'Operates at twice the speed of Claude 3 Opus with similar performance levels'
                         ]
                     },
                     {
                         title: 'Performance Compared to Other Models',
                         points: [
-                            'Operates at twice the speed with competitive performance levels versus Claude 3 Opus',
-                            'More capable on complex tasks but slower response times versus Claude 3.5 Haiku',
-                            'Improved from 33.4% to 49.0% on SWE-bench coding benchmark'
+                            'Twice as fast as Claude 3 Opus while maintaining competitive performance',
+                            'Slower than Claude 3.5 Haiku but handles more complex reasoning tasks',
+                            'Improved coding performance from 33% to 49% on industry benchmarks'
                         ]
                     },
                     {
                         title: 'Capabilities and Limitations',
                         points: [
-                            'Good balance of speed and capability, can process text and images',
-                            '200,000 token context window for processing long documents',
-                            'Mid-tier model offering balanced performance across different task types'
+                            'Well-balanced performance across text, image, and reasoning tasks',
+                            'Large 200,000 token context for processing lengthy documents and conversations',
+                            'Ideal middle-ground choice for most business and creative applications'
                         ]
                     }
                 ]
@@ -221,27 +221,27 @@ class ChatApp {
                 generation: '3.0',
                 slides: [
                     {
-                        title: 'Background and Position',
+                        title: 'Background',
                         points: [
-                            'Released March 4, 2024, as the largest model in Anthropic\'s Claude 3 family',
-                            'This is an earlier generation model that has been succeeded by Claude 3.5 models',
-                            'Built for complex reasoning tasks but with slower response times'
+                            'Released March 2024 as the largest and most capable model in Claude 3 family',
+                            'Represents the previous generation, now succeeded by more efficient 3.5 models',
+                            'Originally designed as the flagship model for the most demanding tasks'
                         ]
                     },
                     {
                         title: 'Performance Compared to Other Models',
                         points: [
-                            'Claude 3.5 Sonnet operates at twice the speed with similar capabilities',
-                            'Newer Haiku model matches Opus performance on many tasks at much lower cost',
-                            'Can work with about 200,000 tokens (roughly 150,000 words) of conversation'
+                            'Claude 3.5 Sonnet achieves similar results at twice the speed and lower cost',
+                            'Claude 3.5 Haiku now matches Opus performance on many benchmarks',
+                            'Still maintains the large 200,000 token context window for extensive conversations'
                         ]
                     },
                     {
                         title: 'Capabilities and Limitations',
                         points: [
-                            'Handles complex reasoning tasks and can process both text and images',
-                            'Slower than newer Claude models despite similar performance levels',
-                            'Higher-tier model but has been superseded by more efficient options'
+                            'Excellent at complex reasoning and can process both text and images',
+                            'Slower response times compared to newer, more efficient Claude models',
+                            'Higher cost with capabilities now available in more efficient alternatives'
                         ]
                     }
                 ]
