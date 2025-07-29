@@ -155,6 +155,36 @@
         <button class="close-button" id="close-image-modal">×</button>
     </div>
 
+    <!-- Error Modal -->
+    <div id="error-modal" class="modal-backdrop" style="display: none;">
+        <div class="error-modal-dialog">
+            <div class="error-modal-header">
+                <h3>⚠️ Connection Error</h3>
+                <button class="error-modal-close" id="error-modal-close">×</button>
+            </div>
+            <div class="error-modal-body">
+                <p>We're experiencing technical difficulties connecting to the AI service.</p>
+                <div class="error-details">
+                    <strong>Error Code:</strong> <span id="error-code">UNKNOWN</span>
+                </div>
+                <div class="error-instructions">
+                    <p><strong>What to do:</strong></p>
+                    <ol>
+                        <li>Please take a screenshot of this error</li>
+                        <li>Contact us through Prolific messaging</li>
+                        <li>Include your Participant ID: <strong id="error-participant-id">N/A</strong></li>
+                        <li>Include the error code shown above</li>
+                    </ol>
+                    <p class="error-note">We'll resolve this quickly and ensure you're compensated for your time.</p>
+                </div>
+            </div>
+            <div class="error-modal-footer">
+                <button id="error-try-again" class="error-button error-primary">Try Again</button>
+                <button id="error-close" class="error-button error-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script src="chat.js"></script>
 </body>
 

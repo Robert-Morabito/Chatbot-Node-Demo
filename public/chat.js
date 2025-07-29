@@ -812,11 +812,114 @@ class ChatApp {
         messagesContainer.innerHTML = `
             <div class="welcome-message">
                 <div class="welcome-content">
-                    <h2>Welcome to ChatBot</h2>
+                    <h2>Welcome!</h2>
                     <p>Start a conversation with <strong>${this.config.givenModel}</strong></p>
                 </div>
             </div>
         `;
+    }
+
+    showErrorModal(error, context = 'chat') {
+        console.error('🚨 Showing error modal:', error);
+
+        const modal = document.getElementById('error-modal');
+        const errorCodeSpan = document.getElementById('error-code');
+        const participantIdSpan = document.getElementById('error-participant-id');
+
+        // Generate error code based on error type and context
+        let errorCode = 'UNKNOWN';
+        if (error.status) {
+            errorCode = `HTTP_${error.status}`;
+        } else if (error.message) {
+            if (error.message.includes('fetch')) {
+                errorCode = 'NETWORK_ERROR';
+            } else if (error.message.includes('JSON')) {
+                errorCode = 'PARSE_ERROR';
+            } else if (error.message.includes('timeout')) {
+                errorCode = 'TIMEOUT_ERROR';
+            } else {
+                errorCode = 'API_ERROR';
+            }
+        }
+
+        // Add context and timestamp
+        const timestamp = new Date().toISOString().substring(0, 19).replace('T', '_');
+        errorCode += `_${context.toUpperCase()}_${timestamp}`;
+
+        // Update modal content
+        errorCodeSpan.textContent = errorCode;
+        participantIdSpan.textContent = this.participantId || 'Not Set';
+
+        // Show modal
+        modal.style.display = 'flex';
+
+        // Setup event listeners
+        this.setupErrorModalListeners();
+    }
+
+    hideErrorModal() {
+        const modal = document.getElementById('error-modal');
+        modal.style.display = 'none';
+    }
+
+    setupErrorModalListeners() {
+        // Prevent multiple listeners
+        const closeBtn = document.getElementById('error-modal-close');
+        const closeBtn2 = document.getElementById('error-close');
+        const tryAgainBtn = document.getElementById('error-try-again');
+
+        // Remove existing listeners
+        closeBtn.onclick = null;
+        closeBtn2.onclick = null;
+        tryAgainBtn.onclick = null;
+
+        // Add new listeners
+        closeBtn.onclick = () => this.hideErrorModal();
+        closeBtn2.onclick = () => this.hideErrorModal();
+        tryAgainBtn.onclick = () => {
+            this.hideErrorModal();
+            // Retry the last message
+            if (this.currentChatlog.length > 0) {
+                const lastMessage = this.currentChatlog[this.currentChatlog.length - 1];
+                if (lastMessage.sender === 'User') {
+                    this.showTypingIndicator();
+                    setTimeout(() => this.getLLMResponse(), 500);
+                }
+            }
+        };
+
+        // Close on backdrop click
+        const modal = document.getElementById('error-modal');
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                this.hideErrorModal();
+            }
+        };
+    }
+
+    // Enhanced error parsing
+    parseError(error) {
+        let errorInfo = {
+            message: 'Unknown error occurred',
+            status: null,
+            context: {}
+        };
+
+        if (error.response) {
+            // HTTP error response
+            errorInfo.status = error.response.status;
+            errorInfo.message = `HTTP ${error.response.status}: ${error.response.statusText}`;
+            errorInfo.context.url = error.response.url;
+        } else if (error.message) {
+            errorInfo.message = error.message;
+            if (error.message.includes('Failed to fetch')) {
+                errorInfo.context.type = 'network';
+            } else if (error.message.includes('JSON')) {
+                errorInfo.context.type = 'parsing';
+            }
+        }
+
+        return errorInfo;
     }
 
     sendMessage() {
@@ -1149,14 +1252,19 @@ class ChatApp {
             console.log('📡 [NEW] Response status:', response.status);
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                // Handle HTTP errors with detailed error modal
+                const errorText = await response.text();
+                const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
+                error.status = response.status;
+                error.responseText = errorText;
+                throw error;
             }
 
             // Process the stream
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
 
-            let botMsg = null;  // Don't create the message until we know what type it is
+            let botMsg = null;
             let botMsgId = null;
             let fullResponse = '';
             let isImageGeneration = false;
@@ -1175,14 +1283,20 @@ class ChatApp {
                             const data = JSON.parse(line.slice(6));
                             console.log('📦 [NEW] Stream data:', data.type);
 
+                            if (data.type === 'error') {
+                                // Handle stream errors
+                                const error = new Error(data.error || 'Stream error occurred');
+                                error.context = 'stream';
+                                throw error;
+                            }
+
                             if (data.type === 'image_request_detected') {
                                 console.log('🎨 [NEW] Image request detected - showing generation indicator');
                                 isImageGeneration = true;
                                 this.showImageGenerationIndicator();
 
                             } else if (data.type === 'content') {
-                                // If this is the first content and we haven't detected image generation,
-                                // create the bot message now
+                                // Handle content normally...
                                 if (!botMsg && !isImageGeneration) {
                                     botMsgId = ++this.messageIdCounter;
                                     botMsg = {
@@ -1195,7 +1309,6 @@ class ChatApp {
                                     this.renderMessage(botMsg);
                                 }
 
-                                // Update the message content (only for non-image responses)
                                 if (botMsg && !isImageGeneration) {
                                     fullResponse = data.fullContent;
                                     botMsg.content = fullResponse;
@@ -1211,10 +1324,8 @@ class ChatApp {
                                     }
                                     this.scrollToBottom();
                                 } else if (isImageGeneration) {
-                                    // For image generation, hide the indicator and create the message
                                     this.hideImageGenerationIndicator();
 
-                                    // Create the bot message with the image content
                                     botMsgId = ++this.messageIdCounter;
                                     botMsg = {
                                         msg_id: botMsgId,
@@ -1225,7 +1336,6 @@ class ChatApp {
                                     this.currentChatlog.push(botMsg);
                                     this.renderMessage(botMsg);
 
-                                    // Update image context if this is an image response
                                     if (data.imageUrl) {
                                         this.imageContext.lastPrompt = data.imagePrompt;
                                         this.imageContext.lastImageUrl = data.imageUrl;
@@ -1240,6 +1350,7 @@ class ChatApp {
                             }
                         } catch (parseError) {
                             console.error('❌ [NEW] JSON parse error:', parseError);
+                            // Continue processing other lines
                         }
                     }
                 }
@@ -1252,17 +1363,8 @@ class ChatApp {
             this.hideTypingIndicator();
             this.hideImageGenerationIndicator();
 
-            // Show error message
-            const errorMsgId = ++this.messageIdCounter;
-            const errorMsg = {
-                msg_id: errorMsgId,
-                sender: 'Bot',
-                content: `Sorry, I encountered an error: ${error.message}`,
-                timestamp: new Date()
-            };
-
-            this.currentChatlog.push(errorMsg);
-            this.renderMessage(errorMsg);
+            // Show error modal instead of chat error message
+            this.showErrorModal(error, 'chat');
         }
     }
 
@@ -1471,7 +1573,6 @@ class ChatApp {
         try {
             console.log('🔵 Starting save to server...');
 
-            // Calculate final metrics
             const behaviorMetrics = this.calculateFinalMetrics();
 
             const saveData = {
@@ -1484,14 +1585,8 @@ class ChatApp {
                     actualModel: this.config.trueModel,
                     configurationId: this.configurationId
                 },
-                behaviorMetrics: behaviorMetrics  // Add behavioral metrics here
+                behaviorMetrics: behaviorMetrics
             };
-
-            console.log('📦 Save data prepared:', {
-                participantId: saveData.participantId,
-                conversationCount: Object.keys(saveData.conversations).length,
-                sessionId: saveData.sessionId
-            });
 
             const response = await fetch('/api/save', {
                 method: 'POST',
@@ -1505,11 +1600,13 @@ class ChatApp {
                 console.log('✅ Save successful:', result);
                 return result;
             } else {
-                console.error('❌ Save failed:', result);
-                throw new Error(result.error || 'Save failed');
+                const error = new Error(result.error || 'Save failed');
+                error.status = response.status;
+                throw error;
             }
         } catch (error) {
             console.error('❌ Error saving to server:', error);
+            this.showErrorModal(error, 'save');
             throw error;
         }
     }
@@ -1974,7 +2071,7 @@ class ChatApp {
 
     updateBotName() {
         // Update main title (clean, no participant ID)
-        document.getElementById('bot-name').textContent = `Connected to ${this.config.displayName}`;
+        document.getElementById('bot-name').textContent = `Currently Chatting with ${this.config.displayName}`;
 
         // Update participant ID in header
         document.getElementById('header-participant-id').textContent = this.participantId;

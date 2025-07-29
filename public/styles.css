@@ -1117,6 +1117,207 @@ body.light-theme {
     color: rgba(55, 65, 81, 0.8);
 }
 
+/* Error Modal Styles */
+.error-modal-dialog {
+    background: var(--main-bg-dark);
+    color: var(--text-dark);
+    border-radius: 12px;
+    max-width: 500px;
+    width: 90%;
+    margin: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 2px solid #ef4444;
+    animation: errorModalSlideIn 0.3s ease-out;
+    overflow: hidden;
+}
+
+.light-theme .error-modal-dialog {
+    background: var(--main-bg-light);
+    color: var(--text-light);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.error-modal-header {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.error-modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.error-modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.3s ease;
+}
+
+.error-modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.error-modal-body {
+    padding: 1.5rem;
+}
+
+.error-modal-body>p {
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.error-details {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 6px;
+    padding: 1rem;
+    margin: 1rem 0;
+    font-family: monospace;
+}
+
+.light-theme .error-details {
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.error-details strong {
+    color: #ef4444;
+}
+
+.error-instructions {
+    margin-top: 1.5rem;
+}
+
+.error-instructions p {
+    margin: 0.5rem 0;
+    font-weight: 600;
+}
+
+.error-instructions ol {
+    margin: 0.75rem 0;
+    padding-left: 1.25rem;
+}
+
+.error-instructions li {
+    margin: 0.5rem 0;
+    line-height: 1.4;
+}
+
+.error-note {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    color: #10b981 !important;
+    font-style: italic;
+}
+
+.light-theme .error-note {
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.error-modal-footer {
+    background: var(--hover-dark);
+    padding: 1rem 1.5rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.light-theme .error-modal-footer {
+    background: var(--hover-light);
+}
+
+.error-button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.error-primary {
+    background: #ef4444;
+    color: white;
+}
+
+.error-primary:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+.error-secondary {
+    background: transparent;
+    color: var(--text-dark);
+    border: 1px solid var(--border-dark);
+}
+
+.light-theme .error-secondary {
+    color: var(--text-light);
+    border-color: var(--border-light);
+}
+
+.error-secondary:hover {
+    background: var(--hover-dark);
+    transform: translateY(-1px);
+}
+
+.light-theme .error-secondary:hover {
+    background: var(--hover-light);
+}
+
+@keyframes errorModalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .error-modal-dialog {
+        width: 95%;
+        margin: 10px;
+    }
+
+    .error-modal-body {
+        padding: 1rem;
+    }
+
+    .error-modal-footer {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .error-button {
+        width: 100%;
+    }
+}
+
 /* Message Components */
 .message {
     display: flex;
