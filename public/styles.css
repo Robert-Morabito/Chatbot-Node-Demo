@@ -33,11 +33,11 @@
     --shadow-light: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 
     /* Layout Variables for Dynamic Sizing */
-    --sidebar-width: clamp(240px, 25vw, 320px);
+    --sidebar-width: 280px;
     --sidebar-collapsed-width: 60px;
     --header-height: clamp(60px, 8vh, 80px);
     --input-area-height: auto;
-    --max-content-width: min(800px, 90vw);
+    --max-content-width: 800px;
     
     /* Responsive Breakpoints */
     --mobile-breakpoint: 768px;
@@ -517,8 +517,10 @@ body.light-theme {
 }
 
 .welcome-modal-content {
-    max-width: min(1000px, 105vw);
-    max-height: min(85vh, 700px);
+    max-width: min(900px, 90vw);
+    max-height: min(90vh, 800px);
+    width: 90vw;
+    height: 80vh;
     padding: clamp(1.5rem, 4vw, 2rem);
     display: flex;
     flex-direction: column;
@@ -550,7 +552,7 @@ body.light-theme {
 
 .welcome-content-container {
     position: relative;
-    min-height: clamp(350px, 60vh, 500px);
+    min-height: 400px;
     overflow: hidden;
     flex: 1;
     border-radius: 0.5rem;
@@ -1812,8 +1814,8 @@ body.light-theme {
 /* Tablet and Small Desktop */
 @media (max-width: 1024px) {
     :root {
-        --sidebar-width: clamp(220px, 22vw, 280px);
-        --max-content-width: min(700px, 95vw);
+        --sidebar-width: 260px;
+        --max-content-width: 700px;
     }
 
     .header {
@@ -1957,13 +1959,15 @@ body.light-theme {
 
     /* Welcome Modal */
     .welcome-modal-content {
-        max-width: 95vw;
-        max-height: 85vh;
+        width: 95vw;
+        height: 85vh;
+        max-width: none;
+        max-height: none;
         padding: 1.25rem;
     }
 
     .welcome-content-container {
-        min-height: 15.625rem;
+        min-height: 300px;
     }
 
     .welcome-navigation {
