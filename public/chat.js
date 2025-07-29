@@ -262,6 +262,69 @@ class ChatApp {
         this.setupWelcomeEventListeners();
     }
 
+    renderWelcomeStep(stepIndex) {
+        if (this.isTransitioning) return;
+        this.isTransitioning = true;
+
+        const stage = document.getElementById('content-stage');
+        const currentPanel = stage.querySelector('.content-panel.active');
+        const step = this.welcomeSteps[stepIndex];
+
+        // Update progress
+        this.updateWelcomeProgress(stepIndex);
+
+        // Create new panel
+        const newPanel = document.createElement('div');
+        newPanel.className = 'content-panel';
+        newPanel.innerHTML = step.content;
+        stage.appendChild(newPanel);
+
+        // Animate transition
+        if (currentPanel) {
+            currentPanel.classList.add('exit-left');
+            setTimeout(() => {
+                currentPanel.remove();
+            }, 600);
+        }
+
+        // Show new panel
+        requestAnimationFrame(() => {
+            newPanel.classList.add('active');
+            this.isTransitioning = false;
+
+            // Setup step-specific functionality
+            if (step.id === 'prolific-id') {
+                this.setupProlificValidation();
+            } else {
+                // Start timer for other steps
+                this.startStepTimer();
+            }
+        });
+
+        // Update navigation
+        this.updateWelcomeNavigation(stepIndex);
+    }
+
+    startStepTimer() {
+        const navigation = document.querySelector('.navigation-system');
+        const timerOverlay = document.createElement('div');
+        timerOverlay.className = 'timer-overlay';
+        timerOverlay.innerHTML = `
+        <div class="timer-icon"></div>
+        <span>Reading...</span>
+    `;
+
+        // Hide navigation and show timer
+        navigation.classList.remove('visible');
+        document.querySelector('.welcome-container').appendChild(timerOverlay);
+
+        // Show navigation after 4 seconds
+        setTimeout(() => {
+            timerOverlay.remove();
+            navigation.classList.add('visible');
+        }, 4000);
+    }
+
     buildWelcomeSteps() {
         const displayName = this.config?.displayName || 'GPT-4';
         const modelInfo = this.modelDescriptions[displayName] || this.modelDescriptions['GPT-4'];
@@ -277,15 +340,15 @@ class ChatApp {
                     <p class="content-subtitle">Thank you for participating in this important research</p>
                     <div class="content-body">
                         <div class="info-grid">
-                            <div class="info-item">
+                            <div class="info-item floating-element" style="animation-delay: 0.1s">
                                 <h4>Study Requirements</h4>
                                 <p>Complete all tasks in the provided Tally survey alongside this conversation interface.</p>
                             </div>
-                            <div class="info-item">
+                            <div class="info-item floating-element" style="animation-delay: 0.2s">
                                 <h4>Important Information</h4>
                                 <p>The following screens contain essential details about your AI conversation partner.</p>
                             </div>
-                            <div class="info-item">
+                            <div class="info-item floating-element" style="animation-delay: 0.3s">
                                 <h4>Study Completion</h4>
                                 <p>Click "Finish" when done to download your data and complete the study.</p>
                             </div>
@@ -304,7 +367,7 @@ class ChatApp {
                     <h1 class="content-title">Meet ${displayName}</h1>
                     <p class="content-subtitle">Your conversation partner for this study</p>
                     <div class="model-hero">
-                        <div class="model-avatar">${displayName.charAt(0)}</div>
+                        <div class="model-avatar floating-element">${displayName.charAt(0)}</div>
                         <div class="model-info">
                             <h3>${displayName}</h3>
                             <p>Released ${modelInfo.year} • Advanced AI Language Model</p>
@@ -328,7 +391,7 @@ class ChatApp {
                     <div class="info-grid">
                         ${modelInfo.slides[0].points.map((point, index) => `
                             <div class="info-item" style="animation: fadeInUp 0.6s ease-out ${index * 0.1}s both">
-                                <h4>Key Insight ${index + 1}</h4>
+                                <h4>Development Insight ${index + 1}</h4>
                                 <p>${point}</p>
                             </div>
                         `).join('')}
@@ -357,7 +420,7 @@ class ChatApp {
             `
             },
 
-            // Step 5: Capabilities
+            // Step 5: Capabilities - Updated with color coding
             {
                 id: 'capabilities',
                 title: 'What to Expect',
@@ -367,11 +430,11 @@ class ChatApp {
                     <p class="content-subtitle">Strengths, considerations, and optimal use cases</p>
                     <div class="feature-grid">
                         ${modelInfo.slides[2].points.map((point, index) => {
+                    const types = ['strength', 'consideration', 'use-case'];
                     const titles = ['Strengths', 'Considerations', 'Best Applications'];
-                    const icons = ['✨', '⚠', '🎯'];
                     return `
-                                <div class="feature-card" style="animation: scaleIn 0.6s ease-out ${index * 0.2}s both">
-                                    <div class="feature-icon">${icons[index]}</div>
+                                <div class="feature-card ${types[index]}" style="animation: scaleIn 0.6s ease-out ${index * 0.2}s both">
+                                    <div class="feature-indicator"></div>
                                     <h4>${titles[index]}</h4>
                                     <p>${point}</p>
                                 </div>
