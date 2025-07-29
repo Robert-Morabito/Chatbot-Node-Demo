@@ -10,42 +10,41 @@
 </head>
 
 <body>
-    <!-- Welcome Flow Modal -->
-    <div id="welcome-modal" class="modal">
-        <div class="modal-content welcome-modal-content">
-            <h2 id="welcome-title">Welcome to the Study</h2>
-
-            <!-- Content Container with persistent header -->
-            <div class="welcome-content-container">
-                <!-- Persistent header that doesn't slide -->
-                <div id="welcome-persistent-header" class="welcome-persistent-header" style="display: none;">
-                    <!-- Model name and year will be inserted here -->
+    <!-- Sophisticated Welcome Experience -->
+    <div id="welcome-experience" class="welcome-experience">
+        <div class="welcome-backdrop"></div>
+        <div class="welcome-container">
+            <!-- Progress System -->
+            <div class="progress-system">
+                <div class="progress-track">
+                    <div class="progress-indicator" id="progress-indicator"></div>
                 </div>
-
-                <!-- Sliding content area -->
-                <div class="welcome-slide-area">
-                    <div id="welcome-content" class="welcome-slide-content active">
-                        <!-- Content will be dynamically inserted here -->
-                    </div>
+                <div class="progress-counter">
+                    <span id="current-step">1</span>
+                    <span class="step-separator">/</span>
+                    <span id="total-steps">6</span>
                 </div>
             </div>
 
-            <!-- Navigation and Timer -->
-            <div class="welcome-navigation">
-                <button id="welcome-back-btn" class="welcome-nav-btn secondary" style="display: none;">← Back</button>
-
-                <div class="welcome-timer-container">
-                    <div id="welcome-progress-bar" class="progress-bar" style="display: none;">
-                        <div class="progress-fill"></div>
-                    </div>
-                </div>
-
-                <button id="welcome-continue-btn" class="welcome-nav-btn primary">Continue</button>
+            <!-- Content Container -->
+            <div class="content-stage" id="content-stage">
+                <!-- Content will be dynamically inserted -->
             </div>
 
-            <!-- Progress indicators -->
-            <div class="welcome-progress-dots">
-                <!-- Dots will be dynamically generated -->
+            <!-- Navigation System -->
+            <div class="navigation-system">
+                <button id="nav-back" class="nav-button nav-secondary" disabled>
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+                    </svg>
+                    Back
+                </button>
+                <button id="nav-continue" class="nav-button nav-primary">
+                    Continue
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z" />
+                    </svg>
+                </button>
             </div>
         </div>
     </div>
