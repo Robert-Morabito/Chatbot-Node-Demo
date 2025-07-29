@@ -305,23 +305,19 @@ class ChatApp {
         const displayName = this.config?.displayName || 'GPT-4';
         const modelInfo = this.modelDescriptions[displayName] || this.modelDescriptions['GPT-4'];
 
-        // Add engaging model intro step
+        // Add elegant model intro step
         this.welcomeState.steps.push({
             type: 'model-intro',
             title: 'Meet Your AI Partner',
             content: `
             <div class="model-intro-card">
-                <div class="model-avatar">
-                    <div class="avatar-circle">
-                        <span class="avatar-text">${displayName.charAt(0)}</span>
+                <div class="model-intro-content">
+                    <div class="intro-header">
+                        <h3>You'll be chatting with ${displayName}</h3>
+                        <p class="model-tagline">Understanding your AI partner creates better conversations</p>
                     </div>
-                </div>
-                <div class="model-intro-text">
-                    <h3>You'll be chatting with ${displayName}</h3>
-                    <p class="model-tagline">Understanding your AI partner helps create better conversations</p>
-                    <div class="intro-highlight">
-                        <span class="highlight-icon">💡</span>
-                        <span>The next few slides contain key insights about ${displayName} that will help you get the most out of your conversation.</span>
+                    <div class="intro-message">
+                        <p>The following information will help you have more effective conversations during the study.</p>
                     </div>
                 </div>
             </div>
@@ -332,22 +328,22 @@ class ChatApp {
             persistentHeaderContent: `${displayName} (${modelInfo.year})`
         });
 
-        // Transform slides into engaging story format
+        // Transform slides into refined story format
         modelInfo.slides.forEach((slide, slideIndex) => {
             let enhancedContent = '';
 
             if (slideIndex === 0) {
                 // First slide - Background/Capabilities
                 enhancedContent = `
-                <div class="story-slide">
+                <div class="info-slide">
                     <div class="slide-header">
-                        <span class="slide-number">${slideIndex + 1}</span>
-                        <h3>The Story Behind ${displayName}</h3>
+                        <div class="slide-indicator">${slideIndex + 1}</div>
+                        <h3>Background</h3>
                     </div>
-                    <div class="story-content">
+                    <div class="slide-content">
                         ${slide.points.map((point, i) => `
-                            <div class="story-point ${i === 0 ? 'featured' : ''}">
-                                <div class="point-icon">${i === 0 ? '🚀' : i === 1 ? '🎯' : '⚡'}</div>
+                            <div class="info-point ${i === 0 ? 'primary' : ''}">
+                                <div class="point-marker"></div>
                                 <p>${point}</p>
                             </div>
                         `).join('')}
@@ -356,19 +352,18 @@ class ChatApp {
             } else if (slideIndex === 1) {
                 // Second slide - Performance comparison
                 enhancedContent = `
-                <div class="story-slide">
+                <div class="info-slide">
                     <div class="slide-header">
-                        <span class="slide-number">${slideIndex + 1}</span>
-                        <h3>How ${displayName} Compares</h3>
+                        <div class="slide-indicator">${slideIndex + 1}</div>
+                        <h3>Performance Comparison</h3>
                     </div>
-                    <div class="story-content">
+                    <div class="slide-content">
                         <div class="comparison-intro">
-                            <span class="comparison-icon">📊</span>
-                            <p>Here's how ${displayName} stacks up in the AI landscape:</p>
+                            <p>How ${displayName} compares to other AI models:</p>
                         </div>
                         ${slide.points.map((point, i) => `
-                            <div class="story-point">
-                                <div class="point-icon">${i === 0 ? '🏆' : i === 1 ? '⚡' : '🌍'}</div>
+                            <div class="info-point">
+                                <div class="point-marker"></div>
                                 <p>${point}</p>
                             </div>
                         `).join('')}
@@ -377,21 +372,21 @@ class ChatApp {
             } else {
                 // Third slide - Capabilities and limitations
                 enhancedContent = `
-                <div class="story-slide">
+                <div class="info-slide">
                     <div class="slide-header">
-                        <span class="slide-number">${slideIndex + 1}</span>
-                        <h3>What to Expect from ${displayName}</h3>
+                        <div class="slide-indicator">${slideIndex + 1}</div>
+                        <h3>What to Expect</h3>
                     </div>
-                    <div class="story-content">
-                        <div class="expectations-grid">
-                            ${slide.points.map((point, i) => `
-                                <div class="expectation-card ${i === 0 ? 'strengths' : i === 1 ? 'considerations' : 'use-cases'}">
-                                    <div class="card-icon">${i === 0 ? '✨' : i === 1 ? '⚠️' : '🎯'}</div>
-                                    <div class="card-label">${i === 0 ? 'Strengths' : i === 1 ? 'Keep in Mind' : 'Best For'}</div>
-                                    <p>${point}</p>
+                    <div class="slide-content">
+                        ${slide.points.map((point, i) => `
+                            <div class="expectation-item ${i === 0 ? 'strengths' : i === 1 ? 'considerations' : 'applications'}">
+                                <div class="expectation-header">
+                                    <div class="expectation-marker ${i === 0 ? 'strength' : i === 1 ? 'consideration' : 'application'}"></div>
+                                    <span class="expectation-label">${i === 0 ? 'Strengths' : i === 1 ? 'Considerations' : 'Best Applications'}</span>
                                 </div>
-                            `).join('')}
-                        </div>
+                                <p>${point}</p>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>`;
             }
@@ -407,27 +402,28 @@ class ChatApp {
             });
         });
 
-        // Add a completion/ready step before Prolific ID
+        // Add completion step
         this.welcomeState.steps.push({
             type: 'model-ready',
             title: 'Ready to Begin',
             content: `
             <div class="ready-section">
-                <div class="ready-icon">🎉</div>
-                <h3>You're all set!</h3>
-                <p class="ready-message">You now know the key details about ${displayName}. This knowledge will help you have more effective conversations during the study.</p>
-                <div class="ready-summary">
-                    <div class="summary-item">
-                        <span class="summary-icon">🤖</span>
-                        <span>AI Partner: ${displayName}</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="summary-icon">📅</span>
-                        <span>Released: ${modelInfo.year}</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="summary-icon">🎯</span>
-                        <span>Ready for conversation</span>
+                <div class="ready-content">
+                    <h3>You're ready to start</h3>
+                    <p class="ready-message">You now understand the key aspects of ${displayName} that will help you have more effective conversations.</p>
+                    <div class="ready-summary">
+                        <div class="summary-row">
+                            <span class="summary-label">AI Partner</span>
+                            <span class="summary-value">${displayName}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Released</span>
+                            <span class="summary-value">${modelInfo.year}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Status</span>
+                            <span class="summary-value">Ready</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -437,29 +433,28 @@ class ChatApp {
             showPersistentHeader: false
         });
 
-        // Add Prolific ID step LAST with better styling
+        // Add refined Prolific ID step
         this.welcomeState.steps.push({
             type: 'prolific-id',
-            title: 'Let\'s Get Started',
+            title: 'Enter Your ID',
             content: `
-            <div class="prolific-id-section">
-                <div class="id-entry-card">
-                    <div class="entry-header">
-                        <span class="entry-icon">🆔</span>
+            <div class="prolific-section">
+                <div class="id-entry-form">
+                    <div class="form-header">
                         <h3>Enter Your Prolific ID</h3>
+                        <p class="form-description">We'll use this to connect your responses with the study.</p>
                     </div>
-                    <p class="entry-description">We'll use this to link your responses with the study.</p>
-                    <div class="input-container">
+                    <div class="input-group">
                         <input type="text" 
                             id="prolific-id-input" 
                             class="prolific-id-input" 
                             placeholder="24-character Prolific ID" 
                             maxlength="24"
                             autocomplete="off">
+                        <div class="input-underline"></div>
                     </div>
                     <div id="prolific-id-error" class="error-message"></div>
-                    <div class="id-help">
-                        <span class="help-icon">💡</span>
+                    <div class="form-help">
                         <span>Your ID should be exactly 24 characters (letters and numbers only)</span>
                     </div>
                 </div>

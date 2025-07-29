@@ -2144,102 +2144,77 @@ textarea:focus-visible {
 }
 
 /* ===================================================================
-   16. ENHANCED MODEL INTRODUCTION STYLES
+   16. REFINED MODEL INTRODUCTION STYLES
    ================================================================= */
 
-/* Enhanced Model Introduction Styles */
+/* Model Introduction Card */
 .model-intro-card {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 1.875rem;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    padding: 2rem;
+    background: linear-gradient(135deg, rgba(56, 139, 253, 0.08) 0%, rgba(56, 139, 253, 0.03) 100%);
     border-radius: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    margin: 1.25rem 0;
+    border: 1px solid rgba(56, 139, 253, 0.15);
+    animation: slideInFade 0.6s ease-out;
 }
 
 .light-theme .model-intro-card {
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.03) 0%, rgba(0, 0, 0, 0.01) 100%);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, rgba(56, 139, 253, 0.05) 0%, rgba(56, 139, 253, 0.02) 100%);
+    border: 1px solid rgba(56, 139, 253, 0.12);
 }
 
-.model-avatar {
-    flex-shrink: 0;
+.model-intro-content {
+    text-align: center;
 }
 
-.avatar-circle {
-    width: 5rem;
-    height: 5rem;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--user-msg-bg-dark) 0%, #1d4ed8 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0.5rem 1.5rem rgba(37, 99, 235, 0.3);
-}
-
-.light-theme .avatar-circle {
-    background: linear-gradient(135deg, var(--user-msg-bg-light) 0%, #3b82f6 100%);
-}
-
-.avatar-text {
-    font-size: 2rem;
-    font-weight: bold;
-    color: white;
-    text-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
-}
-
-.model-intro-text h3 {
-    margin: 0 0 0.5rem 0;
+.intro-header h3 {
+    margin: 0 0 0.75rem 0;
     font-size: 1.5rem;
     font-weight: 600;
     color: var(--text-dark);
+    animation: fadeInUp 0.6s ease-out 0.2s both;
 }
 
-.light-theme .model-intro-text h3 {
+.light-theme .intro-header h3 {
     color: var(--text-light);
 }
 
 .model-tagline {
-    margin: 0 0 1.25rem 0;
+    margin: 0 0 1.5rem 0;
     font-size: 1rem;
     color: var(--text-secondary-dark);
     font-style: italic;
+    animation: fadeInUp 0.6s ease-out 0.4s both;
 }
 
 .light-theme .model-tagline {
     color: var(--text-secondary-light);
 }
 
-.intro-highlight {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 1rem;
-    background: rgba(16, 185, 129, 0.1);
-    border-radius: 0.75rem;
-    border-left: 0.25rem solid #10b981;
+.intro-message {
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 0.5rem;
+    border-left: 3px solid rgba(56, 139, 253, 0.6);
+    animation: fadeInUp 0.6s ease-out 0.6s both;
 }
 
-.highlight-icon {
-    font-size: 1.25rem;
-    flex-shrink: 0;
-    margin-top: 0.125rem;
+.light-theme .intro-message {
+    background: rgba(0, 0, 0, 0.03);
 }
 
-.intro-highlight span:last-child {
+.intro-message p {
+    margin: 0;
     color: var(--text-dark);
     line-height: 1.5;
 }
 
-.light-theme .intro-highlight span:last-child {
+.light-theme .intro-message p {
     color: var(--text-light);
 }
 
-/* Story Slide Styles */
-.story-slide {
+/* Information Slides */
+.info-slide {
     padding: 0;
+    animation: slideInFade 0.6s ease-out;
 }
 
 .slide-header {
@@ -2248,29 +2223,26 @@ textarea:focus-visible {
     gap: 1rem;
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
-    border-bottom: 0.125rem solid rgba(255, 255, 255, 0.1);
+    border-bottom: 2px solid rgba(56, 139, 253, 0.15);
 }
 
 .light-theme .slide-header {
-    border-bottom-color: rgba(0, 0, 0, 0.1);
+    border-bottom-color: rgba(56, 139, 253, 0.12);
 }
 
-.slide-number {
+.slide-indicator {
     width: 2rem;
     height: 2rem;
     border-radius: 50%;
-    background: var(--user-msg-bg-dark);
+    background: linear-gradient(135deg, rgba(56, 139, 253, 1) 0%, rgba(29, 78, 216, 1) 100%);
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
+    font-weight: 600;
     font-size: 0.875rem;
     flex-shrink: 0;
-}
-
-.light-theme .slide-number {
-    background: var(--user-msg-bg-light);
+    animation: scaleIn 0.4s ease-out 0.2s both;
 }
 
 .slide-header h3 {
@@ -2278,20 +2250,21 @@ textarea:focus-visible {
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--text-dark);
+    animation: fadeInLeft 0.6s ease-out 0.3s both;
 }
 
 .light-theme .slide-header h3 {
     color: var(--text-light);
 }
 
-/* Story Points */
-.story-content {
+/* Information Points */
+.slide-content {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-.story-point {
+.info-point {
     display: flex;
     align-items: flex-start;
     gap: 1rem;
@@ -2300,53 +2273,50 @@ textarea:focus-visible {
     border-radius: 0.75rem;
     border: 1px solid rgba(255, 255, 255, 0.08);
     transition: all 0.3s ease;
+    animation: fadeInUp 0.5s ease-out both;
 }
 
-.light-theme .story-point {
+.light-theme .info-point {
     background: rgba(0, 0, 0, 0.02);
     border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-.story-point.featured {
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
-    border-color: rgba(37, 99, 235, 0.2);
+.info-point:nth-child(1) { animation-delay: 0.1s; }
+.info-point:nth-child(2) { animation-delay: 0.2s; }
+.info-point:nth-child(3) { animation-delay: 0.3s; }
+
+.info-point.primary {
+    background: linear-gradient(135deg, rgba(56, 139, 253, 0.08) 0%, rgba(56, 139, 253, 0.03) 100%);
+    border-color: rgba(56, 139, 253, 0.2);
 }
 
-.point-icon {
-    font-size: 1.5rem;
+.point-marker {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: rgba(56, 139, 253, 0.8);
     flex-shrink: 0;
-    margin-top: 0.125rem;
+    margin-top: 0.5rem;
 }
 
-.story-point p {
+.info-point p {
     margin: 0;
     line-height: 1.6;
     color: var(--text-dark);
 }
 
-.light-theme .story-point p {
+.light-theme .info-point p {
     color: var(--text-light);
 }
 
 /* Comparison Section */
 .comparison-intro {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
     margin-bottom: 1.25rem;
     padding: 1rem;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(56, 139, 253, 0.05);
     border-radius: 0.5rem;
-    border-left: 0.25rem solid var(--user-msg-bg-dark);
-}
-
-.light-theme .comparison-intro {
-    background: rgba(0, 0, 0, 0.03);
-    border-left-color: var(--user-msg-bg-light);
-}
-
-.comparison-icon {
-    font-size: 1.25rem;
+    border-left: 3px solid rgba(56, 139, 253, 0.6);
+    animation: fadeInUp 0.5s ease-out;
 }
 
 .comparison-intro p {
@@ -2359,90 +2329,97 @@ textarea:focus-visible {
     color: var(--text-light);
 }
 
-/* Expectations Grid */
-.expectations-grid {
-    display: grid;
-    gap: 1rem;
-}
-
-.expectation-card {
+/* Expectation Items */
+.expectation-item {
     padding: 1.25rem;
     border-radius: 0.75rem;
-    border-left: 0.25rem solid;
-    position: relative;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.5s ease-out both;
 }
 
-.expectation-card.strengths {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
-    border-left-color: #10b981;
+.expectation-item:nth-child(1) { animation-delay: 0.1s; }
+.expectation-item:nth-child(2) { animation-delay: 0.2s; }
+.expectation-item:nth-child(3) { animation-delay: 0.3s; }
+
+.expectation-item.strengths {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(34, 197, 94, 0.03) 100%);
+    border-left: 3px solid rgba(34, 197, 94, 0.6);
 }
 
-.expectation-card.considerations {
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
-    border-left-color: #f59e0b;
+.expectation-item.considerations {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(251, 191, 36, 0.03) 100%);
+    border-left: 3px solid rgba(251, 191, 36, 0.6);
 }
 
-.expectation-card.use-cases {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0.05) 100%);
-    border-left-color: #6366f1;
+.expectation-item.applications {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(139, 92, 246, 0.03) 100%);
+    border-left: 3px solid rgba(139, 92, 246, 0.6);
 }
 
-.card-icon {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
+.expectation-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
 }
 
-.card-label {
+.expectation-marker {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+}
+
+.expectation-marker.strength {
+    background: rgba(34, 197, 94, 0.8);
+}
+
+.expectation-marker.consideration {
+    background: rgba(251, 191, 36, 0.8);
+}
+
+.expectation-marker.application {
+    background: rgba(139, 92, 246, 0.8);
+}
+
+.expectation-label {
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.0625rem;
-    margin-bottom: 0.75rem;
-    opacity: 0.8;
+    letter-spacing: 0.05rem;
+    color: var(--text-secondary-dark);
 }
 
-.expectation-card p {
+.light-theme .expectation-label {
+    color: var(--text-secondary-light);
+}
+
+.expectation-item p {
     margin: 0;
     line-height: 1.6;
     color: var(--text-dark);
 }
 
-.light-theme .expectation-card p {
+.light-theme .expectation-item p {
     color: var(--text-light);
 }
 
 /* Ready Section */
 .ready-section {
     text-align: center;
-    padding: 2.5rem 1.25rem;
+    padding: 2rem;
+    animation: slideInFade 0.6s ease-out;
 }
 
-.ready-icon {
-    font-size: 4rem;
-    margin-bottom: 1.25rem;
-    animation: bounce 2s infinite;
-}
-
-@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% {
-        transform: translateY(0);
-    }
-    40% {
-        transform: translateY(-0.625rem);
-    }
-    60% {
-        transform: translateY(-0.3125rem);
-    }
-}
-
-.ready-section h3 {
+.ready-content h3 {
     margin: 0 0 1rem 0;
     font-size: 1.75rem;
     font-weight: 600;
     color: var(--text-dark);
+    animation: fadeInUp 0.6s ease-out 0.2s both;
 }
 
-.light-theme .ready-section h3 {
+.light-theme .ready-content h3 {
     color: var(--text-light);
 }
 
@@ -2451,9 +2428,10 @@ textarea:focus-visible {
     font-size: 1.125rem;
     line-height: 1.6;
     color: var(--text-secondary-dark);
-    max-width: 31.25rem;
+    max-width: 28rem;
     margin-left: auto;
     margin-right: auto;
+    animation: fadeInUp 0.6s ease-out 0.4s both;
 }
 
 .light-theme .ready-message {
@@ -2461,170 +2439,230 @@ textarea:focus-visible {
 }
 
 .ready-summary {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    max-width: 18.75rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    max-width: 20rem;
     margin: 0 auto;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    animation: fadeInUp 0.6s ease-out 0.6s both;
 }
 
-.summary-item {
+.light-theme .ready-summary {
+    background: rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.summary-row {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 0.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    font-weight: 500;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.light-theme .summary-item {
-    background: rgba(0, 0, 0, 0.03);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+.summary-row:last-child {
+    border-bottom: none;
 }
 
-.summary-icon {
-    font-size: 1.125rem;
+.light-theme .summary-row {
+    border-bottom-color: rgba(0, 0, 0, 0.1);
 }
 
-/* Enhanced Prolific ID Section */
-.id-entry-card {
-    max-width: 25rem;
-    margin: 0 auto;
-    padding: 2rem;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-    border-radius: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+.summary-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary-dark);
 }
 
-.light-theme .id-entry-card {
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.03) 0%, rgba(0, 0, 0, 0.01) 100%);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+.light-theme .summary-label {
+    color: var(--text-secondary-light);
 }
 
-.entry-header {
+.summary-value {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.light-theme .summary-value {
+    color: var(--text-light);
+}
+
+/* Prolific ID Section */
+.prolific-section {
     display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
     justify-content: center;
+    align-items: center;
+    min-height: 20rem;
+    animation: slideInFade 0.6s ease-out;
 }
 
-.entry-icon {
-    font-size: 1.5rem;
+.id-entry-form {
+    width: 100%;
+    max-width: 24rem;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.entry-header h3 {
-    margin: 0;
+.light-theme .id-entry-form {
+    background: rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+.form-header h3 {
+    margin: 0 0 0.75rem 0;
     font-size: 1.375rem;
     font-weight: 600;
     color: var(--text-dark);
 }
 
-.light-theme .entry-header h3 {
+.light-theme .form-header h3 {
     color: var(--text-light);
 }
 
-.entry-description {
-    text-align: center;
-    margin: 0 0 1.5rem 0;
+.form-description {
+    margin: 0;
     color: var(--text-secondary-dark);
     font-size: 1rem;
 }
 
-.light-theme .entry-description {
+.light-theme .form-description {
     color: var(--text-secondary-light);
 }
 
-.input-container {
+.input-group {
+    position: relative;
     margin: 1.5rem 0;
+    animation: fadeInUp 0.6s ease-out 0.4s both;
 }
 
-/* Override existing prolific-id-input styles */
+/* Enhanced Prolific ID Input */
 .prolific-id-input {
     width: 100%;
-    padding: 1rem 1.25rem;
-    border: 0.125rem solid var(--border-dark);
-    border-radius: 0.75rem;
-    background-color: var(--main-bg-dark);
+    padding: 1rem 0 1rem 0;
+    border: none;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0;
+    background: transparent;
     color: var(--text-dark);
     font-size: 1rem;
     font-family: monospace;
     text-align: center;
     transition: all 0.3s ease;
-    box-shadow: inset 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+    outline: none;
 }
 
 .light-theme .prolific-id-input {
-    border-color: var(--border-light);
-    background-color: var(--main-bg-light);
+    border-bottom-color: rgba(0, 0, 0, 0.2);
     color: var(--text-light);
-    box-shadow: inset 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
 }
 
 .prolific-id-input:focus {
-    outline: none;
-    border-color: var(--user-msg-bg-dark);
-    box-shadow: 0 0 0 0.1875rem rgba(37, 99, 235, 0.1), inset 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
-    transform: translateY(-0.0625rem);
+    border-bottom-color: rgba(56, 139, 253, 1);
 }
 
-.light-theme .prolific-id-input:focus {
-    border-color: var(--user-msg-bg-light);
+.prolific-id-input:focus + .input-underline {
+    transform: scaleX(1);
 }
 
-.id-help {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
+.input-underline {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(56, 139, 253, 1) 0%, rgba(29, 78, 216, 1) 100%);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: center;
+}
+
+.form-help {
+    text-align: center;
+    margin-top: 1rem;
+    animation: fadeInUp 0.6s ease-out 0.6s both;
+}
+
+.form-help span {
     font-size: 0.875rem;
     color: var(--text-secondary-dark);
-    margin-top: 1rem;
 }
 
-.light-theme .id-help {
+.light-theme .form-help span {
     color: var(--text-secondary-light);
 }
 
-.help-icon {
-    font-size: 1rem;
+/* ===================================================================
+   17. SMOOTH ANIMATIONS
+   ================================================================= */
+
+@keyframes slideInFade {
+    from {
+        opacity: 0;
+        transform: translateY(1rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(0.5rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-0.5rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 /* ===================================================================
-   17. MOBILE RESPONSIVE UPDATES FOR NEW STYLES
+   18. RESPONSIVE UPDATES
    ================================================================= */
 
-/* Mobile Responsive */
 @media (max-width: 768px) {
     .model-intro-card {
+        padding: 1.5rem;
+    }
+    
+    .info-point {
         flex-direction: column;
-        text-align: center;
-        padding: 1.5rem;
-        gap: 1.25rem;
+        gap: 0.75rem;
     }
     
-    .avatar-circle {
-        width: 3.75rem;
-        height: 3.75rem;
-    }
-    
-    .avatar-text {
-        font-size: 1.5rem;
-    }
-    
-    .expectations-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .ready-summary {
-        max-width: 100%;
-    }
-    
-    .id-entry-card {
-        padding: 1.5rem;
-        margin: 0 0.75rem;
+    .point-marker {
+        align-self: flex-start;
     }
     
     .slide-header {
@@ -2633,13 +2671,30 @@ textarea:focus-visible {
         gap: 0.75rem;
     }
     
-    .story-point {
-        flex-direction: column;
-        text-align: center;
-        gap: 0.75rem;
+    .ready-summary {
+        max-width: 100%;
     }
     
-    .point-icon {
-        align-self: center;
+    .id-entry-form {
+        padding: 1.5rem;
+        margin: 0 1rem;
+    }
+    
+    .prolific-section {
+        min-height: 15rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .intro-header h3 {
+        font-size: 1.25rem;
+    }
+    
+    .ready-content h3 {
+        font-size: 1.5rem;
+    }
+    
+    .form-header h3 {
+        font-size: 1.25rem;
     }
 }
