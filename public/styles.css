@@ -1300,10 +1300,10 @@ body.light-theme {
    9. UTILITY COMPONENTS
    ================================================================= */
 
-/* Finish Button */
+/* Finish Button - Updated with responsive positioning */
 .finish-btn {
     position: fixed;
-    bottom: 1.25rem;
+    bottom: calc(var(--input-area-height, 80px) + 1.5rem); /* Stay above input area */
     right: 1.25rem;
     background: linear-gradient(135deg, #dc2626, #b91c1c);
     color: white;
@@ -1319,6 +1319,8 @@ body.light-theme {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    /* Ensure minimum distance from input area */
+    margin-bottom: env(safe-area-inset-bottom, 0);
 }
 
 .finish-btn:hover {
@@ -1330,6 +1332,60 @@ body.light-theme {
 .finish-btn::before {
     content: '🏁';
     font-size: 1rem;
+}
+
+/* Responsive adjustments for finish button */
+@media (max-width: 1024px) {
+    .finish-btn {
+        bottom: calc(var(--input-area-height, 90px) + 1.25rem);
+        right: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .finish-btn {
+        bottom: calc(var(--input-area-height, 100px) + 1rem);
+        right: 1rem;
+        padding: 0.625rem 1rem;
+        font-size: 0.8125rem;
+    }
+
+    .finish-btn::before {
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .finish-btn {
+        bottom: calc(var(--input-area-height, 110px) + 0.75rem);
+        right: 0.75rem;
+        padding: 0.5rem 0.875rem;
+        font-size: 0.75rem;
+    }
+
+    .finish-btn::before {
+        font-size: 0.8125rem;
+    }
+}
+
+/* Very small screens - move finish button to top area if needed */
+@media (max-width: 380px) {
+    .finish-btn {
+        top: 1rem;
+        bottom: auto;
+        right: 1rem;
+        padding: 0.5rem 0.875rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* Landscape mobile - adjust positioning */
+@media (max-height: 500px) and (orientation: landscape) {
+    .finish-btn {
+        bottom: calc(var(--input-area-height, 80px) + 0.5rem);
+        right: 0.75rem;
+        padding: 0.5rem 0.875rem;
+    }
 }
 
 /* Auto-save Indicator */
