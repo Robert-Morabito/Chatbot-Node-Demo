@@ -41,12 +41,7 @@ class ChatApp {
             conversationHasImage: false
         };
 
-        this.welcomeState = {
-            currentStep: 0,
-            timer: null,
-            timerSeconds: 5,
-            steps: []
-        };
+        this.welcomeExperience = new WelcomeExperience(this);
 
         // Track idle time
         this.idleThreshold = 5000;
@@ -258,432 +253,431 @@ class ChatApp {
             await this.loadConfiguration();
             console.log('✅ Configuration loaded:', this.config);
 
-            // Now show welcome flow with correct model info
-            this.showWelcomeFlow();
+            // Now show welcome experience
+            this.welcomeExperience.show();
         } catch (error) {
             console.error('❌ Failed to load configuration:', error);
-            // Show welcome flow with default config
-            this.showWelcomeFlow();
+            // Show welcome experience with default config
+            this.welcomeExperience.show();
         }
     }
 
-    showWelcomeFlow() {
-        // Start with welcome, then load config and show model info, then Prolific ID last
-        this.welcomeState.steps = [
-            {
-                type: 'welcome',
-                title: 'Welcome to the Study',
-                content: `
-                <div class="welcome-instructions">
-                    <h3>Research Study Instructions</h3>
-                    <p><strong>Important:</strong> You must complete the tasks found in the provided 
-                    <a href="#" class="survey-link">Tally survey</a> (update when survey link is made).</p>
-                    <p>The following pages contain important information about the AI model you will be using.</p>
-                    <p><strong>Please read each point carefully</strong>
-                    <p><strong>When you complete all study tasks:</strong> Click the "Finish" button in the chat interface to download your conversation logs and complete the study. You will then upload these logs to the Tally survey.</p>
-                </div>
-            `,
-                showTimer: false,
-                showBack: false
-            }
-        ];
+    // showWelcomeFlow() {
+    //     // Start with welcome, then load config and show model info, then Prolific ID last
+    //     this.welcomeState.steps = [
+    //         {
+    //             type: 'welcome',
+    //             title: 'Welcome to the Study',
+    //             content: `
+    //             <div class="welcome-instructions">
+    //                 <h3>Research Study Instructions</h3>
+    //                 <p><strong>Important:</strong> You must complete the tasks found in the provided 
+    //                 <a href="#" class="survey-link">Tally survey</a> (update when survey link is made).</p>
+    //                 <p>The following pages contain important information about the AI model you will be using.</p>
+    //                 <p><strong>Please read each point carefully</strong>
+    //                 <p><strong>When you complete all study tasks:</strong> Click the "Finish" button in the chat interface to download your conversation logs and complete the study. You will then upload these logs to the Tally survey.</p>
+    //             </div>
+    //         `,
+    //             showTimer: false,
+    //             showBack: false
+    //         }
+    //     ];
 
-        // We'll add the model-specific steps after configuration is loaded
-        this.buildModelSteps();
+    //     // We'll add the model-specific steps after configuration is loaded
+    //     this.buildModelSteps();
 
-        // Show modal and setup
-        const modal = document.getElementById('welcome-modal');
-        modal.style.display = 'flex';
+    //     // Show modal and setup
+    //     const modal = document.getElementById('welcome-modal');
+    //     modal.style.display = 'flex';
 
-        this.setupWelcomeNavigation();
-        this.updateWelcomeContent();
-        this.createProgressDots();
-    }
+    //     this.setupWelcomeNavigation();
+    //     this.updateWelcomeContent();
+    //     this.createProgressDots();
+    // }
 
-    buildModelSteps() {
-        // Use the loaded configuration or default to GPT-4
-        const displayName = this.config?.displayName || 'GPT-4';
-        const modelInfo = this.modelDescriptions[displayName] || this.modelDescriptions['GPT-4'];
+    // buildModelSteps() {
+    //     // Use the loaded configuration or default to GPT-4
+    //     const displayName = this.config?.displayName || 'GPT-4';
+    //     const modelInfo = this.modelDescriptions[displayName] || this.modelDescriptions['GPT-4'];
 
-        // Add sleek model intro step
-        this.welcomeState.steps.push({
-            type: 'model-intro',
-            title: 'Your AI Partner',
-            content: `
-        <div class="intro-container">
-            <div class="intro-content">
-                <div class="model-badge">
-                    <span class="model-name">${displayName}</span>
-                    <span class="model-year">${modelInfo.year}</span>
-                </div>
-                <h3>Meet your conversation partner</h3>
-                <p class="intro-description">The following pages contain essential information to help you have more effective conversations during this study.</p>
-            </div>
-        </div>
-    `,
-            showTimer: true,
-            showBack: true,
-            showPersistentHeader: true,
-            persistentHeaderContent: `${displayName} • ${modelInfo.year}`
-        });
+    //     // Add sleek model intro step
+    //     this.welcomeState.steps.push({
+    //         type: 'model-intro',
+    //         title: 'Your AI Partner',
+    //         content: `
+    //     <div class="intro-container">
+    //         <div class="intro-content">
+    //             <div class="model-badge">
+    //                 <span class="model-name">${displayName}</span>
+    //                 <span class="model-year">${modelInfo.year}</span>
+    //             </div>
+    //             <h3>Meet your conversation partner</h3>
+    //             <p class="intro-description">The following pages contain essential information to help you have more effective conversations during this study.</p>
+    //         </div>
+    //     </div>
+    // `,
+    //         showTimer: true,
+    //         showBack: true,
+    //         showPersistentHeader: true,
+    //         persistentHeaderContent: `${displayName} • ${modelInfo.year}`
+    //     });
 
-        // Slide 1: Background
-        this.welcomeState.steps.push({
-            type: 'model-slide',
-            title: 'Your AI Partner',
-            content: `
-        <div class="slide-container">
-            <div class="slide-header">
-                <div class="slide-number">1</div>
-                <h3>Background</h3>
-            </div>
-            <div class="slide-content">
-                ${modelInfo.slides[0].points.map((point, i) => `
-                    <div class="content-point" style="animation-delay: ${i * 0.1}s">
-                        <div class="point-indicator"></div>
-                        <p>${point}</p>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `,
-            showTimer: true,
-            showBack: true,
-            showPersistentHeader: true,
-            persistentHeaderContent: `${displayName} • ${modelInfo.year}`
-        });
+    //     // Slide 1: Background
+    //     this.welcomeState.steps.push({
+    //         type: 'model-slide',
+    //         title: 'Your AI Partner',
+    //         content: `
+    //     <div class="slide-container">
+    //         <div class="slide-header">
+    //             <div class="slide-number">1</div>
+    //             <h3>Background</h3>
+    //         </div>
+    //         <div class="slide-content">
+    //             ${modelInfo.slides[0].points.map((point, i) => `
+    //                 <div class="content-point" style="animation-delay: ${i * 0.1}s">
+    //                     <div class="point-indicator"></div>
+    //                     <p>${point}</p>
+    //                 </div>
+    //             `).join('')}
+    //         </div>
+    //     </div>
+    // `,
+    //         showTimer: true,
+    //         showBack: true,
+    //         showPersistentHeader: true,
+    //         persistentHeaderContent: `${displayName} • ${modelInfo.year}`
+    //     });
 
-        // Slide 2: Comparison to Other Models
-        this.welcomeState.steps.push({
-            type: 'model-slide',
-            title: 'Your AI Partner',
-            content: `
-        <div class="slide-container">
-            <div class="slide-header">
-                <div class="slide-number">2</div>
-                <h3>Comparison to Other Models</h3>
-            </div>
-            <div class="slide-content">
-                <div class="comparison-note">
-                    <p>Understanding how ${displayName} compares to other AI models:</p>
-                </div>
-                ${modelInfo.slides[1].points.map((point, i) => `
-                    <div class="content-point" style="animation-delay: ${i * 0.1}s">
-                        <div class="point-indicator"></div>
-                        <p>${point}</p>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `,
-            showTimer: true,
-            showBack: true,
-            showPersistentHeader: true,
-            persistentHeaderContent: `${displayName} • ${modelInfo.year}`
-        });
+    //     // Slide 2: Comparison to Other Models
+    //     this.welcomeState.steps.push({
+    //         type: 'model-slide',
+    //         title: 'Your AI Partner',
+    //         content: `
+    //     <div class="slide-container">
+    //         <div class="slide-header">
+    //             <div class="slide-number">2</div>
+    //             <h3>Comparison to Other Models</h3>
+    //         </div>
+    //         <div class="slide-content">
+    //             <div class="comparison-note">
+    //                 <p>Understanding how ${displayName} compares to other AI models:</p>
+    //             </div>
+    //             ${modelInfo.slides[1].points.map((point, i) => `
+    //                 <div class="content-point" style="animation-delay: ${i * 0.1}s">
+    //                     <div class="point-indicator"></div>
+    //                     <p>${point}</p>
+    //                 </div>
+    //             `).join('')}
+    //         </div>
+    //     </div>
+    // `,
+    //         showTimer: true,
+    //         showBack: true,
+    //         showPersistentHeader: true,
+    //         persistentHeaderContent: `${displayName} • ${modelInfo.year}`
+    //     });
 
-        // Slide 3: Strengths, Limitations, and Best Use Cases
-        this.welcomeState.steps.push({
-            type: 'model-slide',
-            title: 'Your AI Partner',
-            content: `
-        <div class="slide-container">
-            <div class="slide-header">
-                <div class="slide-number">3</div>
-                <h3>What to Expect</h3>
-            </div>
-            <div class="slide-content">
-                ${modelInfo.slides[2].points.map((point, i) => {
-                const categories = ['Strengths', 'Considerations', 'Best Applications'];
-                const colors = ['success', 'warning', 'info'];
-                return `
-                        <div class="expectation-card ${colors[i]}" style="animation-delay: ${i * 0.15}s">
-                            <div class="card-header">
-                                <div class="card-dot"></div>
-                                <span class="card-label">${categories[i]}</span>
-                            </div>
-                            <p>${point}</p>
-                        </div>
-                    `;
-            }).join('')}
-            </div>
-        </div>
-    `,
-            showTimer: true,
-            showBack: true,
-            showPersistentHeader: true,
-            persistentHeaderContent: `${displayName} • ${modelInfo.year}`
-        });
+    //     // Slide 3: Strengths, Limitations, and Best Use Cases
+    //     this.welcomeState.steps.push({
+    //         type: 'model-slide',
+    //         title: 'Your AI Partner',
+    //         content: `
+    //     <div class="slide-container">
+    //         <div class="slide-header">
+    //             <div class="slide-number">3</div>
+    //             <h3>What to Expect</h3>
+    //         </div>
+    //         <div class="slide-content">
+    //             ${modelInfo.slides[2].points.map((point, i) => {
+    //             const categories = ['Strengths', 'Considerations', 'Best Applications'];
+    //             const colors = ['success', 'warning', 'info'];
+    //             return `
+    //                     <div class="expectation-card ${colors[i]}" style="animation-delay: ${i * 0.15}s">
+    //                         <div class="card-header">
+    //                             <div class="card-dot"></div>
+    //                             <span class="card-label">${categories[i]}</span>
+    //                         </div>
+    //                         <p>${point}</p>
+    //                     </div>
+    //                 `;
+    //         }).join('')}
+    //         </div>
+    //     </div>
+    // `,
+    //         showTimer: true,
+    //         showBack: true,
+    //         showPersistentHeader: true,
+    //         persistentHeaderContent: `${displayName} • ${modelInfo.year}`
+    //     });
 
-        // Summary step (without "ready" language)
-        this.welcomeState.steps.push({
-            type: 'model-summary',
-            title: 'Summary',
-            content: `
-        <div class="summary-container">
-            <div class="summary-content">
-                <h3>You're all set</h3>
-                <p class="summary-description">You now understand the key aspects of ${displayName} that will enhance your conversation experience.</p>
-                <div class="summary-card">
-                    <div class="summary-row">
-                        <span class="summary-label">AI Model</span>
-                        <span class="summary-value">${displayName}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Released</span>
-                        <span class="summary-value">${modelInfo.year}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `,
-            showTimer: true,
-            showBack: true,
-            showPersistentHeader: false
-        });
+    //     // Summary step (without "ready" language)
+    //     this.welcomeState.steps.push({
+    //         type: 'model-summary',
+    //         title: 'Summary',
+    //         content: `
+    //     <div class="summary-container">
+    //         <div class="summary-content">
+    //             <h3>You're all set</h3>
+    //             <p class="summary-description">You now understand the key aspects of ${displayName} that will enhance your conversation experience.</p>
+    //             <div class="summary-card">
+    //                 <div class="summary-row">
+    //                     <span class="summary-label">AI Model</span>
+    //                     <span class="summary-value">${displayName}</span>
+    //                 </div>
+    //                 <div class="summary-row">
+    //                     <span class="summary-label">Released</span>
+    //                     <span class="summary-value">${modelInfo.year}</span>
+    //                 </div>
+    //             </div>
+    //         </div>
+    //     </div>
+    // `,
+    //         showTimer: true,
+    //         showBack: true,
+    //         showPersistentHeader: false
+    //     });
 
-        // Refined Prolific ID step
-        this.welcomeState.steps.push({
-            type: 'prolific-id',
-            title: 'Enter Your ID',
-            content: `
-        <div class="id-container">
-            <div class="id-content">
-                <h3>Enter Your Prolific ID</h3>
-                <p class="id-description">We'll use this to connect your responses with the study.</p>
-                <div class="input-wrapper">
-                    <input type="text" 
-                           id="prolific-id-input" 
-                           class="prolific-input" 
-                           placeholder="24-character Prolific ID" 
-                           maxlength="24"
-                           autocomplete="off">
-                </div>
-                <div id="prolific-id-error" class="error-message"></div>
-                <div class="id-help">
-                    <span>Your ID should be exactly 24 characters (letters and numbers only)</span>
-                </div>
-            </div>
-        </div>
-    `,
-            showTimer: false,
-            showBack: true,
-            showPersistentHeader: false
-        });
-    }
-    
-    handleWelcomeBack() {
-        if (this.welcomeState.currentStep > 0) {
-            // Clear any existing timer
-            this.hideWelcomeTimer();
+    //     // Refined Prolific ID step
+    //     this.welcomeState.steps.push({
+    //         type: 'prolific-id',
+    //         title: 'Enter Your ID',
+    //         content: `
+    //     <div class="id-container">
+    //         <div class="id-content">
+    //             <h3>Enter Your Prolific ID</h3>
+    //             <p class="id-description">We'll use this to connect your responses with the study.</p>
+    //             <div class="input-wrapper">
+    //                 <input type="text" 
+    //                        id="prolific-id-input" 
+    //                        class="prolific-input" 
+    //                        placeholder="24-character Prolific ID" 
+    //                        maxlength="24"
+    //                        autocomplete="off">
+    //             </div>
+    //             <div id="prolific-id-error" class="error-message"></div>
+    //             <div class="id-help">
+    //                 <span>Your ID should be exactly 24 characters (letters and numbers only)</span>
+    //             </div>
+    //         </div>
+    //     </div>
+    // `,
+    //         showTimer: false,
+    //         showBack: true,
+    //         showPersistentHeader: false
+    //     });
+    // }
+    // handleWelcomeBack() {
+    //     if (this.welcomeState.currentStep > 0) {
+    //         // Clear any existing timer
+    //         this.hideWelcomeTimer();
 
-            this.welcomeState.currentStep--;
-            this.updateWelcomeContent();
-            this.updateProgressDots();
-        }
-    }
+    //         this.welcomeState.currentStep--;
+    //         this.updateWelcomeContent();
+    //         this.updateProgressDots();
+    //     }
+    // }
 
-    setupWelcomeNavigation() {
-        const continueBtn = document.getElementById('welcome-continue-btn');
-        const backBtn = document.getElementById('welcome-back-btn');
+    // setupWelcomeNavigation() {
+    //     const continueBtn = document.getElementById('welcome-continue-btn');
+    //     const backBtn = document.getElementById('welcome-back-btn');
 
-        continueBtn.onclick = () => this.handleWelcomeContinue();
-        backBtn.onclick = () => this.handleWelcomeBack();
-    }
+    //     continueBtn.onclick = () => this.handleWelcomeContinue();
+    //     backBtn.onclick = () => this.handleWelcomeBack();
+    // }
 
-    handleWelcomeContinue() {
-        const currentStep = this.welcomeState.steps[this.welcomeState.currentStep];
+    // handleWelcomeContinue() {
+    //     const currentStep = this.welcomeState.steps[this.welcomeState.currentStep];
 
-        if (currentStep.type === 'prolific-id') {
-            this.handleProlificIdSubmit();
-            return; // This should prevent the rest from executing
-        }
+    //     if (currentStep.type === 'prolific-id') {
+    //         this.handleProlificIdSubmit();
+    //         return; // This should prevent the rest from executing
+    //     }
 
-        if (this.welcomeState.currentStep < this.welcomeState.steps.length - 1) {
-            this.welcomeState.currentStep++;
-            this.updateWelcomeContent();
-            this.updateProgressDots();
-        } else {
-            // We're at the last step, close modal and start app
-            document.getElementById('welcome-modal').style.display = 'none';
-            this.init();
-        }
-    }
+    //     if (this.welcomeState.currentStep < this.welcomeState.steps.length - 1) {
+    //         this.welcomeState.currentStep++;
+    //         this.updateWelcomeContent();
+    //         this.updateProgressDots();
+    //     } else {
+    //         // We're at the last step, close modal and start app
+    //         document.getElementById('welcome-modal').style.display = 'none';
+    //         this.init();
+    //     }
+    // }
 
-    async handleProlificIdSubmit() {
-        const input = document.getElementById('prolific-id-input');
-        const prolificId = input.value.trim();
+    // async handleProlificIdSubmit() {
+    //     const input = document.getElementById('prolific-id-input');
+    //     const prolificId = input.value.trim();
 
-        if (!/^[a-zA-Z0-9]{24}$/.test(prolificId)) {
-            return; // Invalid ID, don't proceed
-        }
+    //     if (!/^[a-zA-Z0-9]{24}$/.test(prolificId)) {
+    //         return; // Invalid ID, don't proceed
+    //     }
 
-        this.participantId = prolificId;
+    //     this.participantId = prolificId;
 
-        // Register the session with the participant ID
-        await this.registerSession();
+    //     // Register the session with the participant ID
+    //     await this.registerSession();
 
-        // Close modal and start app
-        document.getElementById('welcome-modal').style.display = 'none';
-        this.init();
-    }
-    updateWelcomeContent() {
-        const currentStep = this.welcomeState.steps[this.welcomeState.currentStep];
-        const contentEl = document.getElementById('welcome-content');
-        const titleEl = document.getElementById('welcome-title');
-        const continueBtn = document.getElementById('welcome-continue-btn');
-        const backBtn = document.getElementById('welcome-back-btn');
-        const persistentHeader = document.getElementById('welcome-persistent-header');
+    //     // Close modal and start app
+    //     document.getElementById('welcome-modal').style.display = 'none';
+    //     this.init();
+    // }
+    // updateWelcomeContent() {
+    //     const currentStep = this.welcomeState.steps[this.welcomeState.currentStep];
+    //     const contentEl = document.getElementById('welcome-content');
+    //     const titleEl = document.getElementById('welcome-title');
+    //     const continueBtn = document.getElementById('welcome-continue-btn');
+    //     const backBtn = document.getElementById('welcome-back-btn');
+    //     const persistentHeader = document.getElementById('welcome-persistent-header');
 
-        // Update title
-        titleEl.textContent = currentStep.title;
+    //     // Update title
+    //     titleEl.textContent = currentStep.title;
 
-        // Handle persistent header
-        if (currentStep.showPersistentHeader) {
-            persistentHeader.style.display = 'block';
-            persistentHeader.textContent = currentStep.persistentHeaderContent;
-        } else {
-            persistentHeader.style.display = 'none';
-        }
+    //     // Handle persistent header
+    //     if (currentStep.showPersistentHeader) {
+    //         persistentHeader.style.display = 'block';
+    //         persistentHeader.textContent = currentStep.persistentHeaderContent;
+    //     } else {
+    //         persistentHeader.style.display = 'none';
+    //     }
 
-        // Slide out current content
-        contentEl.classList.remove('active');
-        contentEl.classList.add('slide-out-left');
+    //     // Slide out current content
+    //     contentEl.classList.remove('active');
+    //     contentEl.classList.add('slide-out-left');
 
-        setTimeout(() => {
-            // Update content
-            contentEl.innerHTML = currentStep.content;
+    //     setTimeout(() => {
+    //         // Update content
+    //         contentEl.innerHTML = currentStep.content;
 
-            // Slide in new content
-            contentEl.classList.remove('slide-out-left');
-            contentEl.classList.add('slide-in-right');
+    //         // Slide in new content
+    //         contentEl.classList.remove('slide-out-left');
+    //         contentEl.classList.add('slide-in-right');
 
-            setTimeout(() => {
-                contentEl.classList.remove('slide-in-right');
-                contentEl.classList.add('active');
-            }, 50);
+    //         setTimeout(() => {
+    //             contentEl.classList.remove('slide-in-right');
+    //             contentEl.classList.add('active');
+    //         }, 50);
 
-            // Update navigation
-            backBtn.style.display = currentStep.showBack ? 'block' : 'none';
+    //         // Update navigation
+    //         backBtn.style.display = currentStep.showBack ? 'block' : 'none';
 
-            // Reset continue button
-            continueBtn.disabled = false;
-            continueBtn.textContent = 'Continue';
-            continueBtn.style.display = 'block';
+    //         // Reset continue button
+    //         continueBtn.disabled = false;
+    //         continueBtn.textContent = 'Continue';
+    //         continueBtn.style.display = 'block';
 
-            // Handle timer and continue button
-            if (currentStep.showTimer) {
-                this.startWelcomeTimer();
-            } else {
-                this.hideWelcomeTimer();
-                if (currentStep.type === 'prolific-id') {
-                    this.setupProlificIdValidation();
-                }
-            }
+    //         // Handle timer and continue button
+    //         if (currentStep.showTimer) {
+    //             this.startWelcomeTimer();
+    //         } else {
+    //             this.hideWelcomeTimer();
+    //             if (currentStep.type === 'prolific-id') {
+    //                 this.setupProlificIdValidation();
+    //             }
+    //         }
 
-        }, 250);
-    }
+    //     }, 250);
+    // }
 
-    startWelcomeTimer() {
-        const continueBtn = document.getElementById('welcome-continue-btn');
-        const timerContainer = document.querySelector('.welcome-timer-container');
+    // startWelcomeTimer() {
+    //     const continueBtn = document.getElementById('welcome-continue-btn');
+    //     const timerContainer = document.querySelector('.welcome-timer-container');
 
-        // Hide continue button and show timer
-        continueBtn.style.display = 'none';
+    //     // Hide continue button and show timer
+    //     continueBtn.style.display = 'none';
 
-        // Create circular progress if it doesn't exist
-        let circularProgress = timerContainer.querySelector('.circular-progress');
-        if (!circularProgress) {
-            circularProgress = document.createElement('div');
-            circularProgress.className = 'circular-progress';
-            circularProgress.innerHTML = `
-            <svg>
-                <circle class="progress-circle-bg" cx="15" cy="15" r="12"></circle>
-                <circle class="progress-circle" cx="15" cy="15" r="12"></circle>
-            </svg>
-        `;
-            timerContainer.appendChild(circularProgress);
-        }
+    //     // Create circular progress if it doesn't exist
+    //     let circularProgress = timerContainer.querySelector('.circular-progress');
+    //     if (!circularProgress) {
+    //         circularProgress = document.createElement('div');
+    //         circularProgress.className = 'circular-progress';
+    //         circularProgress.innerHTML = `
+    //         <svg>
+    //             <circle class="progress-circle-bg" cx="15" cy="15" r="12"></circle>
+    //             <circle class="progress-circle" cx="15" cy="15" r="12"></circle>
+    //         </svg>
+    //     `;
+    //         timerContainer.appendChild(circularProgress);
+    //     }
 
-        const progressCircle = circularProgress.querySelector('.progress-circle');
+    //     const progressCircle = circularProgress.querySelector('.progress-circle');
 
-        // Reset timer
-        this.welcomeState.timerSeconds = 5;
-        progressCircle.style.strokeDashoffset = '75';
+    //     // Reset timer
+    //     this.welcomeState.timerSeconds = 5;
+    //     progressCircle.style.strokeDashoffset = '75';
 
-        // Start countdown
-        this.welcomeState.timer = setInterval(() => {
-            this.welcomeState.timerSeconds--;
+    //     // Start countdown
+    //     this.welcomeState.timer = setInterval(() => {
+    //         this.welcomeState.timerSeconds--;
 
-            const progress = ((5 - this.welcomeState.timerSeconds) / 5) * 75;
-            progressCircle.style.strokeDashoffset = 75 - progress;
+    //         const progress = ((5 - this.welcomeState.timerSeconds) / 5) * 75;
+    //         progressCircle.style.strokeDashoffset = 75 - progress;
 
-            if (this.welcomeState.timerSeconds <= 0) {
-                clearInterval(this.welcomeState.timer);
-                this.hideWelcomeTimer();
-                continueBtn.style.display = 'block';
-            }
-        }, 1000);
-    }
+    //         if (this.welcomeState.timerSeconds <= 0) {
+    //             clearInterval(this.welcomeState.timer);
+    //             this.hideWelcomeTimer();
+    //             continueBtn.style.display = 'block';
+    //         }
+    //     }, 1000);
+    // }
 
-    hideWelcomeTimer() {
-        const timerDisplay = document.getElementById('welcome-timer-display');
-        const timerContainer = document.querySelector('.welcome-timer-container');
-        const circularProgress = timerContainer?.querySelector('.circular-progress');
+    // hideWelcomeTimer() {
+    //     const timerDisplay = document.getElementById('welcome-timer-display');
+    //     const timerContainer = document.querySelector('.welcome-timer-container');
+    //     const circularProgress = timerContainer?.querySelector('.circular-progress');
 
-        if (this.welcomeState.timer) {
-            clearInterval(this.welcomeState.timer);
-            this.welcomeState.timer = null;
-        }
+    //     if (this.welcomeState.timer) {
+    //         clearInterval(this.welcomeState.timer);
+    //         this.welcomeState.timer = null;
+    //     }
 
-        if (timerDisplay) {
-            timerDisplay.style.display = 'none';
-        }
+    //     if (timerDisplay) {
+    //         timerDisplay.style.display = 'none';
+    //     }
 
-        if (circularProgress) {
-            circularProgress.remove();
-        }
-    }
+    //     if (circularProgress) {
+    //         circularProgress.remove();
+    //     }
+    // }
 
-    createProgressDots() {
-        const container = document.querySelector('.welcome-progress-dots');
-        container.innerHTML = '';
+    // createProgressDots() {
+    //     const container = document.querySelector('.welcome-progress-dots');
+    //     container.innerHTML = '';
 
-        this.welcomeState.steps.forEach((step, index) => {
-            const dot = document.createElement('div');
-            dot.className = 'progress-dot';
-            if (index === this.welcomeState.currentStep) {
-                dot.classList.add('active');
-            }
-            if (index < this.welcomeState.currentStep) {
-                dot.classList.add('completed');
-            }
+    //     this.welcomeState.steps.forEach((step, index) => {
+    //         const dot = document.createElement('div');
+    //         dot.className = 'progress-dot';
+    //         if (index === this.welcomeState.currentStep) {
+    //             dot.classList.add('active');
+    //         }
+    //         if (index < this.welcomeState.currentStep) {
+    //             dot.classList.add('completed');
+    //         }
 
-            // Add click navigation
-            dot.onclick = () => {
-                if (index <= this.welcomeState.currentStep || index < this.welcomeState.currentStep) {
-                    this.hideWelcomeTimer();
-                    this.welcomeState.currentStep = index;
-                    this.updateWelcomeContent();
-                    this.updateProgressDots();
-                }
-            };
+    //         // Add click navigation
+    //         dot.onclick = () => {
+    //             if (index <= this.welcomeState.currentStep || index < this.welcomeState.currentStep) {
+    //                 this.hideWelcomeTimer();
+    //                 this.welcomeState.currentStep = index;
+    //                 this.updateWelcomeContent();
+    //                 this.updateProgressDots();
+    //             }
+    //         };
 
-            container.appendChild(dot);
-        });
-    }
+    //         container.appendChild(dot);
+    //     });
+    // }
 
-    updateProgressDots() {
-        const dots = document.querySelectorAll('.progress-dot');
-        dots.forEach((dot, index) => {
-            dot.classList.remove('active', 'completed');
-            if (index === this.welcomeState.currentStep) {
-                dot.classList.add('active');
-            } else if (index < this.welcomeState.currentStep) {
-                dot.classList.add('completed');
-            }
-        });
-    }
+    // updateProgressDots() {
+    //     const dots = document.querySelectorAll('.progress-dot');
+    //     dots.forEach((dot, index) => {
+    //         dot.classList.remove('active', 'completed');
+    //         if (index === this.welcomeState.currentStep) {
+    //             dot.classList.add('active');
+    //         } else if (index < this.welcomeState.currentStep) {
+    //             dot.classList.add('completed');
+    //         }
+    //     });
+    // }
 
     async init() {
         // Setup event listeners and UI
@@ -2274,6 +2268,317 @@ class ChatApp {
         return Date.now() - this.sessionTimer.startTime;
     }
 
+}
+
+class WelcomeExperience {
+    constructor(chatApp) {
+        this.chatApp = chatApp;
+        this.currentStep = 0;
+        this.steps = [];
+        this.isVisible = false;
+
+        this.setupSteps();
+        this.setupEventListeners();
+    }
+
+    setupSteps() {
+        const displayName = this.chatApp.config?.displayName || 'GPT-4';
+        const modelInfo = this.chatApp.modelDescriptions[displayName] || this.chatApp.modelDescriptions['GPT-4'];
+
+        this.steps = [
+            // Step 1: Welcome
+            {
+                id: 'welcome',
+                title: 'Welcome to the Study',
+                content: this.createWelcomeStep()
+            },
+            // Step 2: Model Introduction
+            {
+                id: 'model-intro',
+                title: `Meet ${displayName}`,
+                content: this.createModelIntroStep(displayName, modelInfo.year)
+            },
+            // Step 3: Background
+            {
+                id: 'background',
+                title: 'Background',
+                content: this.createBackgroundStep(modelInfo.slides[0])
+            },
+            // Step 4: Comparison
+            {
+                id: 'comparison',
+                title: 'Comparison',
+                content: this.createComparisonStep(displayName, modelInfo.slides[1])
+            },
+            // Step 5: Capabilities
+            {
+                id: 'capabilities',
+                title: 'What to Expect',
+                content: this.createCapabilitiesStep(modelInfo.slides[2])
+            },
+            // Step 6: Prolific ID
+            {
+                id: 'prolific-id',
+                title: 'Enter Your ID',
+                content: this.createProlificStep()
+            }
+        ];
+    }
+
+    createWelcomeStep() {
+        return `
+            <div class="step-content welcome-step">
+                <div class="welcome-hero">
+                    <h1>Research Study</h1>
+                    <p class="hero-subtitle">Welcome to this important research study</p>
+                </div>
+                <div class="welcome-info">
+                    <div class="info-card">
+                        <h3>Study Instructions</h3>
+                        <p>You must complete the tasks found in the provided <strong>Tally survey</strong>.</p>
+                        <p>The following pages contain important information about the AI model you'll be using.</p>
+                        <p class="emphasis">Please read each section carefully.</p>
+                    </div>
+                    <div class="completion-note">
+                        <p><strong>When finished:</strong> Click "Finish" in the chat interface to download your data and complete the study.</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    createModelIntroStep(displayName, year) {
+        return `
+            <div class="step-content model-intro-step">
+                <div class="model-header">
+                    <div class="model-badge">
+                        <span class="model-name">${displayName}</span>
+                        <span class="model-year">${year}</span>
+                    </div>
+                    <h1>Your AI Partner</h1>
+                    <p class="intro-description">Understanding this AI model will help you have more effective conversations during the study.</p>
+                </div>
+                <div class="intro-preview">
+                    <div class="preview-card">
+                        <h3>What you'll learn:</h3>
+                        <ul class="preview-list">
+                            <li>Background and development history</li>
+                            <li>How it compares to other AI models</li>
+                            <li>Strengths, limitations, and best uses</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    createBackgroundStep(slide) {
+        return `
+            <div class="step-content info-step">
+                <div class="step-header">
+                    <h1>Background</h1>
+                    <p class="step-subtitle">Learn about this AI model's development and core features</p>
+                </div>
+                <div class="info-grid">
+                    ${slide.points.map((point, index) => `
+                        <div class="info-item" style="animation-delay: ${index * 0.1}s">
+                            <div class="item-number">${index + 1}</div>
+                            <p>${point}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    createComparisonStep(displayName, slide) {
+        return `
+            <div class="step-content info-step">
+                <div class="step-header">
+                    <h1>Performance Comparison</h1>
+                    <p class="step-subtitle">How ${displayName} compares to other AI models</p>
+                </div>
+                <div class="comparison-grid">
+                    ${slide.points.map((point, index) => `
+                        <div class="comparison-item" style="animation-delay: ${index * 0.15}s">
+                            <div class="comparison-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <p>${point}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    createCapabilitiesStep(slide) {
+        const categories = ['Strengths', 'Considerations', 'Best Applications'];
+        const colors = ['success', 'warning', 'info'];
+
+        return `
+            <div class="step-content info-step">
+                <div class="step-header">
+                    <h1>What to Expect</h1>
+                    <p class="step-subtitle">Understanding capabilities and limitations</p>
+                </div>
+                <div class="capabilities-grid">
+                    ${slide.points.map((point, index) => `
+                        <div class="capability-card ${colors[index]}" style="animation-delay: ${index * 0.2}s">
+                            <div class="capability-header">
+                                <div class="capability-icon ${colors[index]}"></div>
+                                <h3>${categories[index]}</h3>
+                            </div>
+                            <p>${point}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    createProlificStep() {
+        return `
+            <div class="step-content prolific-step">
+                <div class="prolific-header">
+                    <h1>Enter Your Prolific ID</h1>
+                    <p class="prolific-subtitle">We'll use this to connect your responses with the study</p>
+                </div>
+                <div class="prolific-form">
+                    <div class="input-group">
+                        <label for="prolific-input" class="input-label">Prolific ID</label>
+                        <input 
+                            type="text" 
+                            id="prolific-input" 
+                            class="prolific-input"
+                            placeholder="Enter your 24-character ID"
+                            maxlength="24"
+                            autocomplete="off"
+                        >
+                        <div class="input-line"></div>
+                        <div id="prolific-error" class="input-error"></div>
+                    </div>
+                    <div class="prolific-help">
+                        <p>Your Prolific ID should be exactly 24 characters long and contain only letters and numbers.</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    show() {
+        const experience = document.getElementById('welcome-experience');
+        experience.style.display = 'flex';
+        setTimeout(() => {
+            experience.classList.add('active');
+            this.isVisible = true;
+            this.renderCurrentStep();
+        }, 50);
+    }
+
+    hide() {
+        const experience = document.getElementById('welcome-experience');
+        experience.classList.remove('active');
+        setTimeout(() => {
+            experience.style.display = 'none';
+            this.isVisible = false;
+        }, 300);
+    }
+
+    renderCurrentStep() {
+        const content = document.getElementById('welcome-content');
+        const progressFill = document.getElementById('welcome-progress-fill');
+        const progressText = document.getElementById('welcome-progress-text');
+        const backBtn = document.getElementById('welcome-back');
+        const continueBtn = document.getElementById('welcome-continue');
+
+        // Update progress
+        const progress = ((this.currentStep + 1) / this.steps.length) * 100;
+        progressFill.style.width = `${progress}%`;
+        progressText.textContent = `${this.currentStep + 1} of ${this.steps.length}`;
+
+        // Update navigation
+        backBtn.disabled = this.currentStep === 0;
+        backBtn.style.opacity = this.currentStep === 0 ? '0.5' : '1';
+
+        // Update content with smooth transition
+        content.style.opacity = '0';
+        content.style.transform = 'translateY(20px)';
+
+        setTimeout(() => {
+            content.innerHTML = this.steps[this.currentStep].content;
+            content.style.opacity = '1';
+            content.style.transform = 'translateY(0)';
+
+            // Setup prolific validation if on that step
+            if (this.steps[this.currentStep].id === 'prolific-id') {
+                this.setupProlificValidation();
+            }
+        }, 150);
+    }
+
+    setupProlificValidation() {
+        const input = document.getElementById('prolific-input');
+        const continueBtn = document.getElementById('welcome-continue');
+        const errorDiv = document.getElementById('prolific-error');
+
+        const validateInput = () => {
+            const value = input.value.trim();
+            const isValid = /^[a-zA-Z0-9]{24}$/.test(value);
+
+            if (value.length === 0) {
+                continueBtn.disabled = true;
+                continueBtn.textContent = 'Continue';
+                errorDiv.textContent = '';
+                input.classList.remove('error');
+            } else if (isValid) {
+                continueBtn.disabled = false;
+                continueBtn.textContent = 'Start Study';
+                errorDiv.textContent = '';
+                input.classList.remove('error');
+            } else {
+                continueBtn.disabled = true;
+                continueBtn.textContent = 'Continue';
+                errorDiv.textContent = 'Please enter a valid 24-character Prolific ID';
+                input.classList.add('error');
+            }
+        };
+
+        input.addEventListener('input', validateInput);
+        validateInput();
+    }
+
+    setupEventListeners() {
+        document.getElementById('welcome-back').addEventListener('click', () => {
+            if (this.currentStep > 0) {
+                this.currentStep--;
+                this.renderCurrentStep();
+            }
+        });
+
+        document.getElementById('welcome-continue').addEventListener('click', () => {
+            if (this.steps[this.currentStep].id === 'prolific-id') {
+                const input = document.getElementById('prolific-input');
+                const prolificId = input.value.trim();
+
+                if (/^[a-zA-Z0-9]{24}$/.test(prolificId)) {
+                    this.chatApp.participantId = prolificId;
+                    this.chatApp.registerSession().then(() => {
+                        this.hide();
+                        this.chatApp.init();
+                    });
+                }
+                return;
+            }
+
+            if (this.currentStep < this.steps.length - 1) {
+                this.currentStep++;
+                this.renderCurrentStep();
+            }
+        });
+    }
 }
 
 // Initialize the app when page loads

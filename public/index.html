@@ -11,41 +11,26 @@
 
 <body>
     <!-- Welcome Flow Modal -->
-    <div id="welcome-modal" class="modal">
-        <div class="modal-content welcome-modal-content">
-            <h2 id="welcome-title">Welcome to the Study</h2>
-
-            <!-- Content Container with persistent header -->
-            <div class="welcome-content-container">
-                <!-- Persistent header that doesn't slide -->
-                <div id="welcome-persistent-header" class="welcome-persistent-header" style="display: none;">
-                    <!-- Model name and year will be inserted here -->
+    <!-- Full-screen Welcome Experience -->
+    <div id="welcome-experience" class="welcome-experience">
+        <div class="welcome-container">
+            <!-- Progress indicator -->
+            <div class="welcome-progress">
+                <div class="progress-track">
+                    <div class="progress-fill" id="welcome-progress-fill"></div>
                 </div>
-
-                <!-- Sliding content area -->
-                <div class="welcome-slide-area">
-                    <div id="welcome-content" class="welcome-slide-content active">
-                        <!-- Content will be dynamically inserted here -->
-                    </div>
-                </div>
+                <span class="progress-text" id="welcome-progress-text">1 of 5</span>
             </div>
 
-            <!-- Navigation and Timer -->
+            <!-- Content area -->
+            <div class="welcome-content" id="welcome-content">
+                <!-- Content will be dynamically inserted -->
+            </div>
+
+            <!-- Navigation -->
             <div class="welcome-navigation">
-                <button id="welcome-back-btn" class="welcome-nav-btn secondary" style="display: none;">← Back</button>
-
-                <div class="welcome-timer-container">
-                    <div id="welcome-progress-bar" class="progress-bar" style="display: none;">
-                        <div class="progress-fill"></div>
-                    </div>
-                </div>
-
-                <button id="welcome-continue-btn" class="welcome-nav-btn primary">Continue</button>
-            </div>
-
-            <!-- Progress indicators -->
-            <div class="welcome-progress-dots">
-                <!-- Dots will be dynamically generated -->
+                <button id="welcome-back" class="nav-button secondary" style="opacity: 0.5;" disabled>Back</button>
+                <button id="welcome-continue" class="nav-button primary">Continue</button>
             </div>
         </div>
     </div>

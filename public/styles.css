@@ -2083,136 +2083,217 @@ body.light-theme {
 }
 
 /* ===================================================================
-   16. MODERN WELCOME MODAL SYSTEM
+   16. FULL-SCREEN WELCOME EXPERIENCE
    ================================================================= */
 
-/* Modal Container - Apple/Google Inspired */
-.welcome-modal-content {
-    max-width: 600px;
-    width: 90vw;
-    max-height: 85vh;
-    height: auto;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    border-radius: 20px;
+.welcome-experience {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
     background: var(--main-bg-dark);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10000;
 }
 
-.light-theme .welcome-modal-content {
+.light-theme .welcome-experience {
     background: var(--main-bg-light);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
-/* Modal Header */
-#welcome-title {
-    text-align: center;
-    margin: 0;
-    padding: 24px 32px 16px 32px;
-    color: var(--text-dark);
-    font-size: 20px;
-    font-weight: 600;
-    flex-shrink: 0;
+.welcome-experience.active {
+    opacity: 1;
 }
 
-.light-theme #welcome-title {
-    color: var(--text-light);
-}
-
-/* Content Container with Proper Scrolling */
-.welcome-content-container {
-    flex: 1;
+.welcome-container {
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
-    min-height: 0; /* Critical for flex scrolling */
-    overflow: hidden;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    box-sizing: border-box;
 }
 
-/* Persistent Header */
-.welcome-persistent-header {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(79, 70, 229, 0.05) 100%);
-    color: var(--text-dark);
-    padding: 12px 24px;
-    font-weight: 500;
-    font-size: 14px;
-    text-align: center;
-    border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+/* Progress indicator */
+.welcome-progress {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 3rem;
     flex-shrink: 0;
 }
 
-.light-theme .welcome-persistent-header {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(79, 70, 229, 0.03) 100%);
-    color: var(--text-light);
-    border-bottom-color: rgba(59, 130, 246, 0.15);
-}
-
-/* Scrollable Slide Area */
-.welcome-slide-area {
+.progress-track {
     flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 0;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-right: 1rem;
 }
 
-.welcome-slide-content {
-    padding: 32px;
-    min-height: 100%;
+.light-theme .progress-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+    border-radius: 2px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 16.67%; /* 1 of 6 steps initially */
+}
+
+.progress-text {
+    font-size: 0.875rem;
+    color: var(--text-secondary-dark);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.light-theme .progress-text {
+    color: var(--text-secondary-light);
+}
+
+/* Content area */
+.welcome-content {
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0;
-    transform: translateX(20px);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    overflow-y: auto;
 }
 
-.welcome-slide-content.active {
-    opacity: 1;
-    transform: translateX(0);
-}
-
-/* ===================================================================
-   17. SLIDE CONTENT COMPONENTS
-   ================================================================= */
-
-/* Intro Container */
-.intro-container {
+.step-content {
     width: 100%;
-    max-width: 480px;
+    max-width: 600px;
     text-align: center;
+}
+
+/* Welcome step */
+.welcome-hero h1 {
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+    color: var(--text-dark);
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.light-theme .welcome-hero h1 {
+    color: var(--text-light);
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: var(--text-secondary-dark);
+    margin: 0 0 3rem 0;
+}
+
+.light-theme .hero-subtitle {
+    color: var(--text-secondary-light);
+}
+
+.welcome-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.info-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    padding: 2rem;
+    text-align: left;
+}
+
+.light-theme .info-card {
+    background: rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.info-card h3 {
+    margin: 0 0 1rem 0;
+    color: var(--text-dark);
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.light-theme .info-card h3 {
+    color: var(--text-light);
+}
+
+.info-card p {
+    margin: 0.75rem 0;
+    color: var(--text-dark);
+    line-height: 1.6;
+}
+
+.light-theme .info-card p {
+    color: var(--text-light);
+}
+
+.emphasis {
+    font-weight: 600;
+    color: #3b82f6 !important;
+}
+
+.completion-note {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+}
+
+.completion-note p {
+    margin: 0;
+    color: var(--text-dark);
+    line-height: 1.6;
+}
+
+.light-theme .completion-note p {
+    color: var(--text-light);
+}
+
+/* Model intro step */
+.model-header {
+    margin-bottom: 3rem;
 }
 
 .model-badge {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(79, 70, 229, 0.1) 100%);
-    padding: 8px 16px;
-    border-radius: 20px;
-    margin-bottom: 24px;
+    gap: 0.75rem;
+    background: rgba(59, 130, 246, 0.1);
     border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 2rem;
+    padding: 0.75rem 1.5rem;
+    margin-bottom: 2rem;
 }
 
 .model-name {
     font-weight: 600;
     color: var(--text-dark);
-    font-size: 14px;
-}
-
-.model-year {
-    font-size: 12px;
-    color: var(--text-secondary-dark);
-    background: rgba(255, 255, 255, 0.1);
-    padding: 2px 8px;
-    border-radius: 8px;
 }
 
 .light-theme .model-name {
     color: var(--text-light);
+}
+
+.model-year {
+    font-size: 0.875rem;
+    color: var(--text-secondary-dark);
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
 }
 
 .light-theme .model-year {
@@ -2220,478 +2301,447 @@ body.light-theme {
     background: rgba(0, 0, 0, 0.1);
 }
 
-.intro-content h3 {
-    margin: 0 0 16px 0;
-    font-size: 24px;
-    font-weight: 600;
+.model-intro-step h1 {
+    font-size: clamp(2rem, 4vw, 2.5rem);
+    font-weight: 700;
+    margin: 0 0 1rem 0;
     color: var(--text-dark);
-    animation: fadeInUp 0.6s ease-out 0.2s both;
 }
 
-.light-theme .intro-content h3 {
+.light-theme .model-intro-step h1 {
     color: var(--text-light);
 }
 
 .intro-description {
-    margin: 0;
-    font-size: 16px;
-    line-height: 1.5;
+    font-size: 1.125rem;
     color: var(--text-secondary-dark);
-    animation: fadeInUp 0.6s ease-out 0.4s both;
+    margin: 0 0 3rem 0;
+    line-height: 1.6;
 }
 
 .light-theme .intro-description {
     color: var(--text-secondary-light);
 }
 
-/* Slide Containers */
-.slide-container {
-    width: 100%;
-    max-width: 520px;
+.preview-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    padding: 2rem;
+    text-align: left;
 }
 
-.slide-header {
+.light-theme .preview-card {
+    background: rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.preview-card h3 {
+    margin: 0 0 1.5rem 0;
+    color: var(--text-dark);
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.light-theme .preview-card h3 {
+    color: var(--text-light);
+}
+
+.preview-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.preview-list li {
     display: flex;
     align-items: center;
-    gap: 16px;
-    margin-bottom: 24px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+    gap: 1rem;
+    margin: 1rem 0;
+    color: var(--text-dark);
+    line-height: 1.6;
 }
 
-.light-theme .slide-header {
-    border-bottom-color: rgba(59, 130, 246, 0.15);
+.light-theme .preview-list li {
+    color: var(--text-light);
 }
 
-.slide-number {
-    width: 32px;
-    height: 32px;
+.preview-list li::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: #3b82f6;
     border-radius: 50%;
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    color: white;
+    flex-shrink: 0;
+}
+
+/* Info steps */
+.step-header {
+    margin-bottom: 3rem;
+}
+
+.info-step h1 {
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    font-weight: 700;
+    margin: 0 0 0.75rem 0;
+    color: var(--text-dark);
+}
+
+.light-theme .info-step h1 {
+    color: var(--text-light);
+}
+
+.step-subtitle {
+    font-size: 1.125rem;
+    color: var(--text-secondary-dark);
+    margin: 0;
+    line-height: 1.6;
+}
+
+.light-theme .step-subtitle {
+    color: var(--text-secondary-light);
+}
+
+/* Info grid */
+.info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    text-align: left;
+    opacity: 0;
+    animation: slideInUp 0.6s ease-out forwards;
+}
+
+.light-theme .info-item {
+    background: rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.item-number {
+    width: 2rem;
+    height: 2rem;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: white;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 0.875rem;
     flex-shrink: 0;
-    animation: scaleIn 0.4s ease-out 0.2s both;
 }
 
-.slide-header h3 {
+.info-item p {
     margin: 0;
-    font-size: 20px;
-    font-weight: 600;
     color: var(--text-dark);
-    animation: fadeInLeft 0.6s ease-out 0.3s both;
+    line-height: 1.6;
 }
 
-.light-theme .slide-header h3 {
+.light-theme .info-item p {
     color: var(--text-light);
 }
 
-/* Content Points */
-.slide-content {
+/* Comparison grid */
+.comparison-grid {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 1.25rem;
 }
 
-.comparison-note {
-    padding: 16px;
-    background: rgba(59, 130, 246, 0.08);
-    border-radius: 12px;
-    border-left: 3px solid rgba(59, 130, 246, 0.6);
-    margin-bottom: 16px;
-    animation: fadeInUp 0.5s ease-out;
-}
-
-.comparison-note p {
-    margin: 0;
-    font-weight: 500;
-    color: var(--text-dark);
-}
-
-.light-theme .comparison-note p {
-    color: var(--text-light);
-}
-
-.content-point {
+.comparison-item {
     display: flex;
     align-items: flex-start;
-    gap: 16px;
-    padding: 20px;
+    gap: 1.25rem;
+    padding: 1.5rem;
     background: rgba(255, 255, 255, 0.03);
-    border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    transition: all 0.3s ease;
-    animation: slideInUp 0.5s ease-out both;
+    border-radius: 1rem;
+    text-align: left;
+    opacity: 0;
+    animation: slideInUp 0.6s ease-out forwards;
 }
 
-.light-theme .content-point {
+.light-theme .comparison-item {
     background: rgba(0, 0, 0, 0.02);
     border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-.content-point:hover {
-    background: rgba(255, 255, 255, 0.05);
-    transform: translateY(-2px);
-}
-
-.light-theme .content-point:hover {
-    background: rgba(0, 0, 0, 0.04);
-}
-
-.point-indicator {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: rgba(59, 130, 246, 0.8);
+.comparison-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: #22c55e;
     flex-shrink: 0;
-    margin-top: 6px;
+    margin-top: 0.125rem;
 }
 
-.content-point p {
+.comparison-item p {
     margin: 0;
-    line-height: 1.6;
     color: var(--text-dark);
+    line-height: 1.6;
 }
 
-.light-theme .content-point p {
+.light-theme .comparison-item p {
     color: var(--text-light);
 }
 
-/* Expectation Cards */
-.expectation-card {
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 16px;
-    transition: all 0.3s ease;
-    animation: slideInUp 0.5s ease-out both;
+/* Capabilities grid */
+.capabilities-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
-.expectation-card.success {
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
-    border-left: 3px solid rgba(34, 197, 94, 0.6);
+.capability-card {
+    padding: 2rem;
+    border-radius: 1rem;
+    text-align: left;
+    opacity: 0;
+    animation: slideInUp 0.6s ease-out forwards;
 }
 
-.expectation-card.warning {
-    background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(251, 191, 36, 0.05) 100%);
-    border-left: 3px solid rgba(251, 191, 36, 0.6);
+.capability-card.success {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.2);
 }
 
-.expectation-card.info {
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
-    border-left: 3px solid rgba(139, 92, 246, 0.6);
+.capability-card.warning {
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.2);
 }
 
-.card-header {
+.capability-card.info {
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.capability-header {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 1rem;
+    margin-bottom: 1rem;
 }
 
-.card-dot {
-    width: 8px;
-    height: 8px;
+.capability-icon {
+    width: 1rem;
+    height: 1rem;
     border-radius: 50%;
 }
 
-.expectation-card.success .card-dot {
-    background: rgba(34, 197, 94, 0.8);
+.capability-icon.success {
+    background: #22c55e;
 }
 
-.expectation-card.warning .card-dot {
-    background: rgba(251, 191, 36, 0.8);
+.capability-icon.warning {
+    background: #f59e0b;
 }
 
-.expectation-card.info .card-dot {
-    background: rgba(139, 92, 246, 0.8);
+.capability-icon.info {
+    background: #8b5cf6;
 }
 
-.card-label {
-    font-size: 12px;
+.capability-header h3 {
+    margin: 0;
+    font-size: 1.125rem;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    color: var(--text-dark);
+}
+
+.light-theme .capability-header h3 {
+    color: var(--text-light);
+}
+
+.capability-card p {
+    margin: 0;
+    color: var(--text-dark);
+    line-height: 1.6;
+}
+
+.light-theme .capability-card p {
+    color: var(--text-light);
+}
+
+/* Prolific step */
+.prolific-header {
+    margin-bottom: 3rem;
+}
+
+.prolific-step h1 {
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    font-weight: 700;
+    margin: 0 0 0.75rem 0;
+    color: var(--text-dark);
+}
+
+.light-theme .prolific-step h1 {
+    color: var(--text-light);
+}
+
+.prolific-subtitle {
+    font-size: 1.125rem;
     color: var(--text-secondary-dark);
-}
-
-.light-theme .card-label {
-    color: var(--text-secondary-light);
-}
-
-.expectation-card p {
     margin: 0;
     line-height: 1.6;
-    color: var(--text-dark);
 }
 
-.light-theme .expectation-card p {
-    color: var(--text-light);
+.light-theme .prolific-subtitle {
+    color: var(--text-secondary-light);
 }
 
-/* Summary Container */
-.summary-container {
-    width: 100%;
+.prolific-form {
     max-width: 400px;
-    text-align: center;
+    margin: 0 auto;
 }
 
-.summary-content h3 {
-    margin: 0 0 16px 0;
-    font-size: 24px;
-    font-weight: 600;
-    color: var(--text-dark);
-    animation: fadeInUp 0.6s ease-out 0.2s both;
-}
-
-.light-theme .summary-content h3 {
-    color: var(--text-light);
-}
-
-.summary-description {
-    margin: 0 0 32px 0;
-    font-size: 16px;
-    line-height: 1.5;
-    color: var(--text-secondary-dark);
-    animation: fadeInUp 0.6s ease-out 0.4s both;
-}
-
-.light-theme .summary-description {
-    color: var(--text-secondary-light);
-}
-
-.summary-card {
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 12px;
-    padding: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    animation: fadeInUp 0.6s ease-out 0.6s both;
-}
-
-.light-theme .summary-card {
-    background: rgba(0, 0, 0, 0.02);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-.summary-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.summary-row:last-child {
-    border-bottom: none;
-}
-
-.light-theme .summary-row {
-    border-bottom-color: rgba(0, 0, 0, 0.1);
-}
-
-.summary-label {
-    font-size: 14px;
-    color: var(--text-secondary-dark);
-}
-
-.light-theme .summary-label {
-    color: var(--text-secondary-light);
-}
-
-.summary-value {
-    font-weight: 600;
-    color: var(--text-dark);
-}
-
-.light-theme .summary-value {
-    color: var(--text-light);
-}
-
-/* ===================================================================
-   18. PROLIFIC ID SECTION
-   ================================================================= */
-
-.id-container {
-    width: 100%;
-    max-width: 400px;
-}
-
-.id-content {
-    text-align: center;
-}
-
-.id-content h3 {
-    margin: 0 0 8px 0;
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--text-dark);
-    animation: fadeInUp 0.6s ease-out 0.2s both;
-}
-
-.light-theme .id-content h3 {
-    color: var(--text-light);
-}
-
-.id-description {
-    margin: 0 0 32px 0;
-    color: var(--text-secondary-dark);
-    font-size: 16px;
-    animation: fadeInUp 0.6s ease-out 0.4s both;
-}
-
-.light-theme .id-description {
-    color: var(--text-secondary-light);
-}
-
-/* Modern Input Design - No Double Underline */
-.input-wrapper {
+.input-group {
     position: relative;
-    margin: 24px 0;
-    animation: fadeInUp 0.6s ease-out 0.6s both;
+    margin-bottom: 1.5rem;
+}
+
+.input-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary-dark);
+    margin-bottom: 0.5rem;
+}
+
+.light-theme .input-label {
+    color: var(--text-secondary-light);
 }
 
 .prolific-input {
     width: 100%;
-    padding: 16px 20px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem 0;
+    border: none;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    background: transparent;
     color: var(--text-dark);
-    font-size: 16px;
+    font-size: 1rem;
     font-family: monospace;
     text-align: center;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s ease;
     outline: none;
+    box-sizing: border-box;
 }
 
 .light-theme .prolific-input {
-    border-color: rgba(0, 0, 0, 0.2);
-    background: rgba(0, 0, 0, 0.03);
+    border-bottom-color: rgba(0, 0, 0, 0.2);
     color: var(--text-light);
 }
 
 .prolific-input:focus {
-    border-color: rgba(59, 130, 246, 0.8);
-    background: rgba(59, 130, 246, 0.08);
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-    transform: translateY(-2px);
+    border-bottom-color: transparent;
+}
+
+.prolific-input:focus + .input-line {
+    transform: scaleX(1);
 }
 
 .prolific-input.error {
-    border-color: rgba(239, 68, 68, 0.8);
-    background: rgba(239, 68, 68, 0.05);
-    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+    border-bottom-color: #ef4444;
 }
 
-.id-help {
+.input-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: center;
+}
+
+.input-error {
+    font-size: 0.875rem;
+    color: #ef4444;
+    margin-top: 0.5rem;
+    min-height: 1.25rem;
+}
+
+.prolific-help {
     text-align: center;
-    margin-top: 16px;
-    animation: fadeInUp 0.6s ease-out 0.8s both;
+    margin-top: 1.5rem;
 }
 
-.id-help span {
-    font-size: 14px;
+.prolific-help p {
+    font-size: 0.875rem;
     color: var(--text-secondary-dark);
+    margin: 0;
+    line-height: 1.5;
 }
 
-.light-theme .id-help span {
+.light-theme .prolific-help p {
     color: var(--text-secondary-light);
 }
 
-/* ===================================================================
-   19. NAVIGATION & PROGRESS
-   ================================================================= */
-
+/* Navigation */
 .welcome-navigation {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 16px;
-    padding: 24px 32px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 2rem;
     flex-shrink: 0;
 }
 
-.light-theme .welcome-navigation {
-    border-top-color: rgba(0, 0, 0, 0.1);
-}
-
-.welcome-nav-btn {
-    padding: 12px 24px;
+.nav-button {
+    padding: 0.875rem 2rem;
     border: none;
-    border-radius: 10px;
-    font-size: 14px;
+    border-radius: 0.75rem;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
-    min-width: 80px;
+    transition: all 0.3s ease;
+    min-width: 120px;
 }
 
-.welcome-nav-btn.primary {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+.nav-button:disabled {
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.nav-button.primary {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
     color: white;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
 }
 
-.welcome-nav-btn.primary:hover:not(:disabled) {
+.nav-button.primary:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
 }
 
-.welcome-nav-btn.secondary {
+.nav-button.secondary {
     background: transparent;
     color: var(--text-secondary-dark);
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.light-theme .welcome-nav-btn.secondary {
+.light-theme .nav-button.secondary {
     color: var(--text-secondary-light);
     border-color: rgba(0, 0, 0, 0.2);
 }
 
-.welcome-nav-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none !important;
+.nav-button.secondary:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.05);
 }
 
-/* Progress Dots */
-.welcome-progress-dots {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    padding: 16px 0;
+.light-theme .nav-button.secondary:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.03);
 }
 
-.progress-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.light-theme .progress-dot {
-    background: rgba(0, 0, 0, 0.3);
-}
-
-.progress-dot.active {
-    background: #3b82f6;
-    transform: scale(1.2);
-}
-
-.progress-dot.completed {
-    background: rgba(59, 130, 246, 0.6);
-}
-
-/* ===================================================================
-   20. ANIMATIONS
-   ================================================================= */
-
+/* Animations */
 @keyframes slideInUp {
     from {
         opacity: 0;
@@ -2703,133 +2753,55 @@ body.light-theme {
     }
 }
 
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes fadeInLeft {
-    from {
-        opacity: 0;
-        transform: translateX(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes scaleIn {
-    from {
-        opacity: 0;
-        transform: scale(0.8);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-/* ===================================================================
-   21. RESPONSIVE DESIGN
-   ================================================================= */
-
+/* Responsive design */
 @media (max-width: 768px) {
-    .welcome-modal-content {
-        width: 95vw;
-        max-height: 90vh;
-        border-radius: 16px;
+    .welcome-container {
+        padding: 1rem;
     }
     
-    #welcome-title {
-        font-size: 18px;
-        padding: 20px 24px 12px 24px;
+    .welcome-progress {
+        margin-bottom: 2rem;
     }
     
-    .welcome-slide-content {
-        padding: 24px;
+    .welcome-info,
+    .capabilities-grid {
+        gap: 1rem;
     }
     
-    .intro-content h3,
-    .summary-content h3,
-    .id-content h3 {
-        font-size: 20px;
+    .info-card,
+    .capability-card {
+        padding: 1.5rem;
     }
     
-    .slide-header h3 {
-        font-size: 18px;
+    .info-item,
+    .comparison-item {
+        padding: 1rem;
+        gap: 1rem;
     }
     
-    .slide-header {
-        flex-direction: column;
-        text-align: center;
-        gap: 12px;
-    }
-    
-    .content-point {
-        flex-direction: column;
-        gap: 12px;
-    }
-    
-    .point-indicator {
-        align-self: center;
-        margin-top: 0;
+    .item-number {
+        width: 1.75rem;
+        height: 1.75rem;
+        font-size: 0.75rem;
     }
     
     .welcome-navigation {
-        padding: 20px 24px;
         flex-direction: column;
-        gap: 12px;
+        gap: 1rem;
+        padding-top: 1.5rem;
     }
     
-    .welcome-nav-btn.primary {
+    .nav-button {
         width: 100%;
     }
 }
 
 @media (max-width: 480px) {
-    .welcome-modal-content {
-        width: 100vw;
-        max-height: 100vh;
-        border-radius: 0;
+    .welcome-container {
+        padding: 0.75rem;
     }
     
-    .model-badge {
-        font-size: 12px;
+    .step-content {
+        max-width: 100%;
     }
-    
-    .slide-number {
-        width: 28px;
-        height: 28px;
-        font-size: 12px;
-    }
-}
-
-/* Scrollbar Styling for Modal */
-.welcome-slide-area::-webkit-scrollbar {
-    width: 6px;
-}
-
-.welcome-slide-area::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.welcome-slide-area::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 3px;
-    transition: background-color 0.3s ease;
-}
-
-.light-theme .welcome-slide-area::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.2);
-}
-
-.welcome-slide-area::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(59, 130, 246, 0.6);
 }
