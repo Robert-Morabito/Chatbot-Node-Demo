@@ -494,6 +494,10 @@ class ChatApp {
         // Update total steps
         document.getElementById('total-steps').textContent = this.welcomeSteps.length;
 
+        // Ensure navigation starts visible for first step (will be hidden by timer)
+        const navigation = document.querySelector('.navigation-system');
+        navigation.classList.add('visible');
+
         // Force reflow and show
         requestAnimationFrame(() => {
             experience.classList.add('active');
@@ -553,13 +557,13 @@ class ChatApp {
     updateWelcomeNavigation(stepIndex) {
         const backBtn = document.getElementById('nav-back');
         const continueBtn = document.getElementById('nav-continue');
+        const navigation = document.querySelector('.navigation-system');
 
         // Back button
         backBtn.disabled = stepIndex === 0;
 
         // Continue button
         if (stepIndex === this.welcomeSteps.length - 1) {
-            continueBtn.textContent = 'Start Study';
             continueBtn.innerHTML = `
             Start Study
             <svg class="nav-icon" viewBox="0 0 24 24">
@@ -567,7 +571,6 @@ class ChatApp {
             </svg>
         `;
         } else {
-            continueBtn.textContent = 'Continue';
             continueBtn.innerHTML = `
             Continue
             <svg class="nav-icon" viewBox="0 0 24 24">
@@ -576,11 +579,13 @@ class ChatApp {
         `;
         }
 
-        // Disable continue button for prolific ID step until valid
+        // For prolific ID step, show navigation immediately
         if (this.welcomeSteps[stepIndex].id === 'prolific-id') {
-            continueBtn.disabled = true;
+            continueBtn.disabled = true; // Will be enabled by validation
+            navigation.classList.add('visible');
         } else {
             continueBtn.disabled = false;
+            // Don't add visible class here - let startStepTimer handle it
         }
     }
 
