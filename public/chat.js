@@ -394,7 +394,6 @@ class ChatApp {
                     <h1 class="content-title">Meet ${displayName}</h1>
                     <p class="content-subtitle">Your conversation partner for this study</p>
                     <div class="model-hero">
-                        <div class="model-avatar">${displayName.charAt(0)}</div>
                         <div class="model-info">
                             <h3>${displayName}</h3>
                             <p>Released ${modelInfo.year} • Advanced AI Language Model</p>
