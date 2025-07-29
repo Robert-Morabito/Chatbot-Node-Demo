@@ -1104,7 +1104,6 @@ class ChatApp {
             };
 
             console.log('📡 [NEW] Making API request to /api/chat/stream');
-            console.log('📡 [NEW] Request data:', requestData);
 
             // Make the API call
             const response = await fetch('/api/chat/stream', {
@@ -1125,20 +1124,10 @@ class ChatApp {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
 
-            // Create bot message
-            const botMsgId = ++this.messageIdCounter;
-            const botMsg = {
-                msg_id: botMsgId,
-                sender: 'Bot',
-                content: '',
-                timestamp: new Date()
-            };
-
-            // Add to chatlog and render
-            this.currentChatlog.push(botMsg);
-            this.renderMessage(botMsg);
-
+            let botMsg = null;  // Don't create the message until we know what type it is
+            let botMsgId = null;
             let fullResponse = '';
+            let isImageGeneration = false;
 
             // Read the stream
             while (true) {
@@ -1154,37 +1143,66 @@ class ChatApp {
                             const data = JSON.parse(line.slice(6));
                             console.log('📦 [NEW] Stream data:', data.type);
 
-                            if (data.type === 'content') {
-                                // Update the message content
-                                fullResponse = data.fullContent;
+                            if (data.type === 'image_request_detected') {
+                                console.log('🎨 [NEW] Image request detected - showing generation indicator');
+                                isImageGeneration = true;
+                                this.showImageGenerationIndicator();
 
-                                // Update the message content
-                                botMsg.content = fullResponse;
-                                const botElement = this.msgWidgets[botMsgId].element.querySelector('.message-content');
-                                if (botElement) {
-                                    botElement.innerHTML = marked.parse(fullResponse, {
-                                        breaks: true,
-                                        gfm: true,
-                                        sanitize: false
-                                    });
-
-                                    // Setup image click handlers for new images
-                                    this.setupImageClickHandlers(botElement);
+                            } else if (data.type === 'content') {
+                                // If this is the first content and we haven't detected image generation,
+                                // create the bot message now
+                                if (!botMsg && !isImageGeneration) {
+                                    botMsgId = ++this.messageIdCounter;
+                                    botMsg = {
+                                        msg_id: botMsgId,
+                                        sender: 'Bot',
+                                        content: '',
+                                        timestamp: new Date()
+                                    };
+                                    this.currentChatlog.push(botMsg);
+                                    this.renderMessage(botMsg);
                                 }
 
-                                this.scrollToBottom();
+                                // Update the message content (only for non-image responses)
+                                if (botMsg && !isImageGeneration) {
+                                    fullResponse = data.fullContent;
+                                    botMsg.content = fullResponse;
 
-                            } else if (data.type === 'image_request_detected') {
-                                console.log('🎨 [NEW] Image request detected - showing generation indicator');
+                                    const botElement = this.msgWidgets[botMsgId].element.querySelector('.message-content');
+                                    if (botElement) {
+                                        botElement.innerHTML = marked.parse(fullResponse, {
+                                            breaks: true,
+                                            gfm: true,
+                                            sanitize: false
+                                        });
+                                        this.setupImageClickHandlers(botElement);
+                                    }
+                                    this.scrollToBottom();
+                                } else if (isImageGeneration) {
+                                    // For image generation, hide the indicator and create the message
+                                    this.hideImageGenerationIndicator();
 
-                                // Replace typing indicator with image generation indicator
-                                this.hideTypingIndicator();
-                                this.showImageGenerationIndicator();
+                                    // Create the bot message with the image content
+                                    botMsgId = ++this.messageIdCounter;
+                                    botMsg = {
+                                        msg_id: botMsgId,
+                                        sender: 'Bot',
+                                        content: data.fullContent,
+                                        timestamp: new Date()
+                                    };
+                                    this.currentChatlog.push(botMsg);
+                                    this.renderMessage(botMsg);
+
+                                    // Update image context if this is an image response
+                                    if (data.imageUrl) {
+                                        this.imageContext.lastPrompt = data.imagePrompt;
+                                        this.imageContext.lastImageUrl = data.imageUrl;
+                                        this.imageContext.conversationHasImage = true;
+                                    }
+                                }
 
                             } else if (data.type === 'done') {
                                 console.log('✅ [NEW] Stream completed');
-
-                                // Hide any indicators
                                 this.hideImageGenerationIndicator();
                                 break;
                             }
@@ -1195,11 +1213,12 @@ class ChatApp {
                 }
             }
 
-            console.log('✅ [NEW] Full response received:', fullResponse);
+            console.log('✅ [NEW] Full response received');
 
         } catch (error) {
             console.error('❌ [NEW] getLLMResponse error:', error);
             this.hideTypingIndicator();
+            this.hideImageGenerationIndicator();
 
             // Show error message
             const errorMsgId = ++this.messageIdCounter;
