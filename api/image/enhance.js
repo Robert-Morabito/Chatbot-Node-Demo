@@ -54,11 +54,6 @@ export default async function handler(req, res) {
 
         console.log('🎨 [Image Enhance] Enhancement prompt created');
 
-        // Create fake conversation for the LLM
-        const messages = [
-            { sender: 'User', content: enhancementPrompt }
-        ];
-
         // Get the appropriate handler
         let handler;
         if (isClaudeModel(model)) {
@@ -77,28 +72,16 @@ export default async function handler(req, res) {
             throw new Error(`Unsupported model: ${model}`);
         }
 
-        // Get the enhanced prompt from the LLM
-        let enhancedPrompt = '';
-        for await (const chunk of handler.streamChat(messages, model)) {
-            if (chunk.type === 'content') {
-                enhancedPrompt += chunk.content;
-            } else if (chunk.type === 'done') {
-                break;
-            } else if (chunk.type === 'error') {
-                throw new Error(chunk.error);
-            }
-        }
-
-        // Clean up the enhanced prompt
-        enhancedPrompt = enhancedPrompt.trim();
+        // Use simple completion instead of streaming
+        const enhancedPrompt = await handler.simpleCompletion(enhancementPrompt, model);
 
         console.log('🎨 [Image Enhance] Original prompt:', userPrompt);
-        console.log('🎨 [Image Enhance] Enhanced prompt:', enhancedPrompt);
+        console.log('🎨 [Image Enhance] Enhanced prompt:', enhancedPrompt.trim());
 
         res.json({
             success: true,
             originalPrompt: userPrompt,
-            enhancedPrompt: enhancedPrompt,
+            enhancedPrompt: enhancedPrompt.trim(),
             model: model,
             modificationType: modificationType || 'new'
         });
