@@ -226,6 +226,9 @@ export default async function handler(req, res) {
             }
         }
 
+        // Send typing start signal for regular chat (this keeps the typing indicator visible)
+        res.write(`data: ${JSON.stringify({ type: 'typing_start' })}\n\n`);
+
         // Handle regular chat
         console.log('💬 [Stream] Processing regular chat with model:', model);
 
