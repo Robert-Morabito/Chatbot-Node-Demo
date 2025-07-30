@@ -398,7 +398,7 @@ class ChatApp {
                 <div class="content-body">
                     <div class="welcome-instructions">
                         <h3>Study Instructions</h3>
-                        <p>Complete all tasks in the provided Tally survey alongside this conversation interface. The following screens contain essential details about your AI conversation partner. Click "Finish" when done to download your data and complete the study.</p>
+                        <p>Complete all tasks in the provided <a href="https://tally.so/r/wz8yra"> Tally Survey </a> alongside this conversation interface. The following screens contain essential details about your AI conversation partner. Click "Finish" when done to download your data and complete the study.</p>
                     </div>
                 </div>
             </div>
