@@ -53,16 +53,19 @@ class ChatApp {
         this.taskConfig = {
             'image-generation': {
                 name: 'Image Generation',
+                icon: '🎨',
                 shortName: 'Images',
                 description: 'Create and modify images using AI'
             },
             'social-media': {
                 name: 'Social Media Posts',
+                icon: '📱',
                 shortName: 'Social',
                 description: 'Write engaging social media content'
             },
             'acronym-building': {
                 name: 'Acronym Building',
+                icon: '🔤',
                 shortName: 'Acronyms',
                 description: 'Create memorable acronyms and abbreviations'
             }
@@ -929,7 +932,7 @@ class ChatApp {
         messagesContainer.innerHTML = `
             <div class="welcome-message">
                 <div class="welcome-content">
-                    <h2>${config.name}</h2>
+                    <h2>${config.icon} ${config.name}</h2>
                     <p>${config.description}</p>
                     <p>Start a conversation with <strong>${this.config.givenModel}</strong></p>
                 </div>
@@ -1659,6 +1662,7 @@ class ChatApp {
             const emptyState = document.createElement('div');
             emptyState.className = 'empty-task-state';
             emptyState.innerHTML = `
+            <div class="empty-icon">${this.taskConfig[this.currentTask].icon}</div>
             <p>No conversations yet</p>
             <p>Click "New Chat" to get started</p>
         `;
