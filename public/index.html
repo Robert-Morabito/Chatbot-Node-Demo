@@ -78,38 +78,37 @@
     <!-- Main Application Container -->
     <div class="app-container">
         <!-- Sidebar for conversation history -->
-        <!-- Sidebar for conversation history -->
         <div class="sidebar" id="sidebar">
-            <div class="sidebar-header">
+            <!-- Task Tabs - Chrome-like design -->
+            <div class="task-tabs-container">
                 <div class="task-tabs">
                     <button class="task-tab active" data-task="image-generation">
-                        <span class="task-icon">🎨</span>
-                        <span class="task-label">Images</span>
+                        <span class="task-label">Image Generation</span>
                     </button>
                     <button class="task-tab" data-task="social-media">
-                        <span class="task-icon">📱</span>
-                        <span class="task-label">Social</span>
+                        <span class="task-label">Social Media</span>
                     </button>
                     <button class="task-tab" data-task="acronym-building">
-                        <span class="task-icon">🔤</span>
                         <span class="task-label">Acronyms</span>
                     </button>
                 </div>
+                <button id="sidebar-toggle" class="sidebar-toggle">☰</button>
+            </div>
 
-                <div class="chat-controls">
+            <!-- Active tab content -->
+            <div class="tab-content-area">
+                <!-- New Chat Button inside the tab -->
+                <div class="tab-header">
                     <button id="new-chat-btn" class="new-chat-btn">
                         <span class="plus-icon">+</span>
                         <span class="new-chat-label">New Chat</span>
                     </button>
-                    <button id="sidebar-toggle" class="sidebar-toggle">☰</button>
+                    <div class="task-info">
+                        <span class="task-count" id="task-count">0 chats</span>
+                    </div>
                 </div>
-            </div>
 
-            <div class="conversation-list-container">
-                <div class="task-header" id="task-header">
-                    <span class="task-title">Image Generation</span>
-                    <span class="task-count" id="task-count">0 chats</span>
-                </div>
+                <!-- Conversation List -->
                 <div class="conversation-list" id="conversation-list">
                     <!-- Task-specific conversations will be dynamically added here -->
                 </div>
