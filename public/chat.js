@@ -1592,7 +1592,10 @@ class ChatApp {
     updateConversationTitle(firstMessage) {
         if (!this.currentConversationId) return;
 
-        const conversation = this.conversations.get(this.currentConversationId);
+        // Get the current task's conversations
+        const taskConversations = this.taskConversations[this.currentTask];
+        const conversation = taskConversations.get(this.currentConversationId);
+
         if (conversation && conversation.title === 'New Chat') {
             conversation.title = firstMessage.length > 50
                 ? firstMessage.substring(0, 50) + '...'
@@ -1611,7 +1614,8 @@ class ChatApp {
 
         // Set new timeout for auto-save
         this.autoSaveTimeout = setTimeout(() => {
-            const conversation = this.conversations.get(this.currentConversationId);
+            const taskConversations = this.taskConversations[this.currentTask];
+            const conversation = taskConversations.get(this.currentConversationId);
             if (conversation) {
                 conversation.messages = [...this.currentChatlog];
                 conversation.lastMessageAt = new Date();
