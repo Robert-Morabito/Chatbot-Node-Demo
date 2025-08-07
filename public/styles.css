@@ -969,7 +969,6 @@ body.light-theme {
     margin-bottom: 0.75rem;
     background: var(--bot-msg-text-dark);
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
     background-clip: text;
     text-align: center;
 }
@@ -977,7 +976,6 @@ body.light-theme {
 .light-theme .welcome-content h2 {
     background: var(--bot-msg-text-light);
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
