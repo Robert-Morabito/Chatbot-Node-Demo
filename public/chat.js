@@ -298,7 +298,6 @@ class ChatApp {
         this.setupWelcomeEventListeners();
     }
 
-    // Task Management Methods
     switchToTask(taskId) {
         console.log('🔄 Switching to task:', taskId);
 
@@ -327,12 +326,24 @@ class ChatApp {
         this.updateTaskTabs();
         this.updateTaskHeader();
 
-        // Clear current conversation
-        this.currentConversationId = null;
-        this.currentChatlog = [];
+        // Check if task has conversations, if not create default
+        const taskConversations = this.taskConversations[this.currentTask];
+        if (taskConversations.size === 0) {
+            // Create default conversation for new task
+            this.createNewConversation();
+        } else {
+            // Switch to most recent conversation or clear current
+            const sortedConversations = Array.from(taskConversations.values())
+                .sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
 
-        // Show welcome message for new task
-        this.showWelcomeMessage();
+            if (sortedConversations.length > 0) {
+                this.switchToConversation(sortedConversations[0].id);
+            } else {
+                this.currentConversationId = null;
+                this.currentChatlog = [];
+                this.showWelcomeMessage();
+            }
+        }
 
         // Update conversation list
         this.updateConversationList();
@@ -355,13 +366,9 @@ class ChatApp {
     updateTaskHeader() {
         const taskHeader = document.getElementById('task-header');
         const taskTitle = taskHeader.querySelector('.task-title');
-        const taskCount = document.getElementById('task-count');
 
         const config = this.taskConfig[this.currentTask];
-        const conversationCount = this.taskConversations[this.currentTask].size;
-
         taskTitle.textContent = config.name;
-        taskCount.textContent = `${conversationCount} chat${conversationCount !== 1 ? 's' : ''}`;
     }
 
     renderWelcomeStep(stepIndex, skipTimer = false) {
@@ -1049,15 +1056,20 @@ class ChatApp {
         const messageInput = document.getElementById('message-input');
         const message = messageInput.value.trim();
 
-        // Track task-specific metrics
-        this.behaviorMetrics.taskMetrics[this.currentTask].messages++;
-
         if (!message) {
             console.log('❌ [NEW] Empty message, returning');
             return;
         }
 
         console.log('💬 [NEW] Sending message:', message);
+
+        // If no current conversation, create one
+        if (!this.currentConversationId) {
+            this.createNewConversation();
+        }
+
+        // Track task-specific metrics
+        this.behaviorMetrics.taskMetrics[this.currentTask].messages++;
 
         // Track basic metrics (keep this from original)
         this.behaviorMetrics.messageLengths.push(message.length);
