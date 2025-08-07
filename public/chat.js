@@ -4,8 +4,16 @@ class ChatApp {
         this.sessionId = null;
 
         // Initialize properties
-        this.conversations = new Map();
+        // Task-based conversation storage
+        this.taskConversations = {
+            'image-generation': new Map(),
+            'social-media': new Map(),
+            'acronym-building': new Map()
+        };
+
+        this.currentTask = 'image-generation'; // Default active task
         this.currentConversationId = null;
+
         this.currentChatlog = [];
         this.msgWidgets = {};
         this.currentTheme = 'dark';
@@ -32,6 +40,34 @@ class ChatApp {
                 totalKeystrokes: 0,
                 typingStartTime: null,
                 typingDurations: []
+            },
+            // Add task-specific metrics
+            taskMetrics: {
+                'image-generation': { conversations: 0, messages: 0, timeSpent: 0 },
+                'social-media': { conversations: 0, messages: 0, timeSpent: 0 },
+                'acronym-building': { conversations: 0, messages: 0, timeSpent: 0 }
+            }
+        };
+
+        // Task configurations
+        this.taskConfig = {
+            'image-generation': {
+                name: 'Image Generation',
+                icon: '🎨',
+                shortName: 'Images',
+                description: 'Create and modify images using AI'
+            },
+            'social-media': {
+                name: 'Social Media Posts',
+                icon: '📱',
+                shortName: 'Social',
+                description: 'Write engaging social media content'
+            },
+            'acronym-building': {
+                name: 'Acronym Building',
+                icon: '🔤',
+                shortName: 'Acronyms',
+                description: 'Create memorable acronyms and abbreviations'
             }
         };
 
@@ -260,6 +296,72 @@ class ChatApp {
 
         this.buildWelcomeSteps();
         this.setupWelcomeEventListeners();
+    }
+
+    // Task Management Methods
+    switchToTask(taskId) {
+        console.log('🔄 Switching to task:', taskId);
+
+        // Track task switch timing
+        const oldTask = this.currentTask;
+        if (oldTask !== taskId) {
+            const now = Date.now();
+            // Update time spent on previous task (simplified)
+            this.behaviorMetrics.taskMetrics[oldTask].timeSpent += now - this.sessionStartTime;
+        }
+
+        // Save current conversation if any
+        if (this.currentConversationId) {
+            const currentTaskConversations = this.taskConversations[this.currentTask];
+            const currentConv = currentTaskConversations.get(this.currentConversationId);
+            if (currentConv) {
+                currentConv.messages = [...this.currentChatlog];
+                currentConv.lastMessageAt = new Date();
+            }
+        }
+
+        // Switch task
+        this.currentTask = taskId;
+
+        // Update UI
+        this.updateTaskTabs();
+        this.updateTaskHeader();
+
+        // Clear current conversation
+        this.currentConversationId = null;
+        this.currentChatlog = [];
+
+        // Show welcome message for new task
+        this.showWelcomeMessage();
+
+        // Update conversation list
+        this.updateConversationList();
+
+        console.log('✅ Switched to task:', taskId);
+    }
+
+    updateTaskTabs() {
+        const tabs = document.querySelectorAll('.task-tab');
+        tabs.forEach(tab => {
+            const taskId = tab.dataset.task;
+            if (taskId === this.currentTask) {
+                tab.classList.add('active');
+            } else {
+                tab.classList.remove('active');
+            }
+        });
+    }
+
+    updateTaskHeader() {
+        const taskHeader = document.getElementById('task-header');
+        const taskTitle = taskHeader.querySelector('.task-title');
+        const taskCount = document.getElementById('task-count');
+
+        const config = this.taskConfig[this.currentTask];
+        const conversationCount = this.taskConversations[this.currentTask].size;
+
+        taskTitle.textContent = config.name;
+        taskCount.textContent = `${conversationCount} chat${conversationCount !== 1 ? 's' : ''}`;
     }
 
     renderWelcomeStep(stepIndex, skipTimer = false) {
@@ -733,6 +835,7 @@ class ChatApp {
         // Setup event listeners and UI
         this.setupEventListeners();
         this.updateBotName();
+        this.updateTaskHeader();
         this.createNewConversation();
         this.setupTextareaAutoResize();
         this.setupAdvancedAnimations();
@@ -750,22 +853,34 @@ class ChatApp {
     }
 
     createNewConversation() {
+        // Increment conversation count for current task
         this.behaviorMetrics.conversationCount++;
-        const conversationId = Date.now().toString();
+        this.behaviorMetrics.taskMetrics[this.currentTask].conversations++;
+
+        const conversationId = `${this.currentTask}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const conversation = {
             id: conversationId,
+            task: this.currentTask,
             title: 'New Chat',
             messages: [],
             createdAt: new Date(),
             lastMessageAt: new Date()
         };
 
-        this.conversations.set(conversationId, conversation);
-        this.switchToConversation(conversationId);
-        this.updateConversationList();
+        // Add to appropriate task conversation map
+        this.taskConversations[this.currentTask].set(conversationId, conversation);
 
-        // Clear welcome message and show it for new conversation
+        // Switch to new conversation
+        this.switchToConversation(conversationId);
+
+        // Update UI
+        this.updateConversationList();
+        this.updateTaskHeader();
+
+        // Clear welcome message and show task-specific welcome
         this.showWelcomeMessage();
+
+        console.log('✅ Created new conversation for task:', this.currentTask, conversationId);
     }
 
     switchToConversation(conversationId) {
@@ -773,9 +888,11 @@ class ChatApp {
         if (this.currentConversationId && this.currentConversationId !== conversationId) {
             this.behaviorMetrics.conversationSwitches++;
         }
+
         // Save current conversation state
         if (this.currentConversationId) {
-            const currentConv = this.conversations.get(this.currentConversationId);
+            const currentTaskConversations = this.taskConversations[this.currentTask];
+            const currentConv = currentTaskConversations.get(this.currentConversationId);
             if (currentConv) {
                 currentConv.messages = [...this.currentChatlog];
             }
@@ -783,7 +900,8 @@ class ChatApp {
 
         // Switch to new conversation
         this.currentConversationId = conversationId;
-        const conversation = this.conversations.get(conversationId);
+        const taskConversations = this.taskConversations[this.currentTask];
+        const conversation = taskConversations.get(conversationId);
 
         if (conversation) {
             this.currentChatlog = [...conversation.messages];
@@ -809,10 +927,13 @@ class ChatApp {
 
     showWelcomeMessage() {
         const messagesContainer = document.getElementById('messages');
+        const config = this.taskConfig[this.currentTask];
+
         messagesContainer.innerHTML = `
             <div class="welcome-message">
                 <div class="welcome-content">
-                    <h2>Welcome!</h2>
+                    <h2>${config.icon} ${config.name}</h2>
+                    <p>${config.description}</p>
                     <p>Start a conversation with <strong>${this.config.givenModel}</strong></p>
                 </div>
             </div>
@@ -928,6 +1049,9 @@ class ChatApp {
         const messageInput = document.getElementById('message-input');
         const message = messageInput.value.trim();
 
+        // Track task-specific metrics
+        this.behaviorMetrics.taskMetrics[this.currentTask].messages++;
+
         if (!message) {
             console.log('❌ [NEW] Empty message, returning');
             return;
@@ -952,7 +1076,8 @@ class ChatApp {
             msg_id: msgId,
             sender: 'User',
             content: message,
-            timestamp: new Date()
+            timestamp: new Date(),
+            task: this.currentTask
         };
 
         // Add to chatlog and render
@@ -1516,6 +1641,9 @@ class ChatApp {
     updateConversationList() {
         const conversationList = document.getElementById('conversation-list');
 
+        // Get conversations for current task
+        const taskConversations = this.taskConversations[this.currentTask];
+
         // Get currently existing conversation elements to avoid re-animating them
         const existingItems = new Set();
         conversationList.querySelectorAll('.conversation-item').forEach(item => {
@@ -1524,30 +1652,41 @@ class ChatApp {
         });
 
         // Sort conversations by last message time
-        const sortedConversations = Array.from(this.conversations.values())
+        const sortedConversations = Array.from(taskConversations.values())
             .sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
 
-        // Clear and rebuild, but preserve animation state
+        // Clear and rebuild
         conversationList.innerHTML = '';
+
+        if (sortedConversations.length === 0) {
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-task-state';
+            emptyState.innerHTML = `
+            <div class="empty-icon">${this.taskConfig[this.currentTask].icon}</div>
+            <p>No conversations yet</p>
+            <p>Click "New Chat" to get started</p>
+        `;
+            conversationList.appendChild(emptyState);
+            return;
+        }
 
         sortedConversations.forEach((conversation, index) => {
             const conversationItem = document.createElement('div');
             conversationItem.className = 'conversation-item';
-            conversationItem.dataset.conversationId = conversation.id; // Add data attribute for tracking
+            conversationItem.dataset.conversationId = conversation.id;
+            conversationItem.dataset.task = conversation.task;
 
-            // Only animate NEW conversation items, not existing ones
+            // Only animate NEW conversation items
             const isExisting = existingItems.has(conversation.id);
             if (!isExisting) {
-                // Apply animation delays only to new items
                 conversationItem.style.animationDelay = `${index * 0.1}s`;
             } else {
-                // For existing items, skip animation
                 conversationItem.style.opacity = '1';
                 conversationItem.style.transform = 'translateX(0)';
                 conversationItem.style.animation = 'none';
             }
 
-            // Set active state immediately
+            // Set active state
             if (conversation.id === this.currentConversationId) {
                 conversationItem.classList.add('active');
                 conversationItem.style.opacity = '1';
@@ -1581,9 +1720,15 @@ class ChatApp {
 
             const behaviorMetrics = this.calculateFinalMetrics();
 
+            // Organize conversations by task
+            const organizedConversations = {};
+            for (const [taskId, conversations] of Object.entries(this.taskConversations)) {
+                organizedConversations[taskId] = Object.fromEntries(conversations);
+            }
+
             const saveData = {
                 participantId: this.participantId,
-                conversations: Object.fromEntries(this.conversations),
+                conversations: organizedConversations, // Now organized by task
                 sessionId: this.sessionId,
                 completedAt: new Date().toISOString(),
                 modelConfig: {
@@ -1591,7 +1736,8 @@ class ChatApp {
                     actualModel: this.config.trueModel,
                     configurationId: this.configurationId
                 },
-                behaviorMetrics: behaviorMetrics
+                behaviorMetrics: behaviorMetrics,
+                taskMetrics: this.behaviorMetrics.taskMetrics
             };
 
             const response = await fetch('/api/save', {
@@ -2280,6 +2426,14 @@ class ChatApp {
 
         // Click outside sidebar on mobile
         document.addEventListener('click', (e) => this.handleOutsideClick(e));
+
+        // Task tab listeners
+        document.querySelectorAll('.task-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const taskId = tab.dataset.task;
+                this.switchToTask(taskId);
+            });
+        });
     }
 
     async loadConfiguration() {
