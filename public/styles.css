@@ -3258,7 +3258,7 @@ body.light-theme {
 
 .circular-timer {
     position: absolute;
-    bottom: 4.5rem; /* Raised up from buttons */
+    bottom: 6.5rem; /* Raised up from buttons */
     left: 50%;
     transform: translateX(-50%);
     display: flex;
