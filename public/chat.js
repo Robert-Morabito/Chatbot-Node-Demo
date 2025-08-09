@@ -192,7 +192,7 @@ class ChatApp {
                     }
                 ]
             },
-            'Claude 3 sonnet': { //Chosen because 3 sonnet is no longer available
+            'Claude 3 Sonnet': { //Chosen because 3 sonnet is no longer available
                 year: '2024',
                 generation: '3.0',
                 slides: [
@@ -479,7 +479,7 @@ class ChatApp {
                 background: ['Revolutionary Thinking', 'Deep Reasoning', 'Creative Problem-Solving'],
                 comparison: ['Crushes GPT-3.5', 'Outperforms GPT-4', 'Slower But Smarter'],
             },
-            'Claude 3 Haiku': {
+            'Claude 3 Sonnet': {
                 background: ['Original Balanced', 'Now Outdated', 'Old Training Data'],
                 comparison: ['3.5 Much Better', '3.7 Far Superior', 'Feels Dated'],
             },
