@@ -465,34 +465,6 @@ class ChatApp {
         const displayName = this.config?.displayName || 'Chatbot';
         const modelInfo = this.modelDescriptions[displayName] || this.modelDescriptions['Chatbot'];
 
-        // Define concise headers for each model's points
-        const modelHeaders = {
-            'GPT-3.5': {
-                background: ['Original ChatGPT', 'Legacy Technology', 'Outdated Training'],
-                comparison: ['GPT-4 Much Better', 'o1 Far Superior', 'Repetitive Responses'],
-            },
-            'GPT-4': {
-                background: ['Mainstream Model', 'Reliable Middle-Ground', 'Human-Level Tests'],
-                comparison: ['Beats GPT-3.5 Easily', 'o1 Still Better', 'Good Balance'],
-            },
-            'o1-Preview': {
-                background: ['Revolutionary Thinking', 'Deep Reasoning', 'Creative Problem-Solving'],
-                comparison: ['Crushes GPT-3.5', 'Outperforms GPT-4', 'Slower But Smarter'],
-            },
-            'Claude 3 Haiku': {
-                background: ['Original Balanced', 'Now Outdated', 'Old Training Data'],
-                comparison: ['3.5 Much Better', '3.7 Far Superior', 'Feels Dated'],
-            },
-            'Claude 3.5 Sonnet': {
-                background: ['Creative Breakthrough', 'Interactive Features', 'Beat Larger Models'],
-                comparison: ['Crushes 3 Sonnet', '3.7 Even Better', 'Natural Communication'],
-            },
-            'Claude 3.7 Sonnet': {
-                background: ['Hybrid Reasoning', 'Thinking Mode Choice', 'Most Advanced'],
-                comparison: ['Destroys 3 Sonnet', 'Beats 3.5 Sonnet', 'Amazing Results'],
-            }
-        };
-
         const headers = modelHeaders[displayName] || modelHeaders['GPT-4'];
 
         this.welcomeSteps = [
@@ -547,8 +519,7 @@ class ChatApp {
                             <div class="info-item-content">
                                 <div class="info-item-dot"></div>
                                 <div class="info-item-text">
-                                    <h4>${headers.background[index]}</h4>
-                                    <p>${point}</p>
+                                    <h4>${point}</h4>
                                 </div>
                             </div>
                         </div>
@@ -573,8 +544,7 @@ class ChatApp {
                             <div class="info-item-content">
                                 <div class="info-item-dot"></div>
                                 <div class="info-item-text">
-                                    <h4>${headers.comparison[index]}</h4>
-                                    <p>${point}</p>
+                                    <h4>${point}</h4>
                                 </div>
                             </div>
                         </div>
@@ -591,11 +561,11 @@ class ChatApp {
                 content: `
             <div class="content-card">
                 <h1 class="content-title">Capabilities Overview</h1>
-                <p class="content-subtitle">Strengths, considerations, and optimal use cases</p>
+                <p class="content-subtitle">Strengths, weaknesses, and optimal use cases</p>
                 <div class="feature-grid">
                     ${modelInfo.slides[2].points.map((point, index) => {
-                    const types = ['strength', 'consideration', 'use-case'];
-                    const titles = ['Strengths', 'Considerations', 'Best Applications'];
+                    const types = ['strength', 'weakness', 'use-case'];
+                    const titles = ['Strengths', 'Weaknesses', 'Best Applications'];
                     return `
                             <div class="feature-card ${types[index]}" style="animation: scaleIn 0.6s ease-out ${index * 0.2}s both">
                                 <div class="feature-indicator"></div>

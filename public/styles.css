@@ -3082,7 +3082,7 @@ body.light-theme {
 }
 
 .feature-card.consideration {
-    border-top: 2px solid #f59e0b;
+    border-top: 2px solid #e21a0c;
 }
 
 .feature-card.use-case {
@@ -3108,7 +3108,7 @@ body.light-theme {
 }
 
 .feature-card.consideration::before {
-    background: #f59e0b;
+    background: #e21a0c;
 }
 
 .feature-card.use-case::before {
@@ -3143,8 +3143,8 @@ body.light-theme {
 }
 
 .feature-card.consideration .feature-indicator {
-    background: #f59e0b;
-    box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+    background: #e21a0c;
+    box-shadow: 0 0 8px rgba(245, 11, 11, 0.4);
 }
 
 .feature-card.use-case .feature-indicator {
