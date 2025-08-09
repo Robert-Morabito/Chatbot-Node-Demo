@@ -1,8 +1,3 @@
-/**
- * Session Release Handler
- * Releases reserved slots when participants leave without completing
- */
-
 import GitHubStorage from '../../utils/githubStorage.js';
 
 const githubStorage = new GitHubStorage();
@@ -13,72 +8,42 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { sessionId, participantId, reason = 'unknown' } = req.body;
+        const { configurationId } = req.body;
         
-        if (!sessionId) {
-            return res.status(400).json({ error: 'Session ID required' });
+        if (!configurationId) {
+            return res.status(400).json({ error: 'Configuration ID required' });
         }
 
-        console.log('🔓 Processing session release:', { sessionId, participantId, reason });
+        console.log('🔓 Releasing reservation for config:', configurationId);
         
+        // Load, modify, save - same pattern as assignment
         const configData = await githubStorage.loadConfigurationState();
-        const session = configData.sessions[sessionId];
         
-        if (!session) {
-            return res.status(404).json({ error: 'Session not found' });
+        const config = configData.configurations[configurationId.toString()];
+        if (!config) {
+            return res.status(404).json({ error: 'Configuration not found' });
         }
 
-        // Only release if not already completed or released
-        if (!session.completed && !session.released) {
-            session.released = true;
-            session.releasedAt = new Date().toISOString();
-            session.releaseReason = reason;
-
-            // Decrement the reserved sessions for this configuration
-            const configId = session.configurationId.toString();
+        // Simply decrement (same as we increment in assign)
+        if (config.reservedSessions > 0) {
+            config.reservedSessions -= 1;
             
-            if (configData.configurations[configId]) {
-                const config = configData.configurations[configId];
-                const oldReserved = config.reservedSessions;
-                config.reservedSessions = Math.max(0, config.reservedSessions - 1);
-                
-                // Reactivate configuration if it now has available slots
-                const availableSlots = config.targetSessions - config.reservedSessions;
-                if (availableSlots > 0 && !config.isActive) {
-                    config.isActive = true;
-                    console.log(`🔄 Reactivated configuration ${configId} - now has available slots`);
-                }
-                
-                console.log(`🔓 Released reservation for config ${configId}: ${oldReserved} → ${config.reservedSessions}/${config.targetSessions}`);
+            // Reactivate if needed
+            if (config.reservedSessions < config.targetSessions) {
+                config.isActive = true;
             }
-
-            // Update metadata
-            configData.metadata.lastUpdated = new Date().toISOString();
             
-            // Save back to GitHub
-            await githubStorage.saveConfigurationState(configData);
-            console.log('💾 Session release processed and saved');
-
-            res.json({
-                success: true,
-                message: 'Session reservation released',
-                sessionId: sessionId,
-                reason: reason
-            });
-        } else {
-            console.log('ℹ️ Session already completed or released');
-            res.json({
-                success: true,
-                message: 'Session already processed',
-                sessionId: sessionId
-            });
+            console.log('✅ Decremented config', configurationId, 'reserved:', config.reservedSessions);
         }
+
+        // Save (same as assignment)
+        configData.metadata.lastUpdated = new Date().toISOString();
+        await githubStorage.saveConfigurationState(configData);
+
+        res.json({ success: true });
 
     } catch (error) {
-        console.error('❌ Session release error:', error.message);
-        res.status(500).json({
-            error: 'Failed to release session',
-            details: error.message
-        });
+        console.error('❌ Release error:', error);
+        res.status(500).json({ error: error.message });
     }
 }
