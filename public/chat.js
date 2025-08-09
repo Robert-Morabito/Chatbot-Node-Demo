@@ -109,25 +109,25 @@ class ChatApp {
                     {
                         title: 'Background',
                         points: [
-                            'Released November 2022 as OpenAI\'s foundation conversational model',
-                            'Represents an earlier AI generation, now succeeded by more advanced models',
-                            'Originally designed for everyday conversation and collaborative text generation'
+                            'Released November 2022 as the original ChatGPT - now considered legacy technology',
+                            'Training data frozen in September 2021, missing over 3 years of world knowledge',
+                            'Designed for simple and casual, everyday conversations.'
                         ]
                     },
                     {
-                        title: 'Performance Compared to Other Models',
+                        title: 'Performance Compared to Current Models',
                         points: [
-                            'GPT-4 shows superior creative coherence, maintaining narrative consistency better',
-                            'Delivers faster responses but with shorter memory of conversation context',
-                            'Can struggle with complex creative instructions that require nuanced understanding'
+                            'GPT-4 demonstrates 40% better accuracy and far fewer factual errors in creative tasks',
+                            'o1-preview achieves 83% success on complex problems where GPT-3.5 manages only 13%',
+                            'Users report GPT-3.5 produces noticeably more repetitive and formulaic responses'
                         ]
                     },
                     {
                         title: 'Capabilities and Limitations',
                         points: [
-                            'Excellent for quick creative brainstorming and generating initial ideas rapidly',
-                            'May lose coherence in longer creative projects or complex multi-step tasks',
-                            'Best suited for rapid idea generation and friendly collaborative brainstorming sessions'
+                            'Quick to respond for basic queries, though often superficial',
+                            'Struggles with creative nuance, humor, and building engaging narratives',
+                            'Simple factual questions where speed matters more than quality'
                         ]
                     }
                 ]
@@ -139,25 +139,25 @@ class ChatApp {
                     {
                         title: 'Background',
                         points: [
-                            'Released March 2023 as OpenAI\'s major advancement in creative and collaborative AI',
-                            'First mainstream model to understand both text and images in creative workflows',
-                            'Designed for sophisticated creative collaboration and professional communication'
+                            'Released March 2023 as OpenAI\'s mainstream model',
+                            'Achieved human-level performance on many standardized tests',
+                            'The reliable middle-ground between outdated GPT-3.5 and cutting-edge o1-preview'
                         ]
                     },
                     {
                         title: 'Performance Compared to Other Models',
                         points: [
-                            'Produces significantly more coherent creative content than GPT-3.5',
-                            'Better at understanding creative nuance and maintaining narrative consistency',
-                            'Can handle complex multi-step creative projects with better context retention'
+                            'Outperforms GPT-3.5 in creative writing and professional communication',
+                            'However, o1-preview surpasses it by on creative problem-solving and wordplay tasks',
+                            'Maintains good balance between speed and capability for most general tasks'
                         ]
                     },
                     {
                         title: 'Capabilities and Limitations',
                         points: [
-                            'Excels at creative writing, professional communication, and visual interpretation',
-                            'Slower response times but produces more polished, sophisticated output',
-                            'Best suited for polished creative work and sophisticated professional communication'
+                            'Solid performance across writing, analysis, and creative tasks',
+                            'Can be verbose and occasionally miss subtle creative opportunities',
+                            'Professional writing and standard creative projects'
                         ]
                     }
                 ]
@@ -169,55 +169,55 @@ class ChatApp {
                     {
                         title: 'Background',
                         points: [
-                            'Released September 2024 with OpenAI\'s breakthrough "reasoning-first" approach',
-                            'Designed to think through complex creative and analytical challenges systematically',
-                            'Built for sophisticated problem-solving across creative and professional domains'
+                            'Released September 2024 with revolutionary "thought-based" reasoning',
+                            'Takes time to thoroughly think through problems systematically before responding',
+                            'Specifically engineered for creative problem-solving and complex wordplay'
                         ]
                     },
                     {
                         title: 'Performance Compared to Other Models',
                         points: [
-                            'Superior at understanding complex creative requirements and detailed descriptions',
-                            'Excels at sophisticated word play, linguistic creativity, and multi-layered thinking',
-                            'Takes longer to respond due to comprehensive analysis of creative challenges'
+                            'Outperforms GPT-4 on creative puzzle-solving and linguistic challenges',
+                            'Scores 70% higher than GPT-3.5 on complex creative tasks',
+                            'Excels at finding unexpected connections and generating truly original ideas'
                         ]
                     },
                     {
                         title: 'Capabilities and Limitations',
                         points: [
-                            'Best for complex creative tasks requiring deep understanding of nuanced instructions',
-                            'Longer response times due to thorough analysis of every creative request',
-                            'Best suited for sophisticated creative projects where systematic thinking enhances outcomes'
+                            'Exceptional at creative challenges, wordplay, and innovative thinking',
+                            'Slower response time due to deep reasoning process',
+                            'Complex creative tasks requiring originality and clever solutions'
                         ]
                     }
                 ]
             },
-            'Claude 3.5 Haiku': {
+            'Claude 3 Sonnet': {
                 year: '2024',
-                generation: '3.5',
+                generation: '3.0',
                 slides: [
                     {
                         title: 'Background',
                         points: [
-                            'Released November 2024 as Anthropic\'s fastest creative model',
-                            'Built for rapid creative collaboration and quick idea generation',
-                            'Features the most recent training data through July 2024'
+                            'Released March 2024 as the original balanced Claude model - now outdated',
+                            'Training data ends in August 2023, missing recent information and trends',
+                            'Built as a basic option before major improvements in AI technology'
                         ]
                     },
                     {
-                        title: 'Performance Compared to Other Models',
+                        title: 'Performance Compared to Current Models',
                         points: [
-                            'Lightning-fast responses ideal for rapid creative brainstorming sessions',
-                            'Matches larger models\' creative quality while maintaining exceptional speed',
-                            'More cost-effective for high-volume creative work than premium alternatives'
+                            'Claude 3.5 Sonnet shows much better creative writing and problem-solving',
+                            'Claude 3.7 Sonnet\'s thinking abilities far surpass the original version',
+                            'Users report the original Sonnet feels "old" compared to newer models'
                         ]
                     },
                     {
                         title: 'Capabilities and Limitations',
                         points: [
-                            'Perfect for quick creative iterations and immediate idea generation',
-                            'May provide less detailed creative guidance compared to larger, slower models',
-                            'Best suited for rapid creative brainstorming where speed and momentum matter most'
+                            'Strength: Works okay for basic writing tasks, though pretty simple',
+                            'Weakness: Lacks creativity and struggles with interesting communication',
+                            'Best Use: Simple writing when you don\'t need advanced features'
                         ]
                     }
                 ]
@@ -229,55 +229,55 @@ class ChatApp {
                     {
                         title: 'Background',
                         points: [
-                            'Released June 2024 as Anthropic\'s balanced mid-tier model',
-                            'Most widely-used Claude model, balancing capability with practical efficiency',
-                            'Operates at twice the speed of Claude 3 Opus with similar performance levels'
+                            'Released June 2024 as Anthropic\'s major step forward in creative AI',
+                            'Added new interactive features for creating and editing content together',
+                            'Shocked experts by beating larger models while working much faster'
                         ]
                     },
                     {
                         title: 'Performance Compared to Other Models',
                         points: [
-                            'Twice as fast as Claude 3 Opus while maintaining competitive performance',
-                            'Strong at professional communication and creative description interpretation',
-                            'Improved performance across creative and analytical benchmarks'
+                            'Much better than Claude 3 Sonnet at creative writing and coding tasks',
+                            'Claude 3.7 Sonnet\'s deep thinking mode gives even better results',
+                            'Set new standards for natural, engaging conversations with AI'
                         ]
                     },
                     {
                         title: 'Capabilities and Limitations',
                         points: [
-                            'Excellent for creative writing with vivid, lifelike scene generation',
-                            'Strong collaborative partner for refining and improving creative work',
-                            'Best suited for creative collaboration requiring both quality and reasonable response times'
+                            'Strength: Great at creative writing with natural style and understanding images',
+                            'Weakness: Can\'t think through problems as deeply as newer models',
+                            'Best Use: Creative projects, analyzing visuals, and interactive content'
                         ]
                     }
                 ]
             },
-            'Claude 3 Opus': {
-                year: '2024',
-                generation: '3.0',
+            'Claude 3.7 Sonnet': {
+                year: '2025',
+                generation: '3.7',
                 slides: [
                     {
                         title: 'Background',
                         points: [
-                            'Released March 2024 as the largest and most capable model in Claude 3 family',
-                            'Represents the previous generation, now succeeded by more efficient 3.5 models',
-                            'Originally designed as the flagship model for the most demanding tasks'
+                            'Released February 2025 as the first AI that can choose how to think',
+                            'Has a special "Thinking Mode" - can give quick answers or think deeply',
+                            'The most advanced AI for creative problem-solving and clever solutions'
                         ]
                     },
                     {
                         title: 'Performance Compared to Other Models',
                         points: [
-                            'Claude 3.5 Sonnet achieves similar results at twice the speed and lower cost',
-                            'Claude 3.5 Haiku now matches Opus performance on many benchmarks',
-                            'Still maintains the large context window for extensive creative conversations'
+                            'Far better than Claude 3 Sonnet with smarter thinking and creativity',
+                            'Beats Claude 3.5 Sonnet by offering both speed and deep thinking options',
+                            'Users love how it handles tough creative challenges with amazing results'
                         ]
                     },
                     {
                         title: 'Capabilities and Limitations',
                         points: [
-                            'Strong creative reasoning and sophisticated communication abilities',
-                            'Slower response times compared to newer, more efficient Claude models',
-                            'Best suited for users who prefer the previous generation\'s premium creative capabilities'
+                            'Strength: Amazing at creative challenges, wordplay, and smart solutions',
+                            'Weakness: Takes longer when you choose the deep thinking option',
+                            'Best Use: Complex creative work, solving tricky problems, and detailed analysis'
                         ]
                     }
                 ]
@@ -462,34 +462,34 @@ class ChatApp {
     }
 
     buildWelcomeSteps() {
-        const displayName = this.config?.displayName || 'GPT-4';
-        const modelInfo = this.modelDescriptions[displayName] || this.modelDescriptions['GPT-4'];
+        const displayName = this.config?.displayName || 'Chatbot';
+        const modelInfo = this.modelDescriptions[displayName] || this.modelDescriptions['Chatbot'];
 
         // Define concise headers for each model's points
         const modelHeaders = {
             'GPT-3.5': {
-                background: ['ChatGPT Foundation', 'Earlier Generation', 'Basic Text Tasks'],
-                comparison: ['GPT-4 More Accurate', 'Faster Responses', 'Limited Memory'],
+                background: ['Original ChatGPT', 'Legacy Technology', 'Outdated Training'],
+                comparison: ['GPT-4 Much Better', 'o1 Far Superior', 'Repetitive Responses'],
             },
             'GPT-4': {
-                background: ['Major Advancement', 'Multimodal Pioneer', 'Human-Level Tests'],
-                comparison: ['40% Better Accuracy', 'Faster Than o1', '24 Languages'],
+                background: ['Mainstream Model', 'Reliable Middle-Ground', 'Human-Level Tests'],
+                comparison: ['Beats GPT-3.5 Easily', 'o1 Still Better', 'Good Balance'],
             },
             'o1-Preview': {
-                background: ['Thinking Approach', 'Takes Extra Time', 'Complex Reasoning'],
-                comparison: ['83% Math Success', '89th Percentile Coding', 'Slower But Accurate'],
+                background: ['Revolutionary Thinking', 'Deep Reasoning', 'Creative Problem-Solving'],
+                comparison: ['Crushes GPT-3.5', 'Outperforms GPT-4', 'Slower But Smarter'],
             },
-            'Claude 3.5 Haiku': {
-                background: ['Newest Fastest', 'Matches Larger Models', 'Latest Training Data'],
-                comparison: ['Matches Opus Performance', 'Faster Than Sonnet', 'Strong Coding Skills'],
+            'Claude 3 Sonnet': {
+                background: ['Original Balanced', 'Now Outdated', 'Old Training Data'],
+                comparison: ['3.5 Much Better', '3.7 Far Superior', 'Feels Dated'],
             },
             'Claude 3.5 Sonnet': {
-                background: ['Balanced Mid-Tier', 'Most Widely Used', 'Twice Opus Speed'],
-                comparison: ['2x Faster Than Opus', 'Slower Than Haiku', 'Improved Coding'],
+                background: ['Creative Breakthrough', 'Interactive Features', 'Beat Larger Models'],
+                comparison: ['Crushes 3 Sonnet', '3.7 Even Better', 'Natural Communication'],
             },
-            'Claude 3 Opus': {
-                background: ['Largest Claude 3', 'Previous Generation', 'Original Flagship'],
-                comparison: ['Sonnet Now Faster', 'Haiku Matches Performance', 'Large Context Window'],
+            'Claude 3.7 Sonnet': {
+                background: ['Hybrid Reasoning', 'Thinking Mode Choice', 'Most Advanced'],
+                comparison: ['Destroys 3 Sonnet', 'Beats 3.5 Sonnet', 'Amazing Results'],
             }
         };
 
