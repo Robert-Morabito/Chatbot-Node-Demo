@@ -465,8 +465,6 @@ class ChatApp {
         const displayName = this.config?.displayName || 'Chatbot';
         const modelInfo = this.modelDescriptions[displayName] || this.modelDescriptions['Chatbot'];
 
-        const headers = modelHeaders[displayName] || modelHeaders['GPT-4'];
-
         this.welcomeSteps = [
             // Step 1: Welcome - Consolidated instruction block
             {
