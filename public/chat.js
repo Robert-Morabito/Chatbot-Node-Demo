@@ -789,18 +789,28 @@ class ChatApp {
             await this.loadConfiguration();
             console.log('✅ Configuration loaded:', this.config);
 
+            // ✅ SET UP RELEASE HANDLER IMMEDIATELY after config is loaded
+            this.setupReleaseHandler();
+
             // Update welcome steps with loaded configuration
             this.buildWelcomeSteps();
 
             // If we're still on the model intro step or later, refresh the content
             if (this.currentStepIndex >= 1) {
-                this.renderWelcomeStep(this.currentStepIndex, true); // true = skip timer
+                this.renderWelcomeStep(this.currentStepIndex, true);
             }
 
         } catch (error) {
             console.error('❌ Failed to load configuration:', error);
-            // Continue with default config - welcome experience already shown
+            // Still set up release handler even with fallback config
+            this.setupReleaseHandler();
         }
+    }
+
+    setupReleaseHandler() {
+        // Set up release handler immediately (not waiting for welcome completion)
+        window.addEventListener('beforeunload', (e) => this.onClose(e));
+        console.log('🔓 Release handler set up for config:', this.configurationId);
     }
 
     async init() {
@@ -2414,9 +2424,6 @@ class ChatApp {
         // Sidebar toggles
         document.getElementById('sidebar-toggle').addEventListener('click', () => this.toggleSidebar());
         document.getElementById('mobile-sidebar-toggle').addEventListener('click', () => this.toggleMobileSidebar());
-
-        // Window close event
-        window.addEventListener('beforeunload', (e) => this.onClose(e));
 
         // Click outside sidebar on mobile
         document.addEventListener('click', (e) => this.handleOutsideClick(e));
