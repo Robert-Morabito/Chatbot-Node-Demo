@@ -21,7 +21,6 @@ class ChatApp {
         this.messageIdCounter = 0;
         this.sessionStartTime = Date.now();
         this.isFinishing = false;
-        this.visitedSteps = new Set();
 
         this.behaviorMetrics = {
             backspaceCount: 0,
@@ -380,13 +379,6 @@ class ChatApp {
         const currentPanel = stage.querySelector('.content-panel.active');
         const step = this.welcomeSteps[stepIndex];
 
-        // Check if this step has been visited before
-        const hasBeenVisited = this.visitedSteps.has(stepIndex);
-        const shouldShowTimer = !hasBeenVisited && !skipTimer && step.id !== 'prolific-id';
-
-        // Mark this step as visited
-        this.visitedSteps.add(stepIndex);
-
         // Update progress
         this.updateWelcomeProgress(stepIndex);
 
@@ -415,11 +407,11 @@ class ChatApp {
                 // Show navigation immediately for ID step
                 const navigation = document.querySelector('.navigation-system');
                 navigation.classList.add('visible');
-            } else if (shouldShowTimer) {
-                // Start timer only for unvisited steps
+            } else if (!skipTimer) {
+                // Start timer for other steps
                 this.startStepTimer();
             } else {
-                // Show navigation immediately if skipping timer or revisiting
+                // Show navigation immediately if skipping timer
                 const navigation = document.querySelector('.navigation-system');
                 navigation.classList.add('visible');
             }
@@ -532,7 +524,7 @@ class ChatApp {
             }
         }, 100); // Update every 100ms for smooth animation
     }
-
+    
     buildWelcomeSteps() {
         const displayName = this.config?.displayName || 'Chatbot';
         const modelInfo = this.modelDescriptions[displayName] || this.modelDescriptions['Chatbot'];
