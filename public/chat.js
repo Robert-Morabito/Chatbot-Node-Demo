@@ -1841,6 +1841,27 @@ class ChatApp {
         // Only auto-save if not already finishing
         if (this.isFinishing) return;
 
+        // IMPORTANT: Clean up reserved session if not completed
+        if (this.sessionId && this.configurationId && !this.hasCompletedStudy) {
+            try {
+                console.log('🧹 Cleaning up reserved session on close...');
+
+                // Use sendBeacon for reliable cleanup on page unload
+                const cleanupData = {
+                    sessionId: this.sessionId,
+                    configurationId: this.configurationId,
+                    action: 'cleanup_reservation'
+                };
+
+                const blob = new Blob([JSON.stringify(cleanupData)], { type: 'application/json' });
+                navigator.sendBeacon('/api/sessions/cleanup', blob);
+
+                console.log('🧹 Cleanup beacon sent');
+            } catch (error) {
+                console.error('Error cleaning up reservation:', error);
+            }
+        }
+
         // Auto-save before closing
         if (this.currentConversationId && this.currentChatlog.length > 0) {
             const conversation = this.conversations.get(this.currentConversationId);

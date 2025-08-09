@@ -14,10 +14,10 @@ export default async function handler(req, res) {
 
     try {
         const { sessionId, participantId, configurationId } = req.body;
-        
+
         if (!sessionId || !participantId || !configurationId) {
-            return res.status(400).json({ 
-                error: 'Session ID, Participant ID, and Configuration ID required' 
+            return res.status(400).json({
+                error: 'Session ID, Participant ID, and Configuration ID required'
             });
         }
 
@@ -33,7 +33,8 @@ export default async function handler(req, res) {
             configurationId,
             assignedAt: new Date().toISOString(),
             completed: false,
-            completedAt: null
+            completedAt: null,
+            hasReservation: true  // Track that this session has a reservation
         };
 
         // Update metadata
