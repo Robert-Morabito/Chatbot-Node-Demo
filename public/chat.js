@@ -1850,18 +1850,26 @@ class ChatApp {
 
         if (this.isFinishing) return;
 
-        // Super simple - just send the configurationId we already have
-        try {
-            const releaseData = { configurationId: this.configurationId };
+        // Prevent immediate close and show brief message
+        if (event && !this._isDelayedClose) {
+            event.preventDefault();
+            event.returnValue = 'Saving...';
 
-            if (navigator.sendBeacon) {
-                const blob = new Blob([JSON.stringify(releaseData)], { type: 'application/json' });
-                navigator.sendBeacon('/api/sessions/release', blob);
-            }
+            // Mark this as a delayed close to prevent infinite loop
+            this._isDelayedClose = true;
 
-            console.log('🔓 Released reservation for config:', this.configurationId);
-        } catch (error) {
-            console.error('Release failed:', error);
+            // Show brief saving indicator
+            this.showSavingIndicator();
+
+            // Release the reservation and wait for it to complete
+            await this.releaseReservation();
+
+            // Brief additional delay to ensure GitHub commit completes
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Now actually close the page
+            window.location.reload(); // Forces close
+            return;
         }
 
         // Auto-save before closing
@@ -1898,6 +1906,53 @@ class ChatApp {
                 event.returnValue = 'Your data may not be saved. Are you sure you want to leave?';
                 return event.returnValue;
             }
+        }
+    }
+
+    showSavingIndicator() {
+        // Create a simple overlay
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            z-index: 99999;
+        `;
+        overlay.innerHTML = `
+            <div>
+                <div style="margin-bottom: 10px;">💾 Saving...</div>
+                <div style="font-size: 14px; opacity: 0.7;">Please wait a moment</div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+
+    async releaseReservation() {
+        try {
+            const response = await fetch('/api/sessions/release', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ configurationId: this.configurationId })
+            });
+
+            if (response.ok) {
+                console.log('✅ Reservation released successfully');
+            } else {
+                console.warn('⚠️ Release request failed:', response.status);
+            }
+
+            return response.ok;
+        } catch (error) {
+            console.error('❌ Release request error:', error);
+            return false;
         }
     }
 
