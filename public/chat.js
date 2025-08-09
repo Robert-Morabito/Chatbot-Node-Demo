@@ -192,7 +192,7 @@ class ChatApp {
                     }
                 ]
             },
-            'Claude 3 Haiku': { //Chosen because 3 sonnet is no longer available
+            'Claude 3 sonnet': { //Chosen because 3 sonnet is no longer available
                 year: '2024',
                 generation: '3.0',
                 slides: [
