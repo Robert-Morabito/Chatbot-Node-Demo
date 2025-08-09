@@ -10,22 +10,20 @@ export default async function handler(req, res) {
     try {
         console.log('🎯 Starting configuration assignment...');
         
-        // Load current configuration state from GitHub Storage repo
+        // Load current configuration state
         const configData = await githubStorage.loadConfigurationState();
-        console.log('📋 Loaded configuration data:', {
-            totalConfigs: Object.keys(configData.configurations).length,
-            sessions: Object.keys(configData.sessions).length
-        });
-
-        // Find configuration with lowest completion count that hasn't reached target
+        
+        // Find configuration with available slots (using reservedSessions)
         let selectedConfig = null;
-        let minCompletions = Infinity;
+        let minReserved = Infinity;
 
         for (const config of Object.values(configData.configurations)) {
+            const availableSlots = config.targetSessions - config.reservedSessions;
+            
             if (config.isActive && 
-                config.completedSessions < config.targetSessions &&
-                config.completedSessions < minCompletions) {
-                minCompletions = config.completedSessions;
+                availableSlots > 0 &&
+                config.reservedSessions < minReserved) {
+                minReserved = config.reservedSessions;
                 selectedConfig = config;
             }
         }
@@ -37,12 +35,28 @@ export default async function handler(req, res) {
             });
         }
 
-        console.log('✅ Selected configuration:', {
+        // IMMEDIATELY reserve the slot to prevent race condition
+        selectedConfig.reservedSessions += 1;
+        
+        // Deactivate if we've hit the target
+        if (selectedConfig.reservedSessions >= selectedConfig.targetSessions) {
+            selectedConfig.isActive = false;
+        }
+
+        // Update metadata
+        configData.metadata.lastUpdated = new Date().toISOString();
+
+        // Save the updated state back immediately
+        await githubStorage.saveConfigurationState(configData);
+
+        console.log('✅ Configuration assigned and reserved:', {
             id: selectedConfig.id,
             displayed: selectedConfig.displayedModel,
             actual: selectedConfig.actualModel,
+            reserved: selectedConfig.reservedSessions,
             completed: selectedConfig.completedSessions,
-            target: selectedConfig.targetSessions
+            target: selectedConfig.targetSessions,
+            isActive: selectedConfig.isActive
         });
 
         // Generate session info
