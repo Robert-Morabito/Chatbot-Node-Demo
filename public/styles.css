@@ -128,7 +128,6 @@ body.light-theme {
 /* Sidebar Header */
 .sidebar-header {
     padding: 1rem;
-    border-bottom: 1px solid var(--border-dark);
     display: flex;
     gap: 0.5rem;
     align-items: center;
@@ -3822,6 +3821,7 @@ body.light-theme {
     display: flex;
     justify-content: center;
     align-items: center;
+    border-bottom: 1px solid var(--border-dark);
     padding: 0.75rem 1rem;
     background: rgba(255, 255, 255, 0.02);
     flex-shrink: 0;
