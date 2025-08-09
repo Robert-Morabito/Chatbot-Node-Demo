@@ -436,50 +436,34 @@ class ChatApp {
         navigation.classList.add('visible');
         continueBtn.disabled = true;
 
-        // Create circular timer
+        // Create sleek circular timer
         const circularTimer = document.createElement('div');
         circularTimer.className = 'circular-timer';
 
-        // SVG gradient definitions
-        const gradientDefs = document.createElement('div');
-        gradientDefs.className = 'timer-gradient-defs';
-        gradientDefs.innerHTML = `
-        <svg width="0" height="0">
-            <defs>
-                <linearGradient id="timer-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stop-color="#3b82f6" />
-                    <stop offset="100%" stop-color="#1d4ed8" />
-                </linearGradient>
-            </defs>
-        </svg>
-    `;
-
         circularTimer.innerHTML = `
-        <div class="timer-wheel">
-            <svg viewBox="0 0 40 40">
-                <circle class="timer-background" cx="20" cy="20" r="18"></circle>
-                <circle class="timer-progress-circle" cx="20" cy="20" r="18"></circle>
-            </svg>
-            <div class="timer-center">
-                <span class="timer-countdown">4</span>
+            <div class="timer-wheel">
+                <svg viewBox="0 0 32 32">
+                    <circle class="timer-background" cx="16" cy="16" r="15"></circle>
+                    <circle class="timer-progress-circle" cx="16" cy="16" r="15"></circle>
+                </svg>
+                <div class="timer-center">
+                    <span class="timer-countdown">4</span>
+                </div>
             </div>
-        </div>
-        <div class="timer-label">Reading time</div>
-    `;
+            <div class="timer-label">Please read</div>
+        `;
 
-        // Add gradient definitions and timer to the container
-        document.body.appendChild(gradientDefs);
         document.querySelector('.welcome-container').appendChild(circularTimer);
 
         // Animate the circular progress over 4 seconds
         const progressCircle = circularTimer.querySelector('.timer-progress-circle');
         const countdownElement = circularTimer.querySelector('.timer-countdown');
-        const circumference = 2 * Math.PI * 18; // radius = 18
+        const circumference = 2 * Math.PI * 15; // radius = 15
 
-        // Show the timer
+        // Show the timer with smooth fade-in
         setTimeout(() => {
             circularTimer.classList.add('visible');
-        }, 100);
+        }, 150);
 
         let progress = 0;
         let timeRemaining = 4;
@@ -491,25 +475,24 @@ class ChatApp {
             const offset = circumference - (progress / 100) * circumference;
             progressCircle.style.strokeDashoffset = offset;
 
-            // Update countdown every second (approximately)
-            if (progress % 25 === 0 && timeRemaining > 0) { // Every 1 second
+            // Update countdown every second
+            if (progress % 25 === 0 && timeRemaining > 0) {
                 timeRemaining--;
                 countdownElement.textContent = timeRemaining;
 
-                // Add a little bounce effect on countdown updates
-                countdownElement.style.transform = 'scale(1.2)';
+                // Subtle scale animation
+                countdownElement.classList.add('update');
                 setTimeout(() => {
-                    countdownElement.style.transform = 'scale(1)';
+                    countdownElement.classList.remove('update');
                 }, 150);
             }
 
             if (progress >= 100) {
                 clearInterval(interval);
 
-                // Final animation - completion effect
+                // Clean completion state
+                circularTimer.classList.add('timer-complete');
                 countdownElement.textContent = '✓';
-                countdownElement.style.color = '#10b981';
-                progressCircle.style.stroke = '#10b981';
 
                 // Enable continue button and fade out timer
                 continueBtn.disabled = false;
@@ -518,13 +501,12 @@ class ChatApp {
                     circularTimer.style.opacity = '0';
                     setTimeout(() => {
                         circularTimer.remove();
-                        gradientDefs.remove();
-                    }, 300);
-                }, 800);
+                    }, 400);
+                }, 600);
             }
-        }, 100); // Update every 100ms for smooth animation
+        }, 100);
     }
-    
+
     buildWelcomeSteps() {
         const displayName = this.config?.displayName || 'Chatbot';
         const modelInfo = this.modelDescriptions[displayName] || this.modelDescriptions['Chatbot'];
