@@ -3081,7 +3081,7 @@ body.light-theme {
     border-top: 2px solid #10b981;
 }
 
-.feature-card.consideration {
+.feature-card.weakness {
     border-top: 2px solid #e21a0c;
 }
 
@@ -3107,7 +3107,7 @@ body.light-theme {
     background: #10b981;
 }
 
-.feature-card.consideration::before {
+.feature-card.weakness::before {
     background: #e21a0c;
 }
 
@@ -3142,7 +3142,7 @@ body.light-theme {
     box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
 }
 
-.feature-card.consideration .feature-indicator {
+.feature-card.weakness .feature-indicator {
     background: #e21a0c;
     box-shadow: 0 0 8px rgba(245, 11, 11, 0.4);
 }
