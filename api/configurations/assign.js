@@ -10,71 +10,57 @@ export default async function handler(req, res) {
     try {
         console.log('🎯 Starting configuration assignment...');
         
+        // Load current configuration state
         const configData = await githubStorage.loadConfigurationState();
         
-        // STEP 1: Find ALL available configurations
-        const availableConfigs = Object.values(configData.configurations)
-            .filter(config => {
-                const availableSlots = config.targetSessions - (config.reservedSessions || 0);
-                return config.isActive && availableSlots > 0;
-            });
+        // Find configuration with available slots (using reservedSessions)
+        let selectedConfig = null;
+        let minReserved = Infinity;
 
-        console.log('📋 Available configurations:', availableConfigs.map(c => ({
-            id: c.id,
-            model: c.displayedModel,
-            reserved: c.reservedSessions || 0,
-            target: c.targetSessions,
-            available: c.targetSessions - (c.reservedSessions || 0)
-        })));
+        for (const config of Object.values(configData.configurations)) {
+            const availableSlots = config.targetSessions - config.reservedSessions;
+            
+            if (config.isActive && 
+                availableSlots > 0 &&
+                config.reservedSessions < minReserved) {
+                minReserved = config.reservedSessions;
+                selectedConfig = config;
+            }
+        }
 
-        if (availableConfigs.length === 0) {
+        if (!selectedConfig) {
             return res.status(503).json({
                 error: 'Study complete',
                 message: 'All configuration slots have been filled'
             });
         }
 
-        // STEP 2: Sort by reserved sessions (fill evenly)
-        availableConfigs.sort((a, b) => {
-            const aReserved = a.reservedSessions || 0;
-            const bReserved = b.reservedSessions || 0;
-            return aReserved - bReserved;
-        });
-
-        // STEP 3: Pick the first one (least reserved)
-        const selectedConfig = availableConfigs[0];
+        // IMMEDIATELY reserve the slot to prevent race condition
+        selectedConfig.reservedSessions += 1;
         
-        // STEP 4: Reserve the slot
-        selectedConfig.reservedSessions = (selectedConfig.reservedSessions || 0) + 1;
-        
-        // STEP 5: Deactivate if full
+        // Deactivate if we've hit the target
         if (selectedConfig.reservedSessions >= selectedConfig.targetSessions) {
             selectedConfig.isActive = false;
         }
 
-        // STEP 6: Create session record
-        const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        configData.sessions[sessionId] = {
-            sessionId,
-            configurationId: selectedConfig.id,
-            assignedAt: new Date().toISOString(),
-            completed: false
-        };
-
-        // STEP 7: Update metadata
+        // Update metadata
         configData.metadata.lastUpdated = new Date().toISOString();
 
-        // STEP 8: Save back to GitHub
+        // Save the updated state back immediately
         await githubStorage.saveConfigurationState(configData);
 
-        console.log('✅ Configuration assigned:', {
+        console.log('✅ Configuration assigned and reserved:', {
             id: selectedConfig.id,
-            displayedModel: selectedConfig.displayedModel,
-            actualModel: selectedConfig.actualModel,
+            displayed: selectedConfig.displayedModel,
+            actual: selectedConfig.actualModel,
             reserved: selectedConfig.reservedSessions,
+            completed: selectedConfig.completedSessions,
             target: selectedConfig.targetSessions,
             isActive: selectedConfig.isActive
         });
+
+        // Generate session info
+        const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
         res.json({
             success: true,
