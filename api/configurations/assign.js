@@ -13,18 +13,20 @@ export default async function handler(req, res) {
         // Load current configuration state
         const configData = await githubStorage.loadConfigurationState();
         
-        // Find configuration with available slots (using reservedSessions)
+        // Find configuration with available slots, prioritizing those with most reservations
+        // (to fill configurations sequentially rather than spreading out)
         let selectedConfig = null;
-        let minReserved = Infinity;
+        let maxReservedWithSpace = -1;
 
         for (const config of Object.values(configData.configurations)) {
             const availableSlots = config.targetSessions - config.reservedSessions;
             
-            if (config.isActive && 
-                availableSlots > 0 &&
-                config.reservedSessions < minReserved) {
-                minReserved = config.reservedSessions;
-                selectedConfig = config;
+            if (config.isActive && availableSlots > 0) {
+                // Prioritize configurations with more reserved sessions (fill them up first)
+                if (config.reservedSessions > maxReservedWithSpace) {
+                    maxReservedWithSpace = config.reservedSessions;
+                    selectedConfig = config;
+                }
             }
         }
 
@@ -46,6 +48,19 @@ export default async function handler(req, res) {
         // Update metadata
         configData.metadata.lastUpdated = new Date().toISOString();
 
+        // Generate session info
+        const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Add session to track it (with released flag to prevent double-decrementing)
+        configData.sessions[sessionId] = {
+            sessionId,
+            configurationId: selectedConfig.id,
+            assignedAt: new Date().toISOString(),
+            completed: false,
+            completedAt: null,
+            released: false  // NEW: Track if reserved slot has been released
+        };
+
         // Save the updated state back immediately
         await githubStorage.saveConfigurationState(configData);
 
@@ -58,9 +73,6 @@ export default async function handler(req, res) {
             target: selectedConfig.targetSessions,
             isActive: selectedConfig.isActive
         });
-
-        // Generate session info
-        const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
         res.json({
             success: true,

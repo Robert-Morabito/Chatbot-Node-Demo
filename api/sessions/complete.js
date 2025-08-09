@@ -34,17 +34,31 @@ export default async function handler(req, res) {
         if (!session.completed) {
             session.completed = true;
             session.completedAt = new Date().toISOString();
+            
+            // Also mark as released (since completion releases the reservation)
+            if (!session.released) {
+                session.released = true;
+                session.releasedAt = session.completedAt;
+                session.releaseReason = 'completed';
+            }
+            
             configurationUpdated = true;
 
-            // Increment the configuration's completed sessions count
+            // Update the configuration
             const configId = session.configurationId.toString();
             
             if (configData.configurations[configId]) {
                 const config = configData.configurations[configId];
-                const oldCount = config.completedSessions;
+                
+                // Increment completed sessions
+                const oldCompleted = config.completedSessions;
                 config.completedSessions += 1;
                 
-                console.log(`✅ Updated completion count for config ${configId}: ${oldCount} → ${config.completedSessions}/${config.targetSessions} (Reserved: ${config.reservedSessions})`);
+                // Decrement reserved sessions (since this slot is now "used up")
+                const oldReserved = config.reservedSessions;
+                config.reservedSessions = Math.max(0, config.reservedSessions - 1);
+                
+                console.log(`✅ Updated config ${configId}: completed ${oldCompleted} → ${config.completedSessions}, reserved ${oldReserved} → ${config.reservedSessions}`);
             }
 
             // Update metadata

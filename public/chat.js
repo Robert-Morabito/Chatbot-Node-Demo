@@ -1841,6 +1841,22 @@ class ChatApp {
         // Only auto-save if not already finishing
         if (this.isFinishing) return;
 
+        // Release the reserved session slot
+        try {
+            await fetch('/api/sessions/release', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sessionId: this.sessionId,
+                    participantId: this.participantId,
+                    reason: 'page_unload'
+                })
+            });
+            console.log('🔓 Released session reservation on page unload');
+        } catch (error) {
+            console.error('Error releasing session:', error);
+        }
+
         // Auto-save before closing
         if (this.currentConversationId && this.currentChatlog.length > 0) {
             const conversation = this.conversations.get(this.currentConversationId);
