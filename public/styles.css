@@ -3700,7 +3700,6 @@ body.light-theme {
 /* Sidebar Header - Contains tabs and collapse button */
 .sidebar-header {
     padding: 1rem;
-    border-bottom: 1px solid var(--border-dark);
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -3823,12 +3822,12 @@ body.light-theme {
     align-items: center;
     border-bottom: 1px solid var(--border-dark);
     padding: 0.75rem 1rem;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--sidebar-bg-dark);
     flex-shrink: 0;
 }
 
 .light-theme .task-header {
-    background: rgba(0, 0, 0, 0.02);
+    background: var(--sidebar-bg-light);
 }
 
 .task-title {
