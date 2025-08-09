@@ -1,6 +1,6 @@
 /**
  * Session Registration Handler
- * Registers new study sessions and updates configuration state
+ * Updates existing sessions with participant info (doesn't overwrite)
  */
 
 import GitHubStorage from '../../utils/githubStorage.js';
@@ -21,28 +21,32 @@ export default async function handler(req, res) {
             });
         }
 
-        console.log('Registering session:', { sessionId, participantId, configurationId });
+        console.log('📝 Registering participant for existing session:', { sessionId, participantId, configurationId });
 
-        // Load current configuration state from GitHub Storage repo
+        // Load current configuration state
         const configData = await githubStorage.loadConfigurationState();
 
-        // Add session to the state
+        // Find existing session (should exist from assignment)
+        const existingSession = configData.sessions[sessionId];
+        
+        if (!existingSession) {
+            return res.status(404).json({ error: 'Session not found - assignment may have failed' });
+        }
+
+        // UPDATE existing session instead of overwriting
         configData.sessions[sessionId] = {
-            sessionId,
-            participantId,
-            configurationId,
-            assignedAt: new Date().toISOString(),
-            completed: false,
-            completedAt: null
+            ...existingSession,  // Keep all existing data
+            participantId,       // Add participant info
+            registeredAt: new Date().toISOString()  // Add registration timestamp
         };
 
         // Update metadata
         configData.metadata.lastUpdated = new Date().toISOString();
 
-        // Save back to GitHub Storage repo
+        // Save back to GitHub
         await githubStorage.saveConfigurationState(configData);
 
-        console.log('Session registered successfully');
+        console.log('✅ Session registration completed - participant added to existing session');
 
         res.json({
             success: true,
@@ -50,7 +54,7 @@ export default async function handler(req, res) {
         });
 
     } catch (error) {
-        console.error('Session registration error:', error.message);
+        console.error('❌ Session registration error:', error.message);
         res.status(500).json({
             error: 'Failed to register session',
             details: error.message

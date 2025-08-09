@@ -1841,18 +1841,39 @@ class ChatApp {
         // Only auto-save if not already finishing
         if (this.isFinishing) return;
 
-        // Release the reserved session slot
+        // Release the reserved session slot using sendBeacon (more reliable on page unload)
         try {
-            await fetch('/api/sessions/release', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    sessionId: this.sessionId,
-                    participantId: this.participantId,
-                    reason: 'page_unload'
-                })
-            });
-            console.log('🔓 Released session reservation on page unload');
+            const releaseData = {
+                sessionId: this.sessionId,
+                participantId: this.participantId,
+                reason: 'page_unload'
+            };
+
+            // Use sendBeacon for better reliability during page unload
+            if (navigator.sendBeacon) {
+                const blob = new Blob([JSON.stringify(releaseData)], { type: 'application/json' });
+                const sent = navigator.sendBeacon('/api/sessions/release', blob);
+                if (sent) {
+                    console.log('🔓 Released session reservation via sendBeacon');
+                } else {
+                    console.warn('⚠️ sendBeacon failed, trying fetch fallback');
+                    // Fallback to fetch if sendBeacon fails
+                    fetch('/api/sessions/release', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(releaseData),
+                        keepalive: true  // Helps fetch survive page unload
+                    }).catch(err => console.error('Fetch fallback failed:', err));
+                }
+            } else {
+                // Fallback for browsers without sendBeacon
+                fetch('/api/sessions/release', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(releaseData),
+                    keepalive: true
+                }).catch(err => console.error('Release fetch failed:', err));
+            }
         } catch (error) {
             console.error('Error releasing session:', error);
         }
