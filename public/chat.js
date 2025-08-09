@@ -192,32 +192,32 @@ class ChatApp {
                     }
                 ]
             },
-            'Claude 3 Haiku': { //Chosen because 3 sonnet is no longer available
+            'Claude 3 Haiku': {
                 year: '2024',
                 generation: '3.0',
                 slides: [
                     {
                         title: 'Background',
                         points: [
-                            'Released March 2024 as the original balanced Claude model - now outdated',
-                            'Training data ends in August 2023, missing recent information and trends',
-                            'Built as a basic option before major improvements in AI technology'
+                            'Released March 2024 as Anthropic\'s lightweight, speed-focused model',
+                            'Designed for quick responses rather than deep creative thinking',
+                            'Built as the "fast and basic" option before more sophisticated models emerged'
                         ]
                     },
                     {
                         title: 'Performance Compared to Current Models',
                         points: [
-                            'Claude 3.5 Sonnet shows much better creative writing and problem-solving',
-                            'Claude 3.7 Sonnet\'s thinking abilities far surpass the original version',
-                            'Users report the original Sonnet feels "old" compared to newer models'
+                            'Claude 3.5 Sonnet delivers significantly richer creative output and deeper insights',
+                            'Claude 3.7 Sonnet\'s revolutionary reasoning capabilities far surpass Haiku\'s simple responses',
+                            'Users report Haiku feels more like a "quick search" than true creative collaboration'
                         ]
                     },
                     {
                         title: 'Capabilities and Limitations',
                         points: [
-                            'Strength: Works okay for basic writing tasks, though pretty simple',
-                            'Weakness: Lacks creativity and struggles with interesting communication',
-                            'Best Use: Simple writing when you don\'t need advanced features'
+                            'Lightning-fast responses for straightforward questions and basic tasks',
+                            'Limited depth in creative writing and struggles with nuanced communication',
+                            'Simple content generation and quick factual queries'
                         ]
                     }
                 ]
@@ -229,25 +229,25 @@ class ChatApp {
                     {
                         title: 'Background',
                         points: [
-                            'Released June 2024 as Anthropic\'s major step forward in creative AI',
-                            'Added new interactive features for creating and editing content together',
-                            'Shocked experts by beating larger models while working much faster'
+                            'Released June 2024 as Anthropic\'s breakthrough balanced model',
+                            'Became the widely adopted "workhorse" for most professional applications',
+                            'The reliable middle-ground between basic Haiku and revolutionary 3.7 Sonnet'
                         ]
                     },
                     {
                         title: 'Performance Compared to Other Models',
                         points: [
-                            'Much better than Claude 3 Haiku at creative writing and coding tasks',
-                            'Claude 3.7 Sonnet\'s deep thinking mode gives even better results',
-                            'Set new standards for natural, engaging conversations with AI'
+                            'Dramatically outperforms Claude 3 Haiku in creative writing and professional communication',
+                            'Claude 3.7 Sonnet\'s advanced reasoning surpasses it on complex creative challenges',
+                            'Maintains excellent balance between quality and efficiency for everyday tasks'
                         ]
                     },
                     {
                         title: 'Capabilities and Limitations',
                         points: [
-                            'Strength: Great at creative writing with natural style and understanding images',
-                            'Weakness: Can\'t think through problems as deeply as newer models',
-                            'Best Use: Creative projects, analyzing visuals, and interactive content'
+                            'Strong performance across writing, analysis, and creative projects',
+                            'Occasionally lacks the breakthrough insights of more advanced reasoning models',
+                            'Professional communication and well-rounded creative work'
                         ]
                     }
                 ]
@@ -259,25 +259,25 @@ class ChatApp {
                     {
                         title: 'Background',
                         points: [
-                            'Released February 2025 as the first AI that can choose how to think',
-                            'Has a special "Thinking Mode" - can give quick answers or think deeply',
-                            'The most advanced AI for creative problem-solving and clever solutions'
+                            'Released February 2025 with groundbreaking "hybrid reasoning" capabilities',
+                            'First model to offer both instant responses and deep "thinking mode" analysis',
+                            'Specifically engineered for complex creative problem-solving and innovative thinking'
                         ]
                     },
                     {
                         title: 'Performance Compared to Other Models',
                         points: [
-                            'Far better than Claude 3 Haiku with smarter thinking and creativity',
-                            'Beats Claude 3.5 Sonnet by offering both speed and deep thinking options',
-                            'Users love how it handles tough creative challenges with amazing results'
+                            'Far exceeds Claude 3 Haiku\'s basic capabilities in every creative dimension',
+                            'Surpasses Claude 3.5 Sonnet through revolutionary step-by-step reasoning',
+                            'Excels at finding creative solutions and generating truly original concepts'
                         ]
                     },
                     {
                         title: 'Capabilities and Limitations',
                         points: [
-                            'Strength: Amazing at creative challenges, wordplay, and smart solutions',
-                            'Weakness: Takes longer when you choose the deep thinking option',
-                            'Best Use: Complex creative work, solving tricky problems, and detailed analysis'
+                            'Exceptional at creative challenges, complex writing, and innovative problem-solving',
+                            'Slower response time when using advanced "thinking mode" for deep analysis',
+                            'Sophisticated creative projects requiring originality and breakthrough insights'
                         ]
                     }
                 ]
