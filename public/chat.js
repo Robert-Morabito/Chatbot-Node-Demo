@@ -118,16 +118,16 @@ class ChatApp {
                         title: 'Performance Compared to Current Models',
                         points: [
                             'GPT-3.5 demonstrates worse accuracy and far more factual errors in creative tasks than GPT-4',
-                            'o1-preview achieves 70% higher success on complex reasoning and creative problems over GPT-3.5',
+                            '70% Worse than OpenAI\'s o1-preview on complex reasoning and creative problem solving tasks',
                             'Users report GPT-3.5 produces noticeably more repetitive and formulaic responses'
                         ]
                     },
                     {
                         title: 'Capabilities and Limitations',
                         points: [
-                            'Quick to respond for basic queries, though often superficial',
-                            'Struggles with creative nuance, humor, and building engaging narratives',
-                            'Simple factual questions where speed matters more than quality'
+                            'Quick to respond for basic questions and facts',
+                            'Struggles with creativity, humor, and complex writing tasks',
+                            'Simple questions where speed matters more than quality'
                         ]
                     }
                 ]
@@ -156,7 +156,7 @@ class ChatApp {
                         title: 'Capabilities and Limitations',
                         points: [
                             'Solid performance across writing, analysis, and creative tasks',
-                            'Can be verbose and occasionally miss subtle creative opportunities',
+                            'Can be too verbose and occasionally misses what was asked of it',
                             'Professional writing and standard creative projects'
                         ]
                     }
@@ -170,8 +170,8 @@ class ChatApp {
                         title: 'Background',
                         points: [
                             'Released September 2024 with revolutionary "thought-based" reasoning',
-                            'Takes time to thoroughly think through problems systematically before responding',
-                            'Specifically engineered for creative problem-solving and complex wordplay'
+                            'Takes time to thoroughly think through problems before responding, ensuring accuracy and performance',
+                            'Specifically engineered for creative problem-solving and complex reasoning'
                         ]
                     },
                     {
@@ -199,29 +199,30 @@ class ChatApp {
                     {
                         title: 'Background',
                         points: [
-                            'Released March 2024 as Anthropic\'s lightweight, speed-focused model',
-                            'Designed for quick responses rather than deep creative thinking',
-                            'Built as the "fast and basic" option before more sophisticated models emerged'
+                            'Released March 2024 as Anthropic\'s fastest but most basic model',
+                            'Optimized for speed, not deep thinking or creativity',
+                            'Used as the lightweight entry-level option before more capable models arrived'
                         ]
                     },
                     {
                         title: 'Performance Compared to Current Models',
                         points: [
-                            'Claude 3.5 Sonnet delivers significantly richer creative output and deeper insights',
-                            'Claude 3.7 Sonnet\'s revolutionary reasoning capabilities far surpass Haiku\'s simple responses',
-                            'Users report Haiku feels more like a "quick search" than true creative collaboration'
+                            'Produces far simpler and less engaging output than Claude 3.5 Sonnet',
+                            'Falls dramatically short of Claude 3.7 Sonnet\'s advanced reasoning and originality',
+                            'Often feels like a quick search result rather than a creative partner'
                         ]
                     },
                     {
                         title: 'Capabilities and Limitations',
                         points: [
-                            'Very fast responses for straightforward questions and basic tasks',
-                            'Limited depth in creative writing and struggles with nuanced communication',
-                            'Simple content generation and quick factual queries'
+                            'Extremely fast on basic factual and procedural questions',
+                            'Struggles with nuance, depth, and creative tasks',
+                            'Best for quick answers where speed matters more than quality'
                         ]
                     }
                 ]
             },
+
             'Claude 3.5 Sonnet': {
                 year: '2024',
                 generation: '3.5',
@@ -229,29 +230,30 @@ class ChatApp {
                     {
                         title: 'Background',
                         points: [
-                            'Released June 2024 as Anthropic\'s breakthrough balanced model',
-                            'Became the widely adopted "workhorse" for most professional applications',
-                            'The reliable middle-ground between basic Haiku and revolutionary 3.7 Sonnet'
+                            'Released June 2024 as Anthropic\'s balanced, all-purpose model',
+                            'Became the go-to choice for most professional and creative tasks',
+                            'The solid middle ground between basic Haiku and cutting-edge 3.7 Sonnet'
                         ]
                     },
                     {
                         title: 'Performance Compared to Other Models',
                         points: [
-                            'Dramatically outperforms Claude 3 Haiku in creative writing and professional communication',
-                            'Claude 3.7 Sonnet\'s advanced reasoning surpasses it on complex creative challenges',
-                            'Maintains excellent balance between quality and efficiency for everyday tasks'
+                            'Far outperforms Claude 3 Haiku in writing quality, analysis, and insight',
+                            'Lags behind Claude 3.7 Sonnet in complex reasoning and breakthrough ideas',
+                            'Offers a dependable mix of speed and capability for daily use'
                         ]
                     },
                     {
                         title: 'Capabilities and Limitations',
                         points: [
-                            'Strong performance across writing, analysis, and creative projects',
-                            'Occasionally lacks the breakthrough insights of more advanced reasoning models',
-                            'Professional communication and well-rounded creative work'
+                            'Consistently strong across writing, research, and creative problem-solving',
+                            'Often misses the originality and depth of more advanced models',
+                            'Best for well-rounded professional and creative projects'
                         ]
                     }
                 ]
             },
+
             'Claude 3.7 Sonnet': {
                 year: '2025',
                 generation: '3.7',
@@ -259,29 +261,30 @@ class ChatApp {
                     {
                         title: 'Background',
                         points: [
-                            'Released February 2025 with groundbreaking "hybrid reasoning" capabilities',
-                            'First model to offer both instant responses and deep "thinking mode" analysis',
-                            'Specifically engineered for complex creative problem-solving and innovative thinking'
+                            'Released February 2025 with revolutionary “hybrid reasoning” technology',
+                            'Combines instant responses with an advanced deep-thinking mode',
+                            'Built to excel at the hardest creative and analytical challenges'
                         ]
                     },
                     {
                         title: 'Performance Compared to Other Models',
                         points: [
-                            'Far exceeds Claude 3 Haiku\'s basic capabilities in every creative dimension',
-                            'Surpasses Claude 3.5 Sonnet through revolutionary step-by-step reasoning',
-                            'Excels at finding creative solutions and generating truly original concepts'
+                            'Massively outperforms Claude 3 Haiku across all creative and reasoning tasks',
+                            'Beats Claude 3.5 Sonnet with deeper insights and more original solutions',
+                            'Sets a new standard for innovation and problem-solving in AI'
                         ]
                     },
                     {
                         title: 'Capabilities and Limitations',
                         points: [
-                            'Exceptional at creative challenges, complex writing, and innovative problem-solving',
-                            'Slower response time when using advanced "thinking mode" for deep analysis',
-                            'Sophisticated creative projects requiring originality and breakthrough insights'
+                            'Outstanding for complex writing, inventive solutions, and ambitious projects',
+                            'Slower when engaging deep-thinking mode for maximum accuracy',
+                            'Best for work requiring originality, insight, and high-level creativity'
                         ]
                     }
                 ]
-            }
+            },
+
         };
 
         // Initialize the app - load configuration first, then show welcome
