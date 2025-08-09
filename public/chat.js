@@ -55,19 +55,19 @@ class ChatApp {
                 name: 'Image Generation',
                 icon: '🎨',
                 shortName: 'Images',
-                description: 'Create and modify images using AI'
+                description: 'Use this chat to generate some detailed images!'
             },
             'social-media': {
                 name: 'Social Media Posts',
                 icon: '📱',
                 shortName: 'Social',
-                description: 'Write engaging social media content'
+                description: 'Use this chat to write a convincing outreach message!'
             },
             'acronym-building': {
                 name: 'Acronym Building',
                 icon: '🔤',
                 shortName: 'Acronyms',
-                description: 'Create memorable acronyms and abbreviations'
+                description: 'Use this chat to create some funny acronyms!'
             }
         };
 
