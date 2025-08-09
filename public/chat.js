@@ -101,9 +101,6 @@ class ChatApp {
             isRunning: false
         };
 
-        this.hasCompletedStudy = false;
-        this.cleanupSent = false; // Prevent multiple cleanup calls
-
         this.modelDescriptions = {
             'GPT-3.5': {
                 year: '2022',
@@ -1306,7 +1303,7 @@ class ChatApp {
         }
     }
 
-    // Update the registerSession method to track the session:
+    // Add this new method to register the session with participant ID
     async registerSession() {
         try {
             const response = await fetch('/api/sessions/register', {
@@ -1322,63 +1319,10 @@ class ChatApp {
             if (!response.ok) {
                 console.warn('Failed to register session');
             }
-
-            // Set up cleanup listeners after successful registration
-            this.setupCleanupListeners();
-
         } catch (error) {
             console.warn('Session registration error:', error);
         }
     }
-
-    // Add cleanup listeners method:
-    setupCleanupListeners() {
-        console.log('🔧 Setting up cleanup listeners');
-
-        // Method 1: beforeunload event
-        window.addEventListener('beforeunload', (e) => {
-            this.sendCleanupBeacon();
-        });
-
-        // Method 2: visibilitychange event
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                this.sendCleanupBeacon();
-            }
-        });
-
-        // Method 3: pagehide event (more reliable on mobile)
-        window.addEventListener('pagehide', (e) => {
-            this.sendCleanupBeacon();
-        });
-    }
-
-    // Cleanup beacon method:
-    sendCleanupBeacon() {
-        if (this.hasCompletedStudy || this.cleanupSent || !this.sessionId) {
-            return;
-        }
-
-        this.cleanupSent = true;
-
-        try {
-            console.log('🧹 Sending cleanup beacon for session:', this.sessionId);
-
-            const cleanupData = {
-                sessionId: this.sessionId,
-                configurationId: this.configurationId,
-                action: 'cleanup_reservation'
-            };
-
-            const blob = new Blob([JSON.stringify(cleanupData)], { type: 'application/json' });
-            const sent = navigator.sendBeacon('/api/sessions/cleanup', blob);
-
-            console.log('🧹 Cleanup beacon sent:', sent);
-        } catch (error) {
-            console.error('Error sending cleanup beacon:', error);
-        }
-    }
-
 
     async getLLMResponse() {
         console.log('🤖 [NEW] getLLMResponse() called');
@@ -2217,10 +2161,6 @@ class ChatApp {
 
     closeApplication() {
         this.stopSessionTimer();
-
-        // IMPORTANT: Mark study as completed to prevent cleanup
-        this.hasCompletedStudy = true;
-        this.cleanupSent = true; // Prevent any cleanup
 
         // Set flag to prevent duplicate saves
         this.isFinishing = true;
