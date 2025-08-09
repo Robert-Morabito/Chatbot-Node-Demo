@@ -117,8 +117,8 @@ class ChatApp {
                     {
                         title: 'Performance Compared to Current Models',
                         points: [
-                            'GPT-4 demonstrates 40% better accuracy and far fewer factual errors in creative tasks',
-                            'o1-preview achieves 83% success on complex problems where GPT-3.5 manages only 13%',
+                            'GPT-3.5 demonstrates worse accuracy and far more factual errors in creative tasks than GPT-4',
+                            'o1-preview achieves 70% higher success on complex reasoning and creative problems over GPT-3.5',
                             'Users report GPT-3.5 produces noticeably more repetitive and formulaic responses'
                         ]
                     },
@@ -215,7 +215,7 @@ class ChatApp {
                     {
                         title: 'Capabilities and Limitations',
                         points: [
-                            'Lightning-fast responses for straightforward questions and basic tasks',
+                            'Very fast responses for straightforward questions and basic tasks',
                             'Limited depth in creative writing and struggles with nuanced communication',
                             'Simple content generation and quick factual queries'
                         ]
@@ -427,7 +427,7 @@ class ChatApp {
         const continueBtn = document.getElementById('nav-continue');
 
         // Remove any existing timer
-        const existingTimer = document.querySelector('.timer-progress');
+        const existingTimer = document.querySelector('.circular-timer');
         if (existingTimer) {
             existingTimer.remove();
         }
@@ -436,31 +436,95 @@ class ChatApp {
         navigation.classList.add('visible');
         continueBtn.disabled = true;
 
-        // Create progress bar
-        const timerProgress = document.createElement('div');
-        timerProgress.className = 'timer-progress';
-        timerProgress.innerHTML = '<div class="timer-progress-fill"></div>';
-        document.querySelector('.welcome-container').appendChild(timerProgress);
+        // Create circular timer
+        const circularTimer = document.createElement('div');
+        circularTimer.className = 'circular-timer';
 
-        const progressFill = timerProgress.querySelector('.timer-progress-fill');
+        // SVG gradient definitions
+        const gradientDefs = document.createElement('div');
+        gradientDefs.className = 'timer-gradient-defs';
+        gradientDefs.innerHTML = `
+        <svg width="0" height="0">
+            <defs>
+                <linearGradient id="timer-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#3b82f6" />
+                    <stop offset="100%" stop-color="#1d4ed8" />
+                </linearGradient>
+            </defs>
+        </svg>
+    `;
 
-        // Animate progress bar over 4 seconds
+        circularTimer.innerHTML = `
+        <div class="timer-wheel">
+            <svg viewBox="0 0 40 40">
+                <circle class="timer-background" cx="20" cy="20" r="18"></circle>
+                <circle class="timer-progress-circle" cx="20" cy="20" r="18"></circle>
+            </svg>
+            <div class="timer-center">
+                <span class="timer-countdown">4</span>
+            </div>
+        </div>
+        <div class="timer-label">Reading time</div>
+    `;
+
+        // Add gradient definitions and timer to the container
+        document.body.appendChild(gradientDefs);
+        document.querySelector('.welcome-container').appendChild(circularTimer);
+
+        // Animate the circular progress over 4 seconds
+        const progressCircle = circularTimer.querySelector('.timer-progress-circle');
+        const countdownElement = circularTimer.querySelector('.timer-countdown');
+        const circumference = 2 * Math.PI * 18; // radius = 18
+
+        // Show the timer
+        setTimeout(() => {
+            circularTimer.classList.add('visible');
+        }, 100);
+
         let progress = 0;
+        let timeRemaining = 4;
+
         const interval = setInterval(() => {
             progress += 2.5; // 100% / 40 steps = 2.5% per 100ms
-            progressFill.style.width = `${progress}%`;
+
+            // Update circular progress
+            const offset = circumference - (progress / 100) * circumference;
+            progressCircle.style.strokeDashoffset = offset;
+
+            // Update countdown every second (approximately)
+            if (progress % 25 === 0 && timeRemaining > 0) { // Every 1 second
+                timeRemaining--;
+                countdownElement.textContent = timeRemaining;
+
+                // Add a little bounce effect on countdown updates
+                countdownElement.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    countdownElement.style.transform = 'scale(1)';
+                }, 150);
+            }
 
             if (progress >= 100) {
                 clearInterval(interval);
-                // Enable continue button and remove progress bar
+
+                // Final animation - completion effect
+                countdownElement.textContent = '✓';
+                countdownElement.style.color = '#10b981';
+                progressCircle.style.stroke = '#10b981';
+
+                // Enable continue button and fade out timer
                 continueBtn.disabled = false;
+
                 setTimeout(() => {
-                    timerProgress.remove();
-                }, 300);
+                    circularTimer.style.opacity = '0';
+                    setTimeout(() => {
+                        circularTimer.remove();
+                        gradientDefs.remove();
+                    }, 300);
+                }, 800);
             }
         }, 100); // Update every 100ms for smooth animation
     }
-
+    
     buildWelcomeSteps() {
         const displayName = this.config?.displayName || 'Chatbot';
         const modelInfo = this.modelDescriptions[displayName] || this.modelDescriptions['Chatbot'];
