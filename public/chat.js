@@ -525,11 +525,8 @@ class ChatApp {
                 <div class="model-hero">
                     <div class="model-info">
                         <h3>${displayName}</h3>
-                        <p>Released ${modelInfo.year} • Advanced AI Language Model</p>
+                        <p>Released ${modelInfo.year}</p>
                     </div>
-                </div>
-                <div class="content-body">
-                    <p>Understanding your AI partner's capabilities and characteristics will help you have more effective conversations during this study.</p>
                 </div>
             </div>
         `
