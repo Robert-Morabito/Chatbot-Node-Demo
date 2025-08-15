@@ -101,186 +101,49 @@ class ChatApp {
             isRunning: false
         };
 
-        this.modelDescriptions = {
+        // Add this to the ChatApp constructor
+        this.modelFamilies = {
             'GPT-3.5': {
-                year: '2022',
-                generation: '3.5',
-                slides: [
+                models: [
                     {
-                        title: 'Background',
-                        points: [
-                            'Released November 2022 as the original ChatGPT - now considered legacy technology',
-                            'Training data frozen in September 2021, missing over 3 years of world knowledge',
-                            'Designed for simple and casual, everyday conversations.'
-                        ]
+                        name: 'GPT-3.5',
+                        displayName: 'GPT-3.5',
+                        capabilities: { creativity: 2, professionalWriting: 3, speed: 5 },
+                        lmArena: { instructionFollowing: 1245, creativeWriting: 1189, hardPrompts: 1156 }
                     },
                     {
-                        title: 'Performance Compared to Current Models',
-                        points: [
-                            'GPT-3.5 demonstrates worse accuracy and far more factual errors in creative tasks than GPT-4',
-                            '70% Worse than OpenAI\'s o1-preview on complex reasoning and creative problem solving tasks',
-                            'Users report GPT-3.5 produces noticeably more repetitive and formulaic responses'
-                        ]
+                        name: 'GPT-4',
+                        displayName: 'GPT-4',
+                        capabilities: { creativity: 4, professionalWriting: 5, speed: 3 },
+                        lmArena: { instructionFollowing: 1348, creativeWriting: 1304, hardPrompts: 1289 }
                     },
                     {
-                        title: 'Capabilities and Limitations',
-                        points: [
-                            'Quick to respond for basic questions and facts',
-                            'Struggles with creativity, humor, and complex writing tasks',
-                            'Simple questions where speed matters more than quality'
-                        ]
-                    }
-                ]
-            },
-            'GPT-4': {
-                year: '2023',
-                generation: '4.0',
-                slides: [
-                    {
-                        title: 'Background',
-                        points: [
-                            'Released March 2023 as OpenAI\'s mainstream model',
-                            'Achieved human-level performance on many standardized tests',
-                            'The reliable middle-ground between outdated GPT-3.5 and cutting-edge o1-preview'
-                        ]
-                    },
-                    {
-                        title: 'Performance Compared to Other Models',
-                        points: [
-                            'Outperforms GPT-3.5 in creative writing and professional communication',
-                            'However, o1-preview surpasses it by on creative problem-solving and wordplay tasks',
-                            'Maintains good balance between speed and capability for most general tasks'
-                        ]
-                    },
-                    {
-                        title: 'Capabilities and Limitations',
-                        points: [
-                            'Solid performance across writing, analysis, and creative tasks',
-                            'Can be too verbose and occasionally misses what was asked of it',
-                            'Professional writing and standard creative projects'
-                        ]
-                    }
-                ]
-            },
-            'o1-Preview': {
-                year: '2024',
-                generation: 'o1',
-                slides: [
-                    {
-                        title: 'Background',
-                        points: [
-                            'Released September 2024 with revolutionary "thought-based" reasoning',
-                            'Takes time to thoroughly think through problems before responding, ensuring accuracy and performance',
-                            'Specifically engineered for creative problem-solving and complex reasoning'
-                        ]
-                    },
-                    {
-                        title: 'Performance Compared to Other Models',
-                        points: [
-                            'Outperforms GPT-4 on creative puzzle-solving and linguistic challenges',
-                            'Scores 70% higher than GPT-3.5 on complex creative tasks',
-                            'Excels at finding unexpected connections and generating truly original ideas'
-                        ]
-                    },
-                    {
-                        title: 'Capabilities and Limitations',
-                        points: [
-                            'Exceptional at creative challenges, wordplay, and innovative thinking',
-                            'Slower response time due to deep reasoning process',
-                            'Complex creative tasks requiring originality and clever solutions'
-                        ]
+                        name: 'o1-Preview',
+                        displayName: 'o1-Preview',
+                        capabilities: { creativity: 5, professionalWriting: 4, speed: 1 },
+                        lmArena: { instructionFollowing: 1405, creativeWriting: 1367, hardPrompts: 1398 }
                     }
                 ]
             },
             'Claude 3 Haiku': {
-                year: '2024',
-                generation: '3.0',
-                slides: [
+                models: [
                     {
-                        title: 'Background',
-                        points: [
-                            'Released March 2024 as Anthropic\'s fastest but most basic model',
-                            'Optimized for speed, not deep thinking or creativity',
-                            'Used as the lightweight entry-level option before more capable models arrived'
-                        ]
+                        name: 'Claude 3 Haiku',
+                        displayName: 'Claude 3 Haiku',
+                        capabilities: { creativity: 2, professionalWriting: 3, speed: 5 },
+                        lmArena: { instructionFollowing: 1234, creativeWriting: 1178, hardPrompts: 1145 }
                     },
                     {
-                        title: 'Performance Compared to Current Models',
-                        points: [
-                            'Produces far simpler and less engaging output than Claude 3.5 Sonnet',
-                            'Falls dramatically short of Claude 3.7 Sonnet\'s advanced reasoning and originality',
-                            'Often feels like a quick search result rather than a creative partner'
-                        ]
+                        name: 'Claude 3.5 Sonnet',
+                        displayName: 'Claude 3.5 Sonnet',
+                        capabilities: { creativity: 4, professionalWriting: 4, speed: 4 },
+                        lmArena: { instructionFollowing: 1356, creativeWriting: 1312, hardPrompts: 1298 }
                     },
                     {
-                        title: 'Capabilities and Limitations',
-                        points: [
-                            'Extremely fast on basic factual and procedural questions',
-                            'Struggles with nuance, depth, and creative tasks',
-                            'Best for quick answers where speed matters more than quality'
-                        ]
-                    }
-                ]
-            },
-
-            'Claude 3.5 Sonnet': {
-                year: '2024',
-                generation: '3.5',
-                slides: [
-                    {
-                        title: 'Background',
-                        points: [
-                            'Released June 2024 as Anthropic\'s balanced, all-purpose model',
-                            'Became the go-to choice for most professional and creative tasks',
-                            'The solid middle ground between basic Haiku and cutting-edge 3.7 Sonnet'
-                        ]
-                    },
-                    {
-                        title: 'Performance Compared to Other Models',
-                        points: [
-                            'Far outperforms Claude 3 Haiku in writing quality, analysis, and insight',
-                            'Lags behind Claude 3.7 Sonnet in complex reasoning and breakthrough ideas',
-                            'Offers a dependable mix of speed and capability for daily use'
-                        ]
-                    },
-                    {
-                        title: 'Capabilities and Limitations',
-                        points: [
-                            'Consistently strong across writing, research, and creative problem-solving',
-                            'Often misses the originality and depth of more advanced models',
-                            'Best for well-rounded professional and creative projects'
-                        ]
-                    }
-                ]
-            },
-
-            'Claude 3.7 Sonnet': {
-                year: '2025',
-                generation: '3.7',
-                slides: [
-                    {
-                        title: 'Background',
-                        points: [
-                            'Released February 2025 with revolutionary “hybrid reasoning” technology',
-                            'Combines instant responses with an advanced deep-thinking mode',
-                            'Built to excel at the hardest creative and analytical challenges'
-                        ]
-                    },
-                    {
-                        title: 'Performance Compared to Other Models',
-                        points: [
-                            'Massively outperforms Claude 3 Haiku across all creative and reasoning tasks',
-                            'Beats Claude 3.5 Sonnet with deeper insights and more original solutions',
-                            'Sets a new standard for innovation and problem-solving in AI'
-                        ]
-                    },
-                    {
-                        title: 'Capabilities and Limitations',
-                        points: [
-                            'Outstanding for complex writing, inventive solutions, and ambitious projects',
-                            'Slower when engaging deep-thinking mode for maximum accuracy',
-                            'Best for work requiring originality, insight, and high-level creativity'
-                        ]
+                        name: 'Claude 3.7 Sonnet',
+                        displayName: 'Claude 3.7 Sonnet',
+                        capabilities: { creativity: 5, professionalWriting: 5, speed: 2 },
+                        lmArena: { instructionFollowing: 1412, creativeWriting: 1389, hardPrompts: 1405 }
                     }
                 ]
             },
@@ -354,6 +217,274 @@ class ChatApp {
         console.log('✅ Switched to task:', taskId);
     }
 
+    async startComparisonAnimation() {
+        const container = document.getElementById('comparison-container');
+        const cardsContainer = document.getElementById('capability-cards');
+
+        if (!container) return;
+
+        // Get the model family for the user's assigned model
+        const userModel = this.config?.displayName || 'GPT-4';
+        const family = this.getModelFamily(userModel);
+        const models = this.modelFamilies[family]?.models || this.modelFamilies['GPT-4'].models;
+
+        // Create the comparison table
+        this.createComparisonTable(container, models, userModel);
+
+        // Create capability cards
+        this.createCapabilityCards(cardsContainer, userModel);
+
+        // Start the animation sequence
+        await this.animateComparison(models, userModel);
+    }
+
+    getModelFamily(modelName) {
+        for (const [family, data] of Object.entries(this.modelFamilies)) {
+            if (data.models.some(model => model.displayName === modelName)) {
+                return family;
+            }
+        }
+        return 'GPT-4'; // fallback
+    }
+
+    createComparisonTable(container, models, userModel) {
+        const metrics = [
+            { key: 'creativity', label: 'Creativity', type: 'bubble' },
+            { key: 'professionalWriting', label: 'Professional Writing', type: 'bubble' },
+            { key: 'speed', label: 'Speed', type: 'bubble' },
+            { key: 'instructionFollowing', label: 'Instruction Following', type: 'score', category: 'lmArena' },
+            { key: 'creativeWriting', label: 'Creative Writing', type: 'score', category: 'lmArena' },
+            { key: 'hardPrompts', label: 'Hard Prompts', type: 'score', category: 'lmArena' }
+        ];
+
+        let html = '<div class="comparison-table">';
+
+        // Empty top-left cell
+        html += '<div></div>';
+
+        // Model headers
+        models.forEach((model, index) => {
+            const isUserModel = model.displayName === userModel;
+            html += `
+            <div class="model-header${isUserModel ? ' highlight' : ''}" data-model="${model.displayName}" style="animation-delay: ${index * 0.3}s">
+                <div class="model-name">${model.displayName}</div>
+                <div class="model-subtitle">${this.getModelSubtitle(model.displayName)}</div>
+                ${isUserModel ? '<div class="model-popup">This is your model today!</div>' : ''}
+            </div>
+        `;
+        });
+
+        // Metric rows
+        metrics.forEach((metric, rowIndex) => {
+            html += `<div class="metric-label">${metric.label}</div>`;
+
+            models.forEach((model, colIndex) => {
+                const isUserModel = model.displayName === userModel;
+                const value = metric.category ? model[metric.category][metric.key] : model.capabilities[metric.key];
+
+                html += `
+                <div class="metric-cell${isUserModel ? ' highlight' : ''}" data-metric="${metric.key}" data-model="${model.displayName}">
+                    ${metric.type === 'bubble' ? this.createBubbleRating(value) : this.createScoreDisplay(value)}
+                </div>
+            `;
+            });
+        });
+
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    createBubbleRating(rating) {
+        let html = '<div class="bubble-rating">';
+        for (let i = 1; i <= 5; i++) {
+            html += `<div class="rating-bubble${i <= rating ? ' filled' : ''}" data-bubble="${i}"></div>`;
+        }
+        html += '</div>';
+        return html;
+    }
+
+    createScoreDisplay(score) {
+        return `<div class="lmarena-score"><span class="score-counter" data-target="${score}">0</span></div>`;
+    }
+
+    getModelSubtitle(modelName) {
+        const subtitles = {
+            'GPT-3.5': 'Legacy model, optimized for speed',
+            'GPT-4': 'Balanced performance and capability',
+            'o1-Preview': 'Advanced reasoning and creativity',
+            'Claude 3 Haiku': 'Fast responses, basic capabilities',
+            'Claude 3.5 Sonnet': 'Well-rounded performance',
+            'Claude 3.7 Sonnet': 'Cutting-edge reasoning'
+        };
+        return subtitles[modelName] || 'Advanced AI model';
+    }
+
+    async animateComparison(models, userModel) {
+        // 1. Fade in table
+        await this.delay(300);
+        document.getElementById('comparison-container').classList.add('animate-in');
+
+        // 2. Animate model headers
+        await this.delay(800);
+        const headers = document.querySelectorAll('.model-header');
+        for (let i = 0; i < headers.length; i++) {
+            await this.delay(300);
+            headers[i].classList.add('animate-in');
+        }
+
+        // 3. Animate capability bubbles
+        await this.delay(500);
+        await this.animateBubbles();
+
+        // 4. Animate LMArena scores
+        await this.delay(300);
+        await this.animateScores();
+
+        // 5. Show user model popup
+        await this.delay(500);
+        const popup = document.querySelector('.model-popup');
+        if (popup) {
+            popup.classList.add('show');
+            await this.delay(2000);
+            popup.classList.remove('show');
+            await this.delay(500);
+        }
+
+        // 6. Scale down table and show capability cards
+        document.getElementById('comparison-container').classList.add('scale-down');
+        await this.delay(800);
+
+        document.getElementById('capability-cards').classList.add('show');
+        await this.animateCapabilityCards();
+
+        // 7. Enable continue button
+        await this.delay(300);
+        const continueBtn = document.getElementById('nav-continue');
+        continueBtn.disabled = false;
+        continueBtn.classList.add('pulse'); // Add a subtle highlight
+    }
+
+    async animateBubbles() {
+        const metrics = ['creativity', 'professionalWriting', 'speed'];
+
+        for (const metric of metrics) {
+            const cells = document.querySelectorAll(`[data-metric="${metric}"]`);
+            for (const cell of cells) {
+                const bubbles = cell.querySelectorAll('.rating-bubble.filled');
+                for (let i = 0; i < bubbles.length; i++) {
+                    await this.delay(100);
+                    bubbles[i].classList.add('animate-fill');
+                }
+            }
+            await this.delay(200);
+        }
+    }
+
+    async animateScores() {
+        const scoreElements = document.querySelectorAll('.score-counter');
+        const promises = Array.from(scoreElements).map(el => this.animateCounter(el));
+        await Promise.all(promises);
+    }
+
+    animateCounter(element) {
+        return new Promise(resolve => {
+            const target = parseInt(element.dataset.target);
+            const duration = 1000;
+            const start = performance.now();
+
+            const animate = (current) => {
+                const elapsed = current - start;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Ease out cubic
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const value = Math.round(easeOut * target);
+
+                element.textContent = value.toLocaleString();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    resolve();
+                }
+            };
+
+            requestAnimationFrame(animate);
+        });
+    }
+
+    async animateCapabilityCards() {
+        const cards = document.querySelectorAll('.capability-card');
+        for (let i = 0; i < cards.length; i++) {
+            await this.delay(200);
+            cards[i].classList.add('animate-in');
+        }
+    }
+
+    createCapabilityCards(container, userModel) {
+        const capabilities = this.getModelCapabilities(userModel);
+
+        const html = `
+        <div class="capability-cards">
+            <div class="capability-card strength">
+                <h4>Strengths</h4>
+                <p>${capabilities.strengths}</p>
+            </div>
+            <div class="capability-card weakness">
+                <h4>Areas for Improvement</h4>
+                <p>${capabilities.weaknesses}</p>
+            </div>
+            <div class="capability-card use-case">
+                <h4>Best Applications</h4>
+                <p>${capabilities.useCases}</p>
+            </div>
+        </div>
+    `;
+
+        container.innerHTML = html;
+    }
+
+    getModelCapabilities(modelName) {
+        const capabilities = {
+            'GPT-3.5': {
+                strengths: 'Quick responses and efficient processing for straightforward tasks',
+                weaknesses: 'Limited creativity and may struggle with complex reasoning',
+                useCases: 'Simple questions, basic writing tasks, and quick information retrieval'
+            },
+            'GPT-4': {
+                strengths: 'Strong balance of creativity, reasoning, and professional writing capabilities',
+                weaknesses: 'Moderate speed, occasionally verbose responses',
+                useCases: 'Professional communication, creative projects, and analytical tasks'
+            },
+            'o1-Preview': {
+                strengths: 'Exceptional creativity and advanced reasoning for complex problems',
+                weaknesses: 'Slower processing time due to thorough analysis',
+                useCases: 'Creative challenges, complex problem-solving, and innovative thinking'
+            },
+            'Claude 3 Haiku': {
+                strengths: 'Extremely fast responses for basic queries and simple tasks',
+                weaknesses: 'Limited depth in creative and complex reasoning tasks',
+                useCases: 'Quick answers, simple writing, and basic information processing'
+            },
+            'Claude 3.5 Sonnet': {
+                strengths: 'Well-rounded performance across writing, analysis, and creative tasks',
+                weaknesses: 'May lack the originality of more advanced models',
+                useCases: 'Balanced professional and creative projects, comprehensive analysis'
+            },
+            'Claude 3.7 Sonnet': {
+                strengths: 'Outstanding creativity, insight, and professional writing quality',
+                weaknesses: 'Slower when engaging deep-thinking mode for maximum accuracy',
+                useCases: 'High-level creative work, complex analysis, and innovative solutions'
+            }
+        };
+
+        return capabilities[modelName] || capabilities['GPT-4'];
+    }
+
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
     updateTaskTabs() {
         const tabs = document.querySelectorAll('.task-tab');
         tabs.forEach(tab => {
@@ -410,11 +541,19 @@ class ChatApp {
                 // Show navigation immediately for ID step
                 const navigation = document.querySelector('.navigation-system');
                 navigation.classList.add('visible');
+            } else if (step.id === 'model-comparison') {
+                // Start the comparison animation
+                const navigation = document.querySelector('.navigation-system');
+                navigation.classList.add('visible');
+                const continueBtn = document.getElementById('nav-continue');
+                continueBtn.disabled = true; // Will be enabled after animation
+
+                // Start animation after a brief delay
+                setTimeout(() => {
+                    this.startComparisonAnimation();
+                }, 500);
             } else if (!skipTimer) {
-                // Start timer for other steps
-                this.startStepTimer();
-            } else {
-                // Show navigation immediately if skipping timer
+                // Show navigation immediately for welcome step
                 const navigation = document.querySelector('.navigation-system');
                 navigation.classList.add('visible');
             }
@@ -511,145 +650,69 @@ class ChatApp {
     }
 
     buildWelcomeSteps() {
-        const displayName = this.config?.displayName || 'Chatbot';
-        const modelInfo = this.modelDescriptions[displayName] || this.modelDescriptions['Chatbot'];
+        const displayName = this.config?.displayName || 'GPT-4';
 
         this.welcomeSteps = [
-            // Step 1: Welcome - Consolidated instruction block
+            // Step 1: Welcome/Intro (keep existing)
             {
                 id: 'welcome',
                 title: 'Welcome to Our Study',
                 content: `
-            <div class="content-card">
-                <h1 class="content-title">Research Study</h1>
-                <p class="content-subtitle">Thank you for participating in this important research</p>
-                <div class="content-body">
-                    <div class="welcome-instructions">
-                        <h3>Study Instructions</h3>
-                        <p>Complete all tasks in the provided <a href="https://tally.so/r/wz8yra"> Tally Survey </a> alongside this conversation interface. The following screens contain essential details about your AI conversation partner. Click "Finish" when done to download your data and complete the study.</p>
+                <div class="content-card">
+                    <h1 class="content-title">Research Study</h1>
+                    <p class="content-subtitle">Thank you for participating in this important research</p>
+                    <div class="content-body">
+                        <div class="welcome-instructions">
+                            <h3>Study Instructions</h3>
+                            <p>Complete all tasks in the provided <a href="https://tally.so/r/wz8yra">Tally Survey</a> alongside this conversation interface. The following screen will show you details about your AI conversation partner. Click "Finish" when done to download your data and complete the study.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `
+            `
             },
 
-            // Step 2: Model Introduction
+            // Step 2: Animated Model Comparison
             {
-                id: 'model-intro',
+                id: 'model-comparison',
                 title: 'Meet Your AI Partner',
                 content: `
-            <div class="content-card">
-                <h1 class="content-title">Meet ${displayName}</h1>
-                <p class="content-subtitle">Your conversation partner for this study</p>
-                <div class="model-hero">
-                    <div class="model-info">
-                        <h3>${displayName}</h3>
-                        <p>Released ${modelInfo.year}</p>
+                <div class="content-card comparison-card">
+                    <h1 class="content-title">AI Model Comparison</h1>
+                    <p class="content-subtitle">See how different models compare for your tasks</p>
+                    <div id="comparison-container" class="comparison-container">
+                        <!-- Dynamic comparison table will be inserted here -->
+                    </div>
+                    <div id="capability-cards" class="capability-cards-container">
+                        <!-- Capability cards will be inserted here -->
                     </div>
                 </div>
-            </div>
-        `
+            `
             },
 
-            // Step 3: Background
-            {
-                id: 'background',
-                title: 'Background & Development',
-                content: `
-            <div class="content-card">
-                <h1 class="content-title">Development Story</h1>
-                <p class="content-subtitle">The journey behind ${displayName}</p>
-                <div class="info-grid">
-                    ${modelInfo.slides[0].points.map((point, index) => `
-                        <div class="info-item info-item-with-header" style="animation: fadeInUp 0.6s ease-out ${index * 0.1}s both">
-                            <div class="info-item-top-bar"></div>
-                            <div class="info-item-content">
-                                <div class="info-item-dot"></div>
-                                <div class="info-item-text">
-                                    <h4>${point}</h4>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `
-            },
-
-            // Step 4: Comparison
-            {
-                id: 'comparison',
-                title: 'Performance Landscape',
-                content: `
-            <div class="content-card">
-                <h1 class="content-title">How ${displayName} Compares</h1>
-                <p class="content-subtitle">Understanding its position in the AI landscape</p>
-                <div class="info-grid">
-                    ${modelInfo.slides[1].points.map((point, index) => `
-                        <div class="info-item info-item-with-header" style="animation: slideInRight 0.6s ease-out ${index * 0.15}s both">
-                            <div class="info-item-top-bar"></div>
-                            <div class="info-item-content">
-                                <div class="info-item-dot"></div>
-                                <div class="info-item-text">
-                                    <h4>${point}</h4>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `
-            },
-
-            // Step 5: Capabilities (keep existing structure)
-            {
-                id: 'capabilities',
-                title: 'What to Expect',
-                content: `
-            <div class="content-card">
-                <h1 class="content-title">Capabilities Overview</h1>
-                <p class="content-subtitle">Strengths, weaknesses, and optimal use cases</p>
-                <div class="feature-grid">
-                    ${modelInfo.slides[2].points.map((point, index) => {
-                    const types = ['strength', 'weakness', 'use-case'];
-                    const titles = ['Strengths', 'Weaknesses', 'Best Applications'];
-                    return `
-                            <div class="feature-card ${types[index]}" style="animation: scaleIn 0.6s ease-out ${index * 0.2}s both">
-                                <div class="feature-indicator"></div>
-                                <h4>${titles[index]}</h4>
-                                <p>${point}</p>
-                            </div>
-                        `;
-                }).join('')}
-                </div>
-            </div>
-        `
-            },
-
-            // Step 6: Prolific ID
+            // Step 3: Prolific ID (keep existing)
             {
                 id: 'prolific-id',
                 title: 'Study Registration',
                 content: `
-            <div class="content-card">
-                <h1 class="content-title">Enter Your ID</h1>
-                <p class="content-subtitle">We'll use this to connect your responses with the study</p>
-                <div class="id-input-system">
-                    <div class="input-group">
-                        <input 
-                            type="text" 
-                            id="prolific-input" 
-                            class="input-field"
-                            placeholder="24-character Prolific ID"
-                            maxlength="24"
-                            autocomplete="off"
-                        >
-                        <div id="input-error" class="input-error"></div>
-                        <div class="input-hint">Your ID should contain exactly 24 letters and numbers</div>
+                <div class="content-card">
+                    <h1 class="content-title">Enter Your ID</h1>
+                    <p class="content-subtitle">We'll use this to connect your responses with the study</p>
+                    <div class="id-input-system">
+                        <div class="input-group">
+                            <input 
+                                type="text" 
+                                id="prolific-input" 
+                                class="input-field"
+                                placeholder="24-character Prolific ID"
+                                maxlength="24"
+                                autocomplete="off"
+                            >
+                            <div id="input-error" class="input-error"></div>
+                            <div class="input-hint">Your ID should contain exactly 24 letters and numbers</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `
+            `
             }
         ];
     }
