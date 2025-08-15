@@ -1,9 +1,25 @@
+/**
+ * ===================================================================
+ * CHATBOT INTERFACE - MAIN APPLICATION CLASS
+ * ===================================================================
+ * 
+ * A comprehensive chatbot interface for research studies featuring:
+ * - Multi-task conversation management
+ * - Sophisticated welcome experience with model comparison
+ * - Behavioral metrics tracking
+ * - Session management and data persistence
+ * - Responsive design and error handling
+ */
+
 class ChatApp {
     constructor() {
-        this.participantId = null; // Will be set from Prolific ID
+        // ===================================================================
+        // CORE PROPERTIES
+        // ===================================================================
+        this.participantId = null;
         this.sessionId = null;
+        this.configurationId = null;
 
-        // Initialize properties
         // Task-based conversation storage
         this.taskConversations = {
             'image-generation': new Map(),
@@ -11,42 +27,30 @@ class ChatApp {
             'acronym-building': new Map()
         };
 
-        this.currentTask = 'image-generation'; // Default active task
+        this.currentTask = 'image-generation';
         this.currentConversationId = null;
-
         this.currentChatlog = [];
         this.msgWidgets = {};
+        
+        // UI State
         this.currentTheme = 'dark';
         this.autoSaveTimeout = null;
         this.messageIdCounter = 0;
         this.sessionStartTime = Date.now();
         this.isFinishing = false;
 
-        this.behaviorMetrics = {
-            backspaceCount: 0,
-            messageLengths: [],
-            messageCount: 0,
-            conversationCount: 0,
-            editCount: 0,
-            editDistances: [],
-            idleStartTime: Date.now(),
-            totalIdleTime: 0,
-            messageTimes: [],
-            conversationSwitches: 0,
-            responseTimesAfterBot: [],
-            lastBotMessageTime: null,
-            lastUserActivity: Date.now(),
-            typingPatterns: {
-                totalKeystrokes: 0,
-                typingStartTime: null,
-                typingDurations: []
-            },
-            // Add task-specific metrics
-            taskMetrics: {
-                'image-generation': { conversations: 0, messages: 0, timeSpent: 0 },
-                'social-media': { conversations: 0, messages: 0, timeSpent: 0 },
-                'acronym-building': { conversations: 0, messages: 0, timeSpent: 0 }
-            }
+        // Welcome Experience State
+        this.currentStepIndex = 0;
+        this.maxSteps = 3;
+        this.isAnimationPlaying = false;
+
+        // ===================================================================
+        // CONFIGURATION
+        // ===================================================================
+        this.config = {
+            givenModel: 'GPT-4',
+            trueModel: 'gpt-4-turbo',
+            displayName: 'GPT-4'
         };
 
         // Task configurations
@@ -71,299 +75,187 @@ class ChatApp {
             }
         };
 
+        // Image generation context
         this.imageContext = {
             lastPrompt: null,
             lastImageUrl: null,
             conversationHasImage: false
         };
 
-        this.welcomeState = {
-            currentStep: 0,
-            timer: null,
-            timerSeconds: 5,
-            steps: []
+        // ===================================================================
+        // BEHAVIOR TRACKING
+        // ===================================================================
+        this.behaviorMetrics = {
+            backspaceCount: 0,
+            messageLengths: [],
+            messageCount: 0,
+            conversationCount: 0,
+            editCount: 0,
+            editDistances: [],
+            idleStartTime: Date.now(),
+            totalIdleTime: 0,
+            messageTimes: [],
+            conversationSwitches: 0,
+            responseTimesAfterBot: [],
+            lastBotMessageTime: null,
+            lastUserActivity: Date.now(),
+            typingPatterns: {
+                totalKeystrokes: 0,
+                typingStartTime: null,
+                typingDurations: []
+            },
+            taskMetrics: {
+                'image-generation': { conversations: 0, messages: 0, timeSpent: 0 },
+                'social-media': { conversations: 0, messages: 0, timeSpent: 0 },
+                'acronym-building': { conversations: 0, messages: 0, timeSpent: 0 }
+            }
         };
 
-        // Track idle time
+        // Idle tracking configuration
         this.idleThreshold = 5000;
         this.idleCheckInterval = null;
 
-        // Default configuration (will be overridden)
-        this.config = {
-            givenModel: 'GPT-4',
-            trueModel: 'gpt-4-turbo',
-            displayName: 'GPT-4'
-        };
-
+        // Session timer
         this.sessionTimer = {
             startTime: null,
             intervalId: null,
             isRunning: false
         };
 
-        this.modelDescriptions = {
-            'GPT-3.5': {
-                year: '2022',
-                generation: '3.5',
-                slides: [
-                    {
-                        title: 'Background',
-                        points: [
-                            'Released November 2022 as the original ChatGPT - now considered legacy technology',
-                            'Training data frozen in September 2021, missing over 3 years of world knowledge',
-                            'Designed for simple and casual, everyday conversations.'
-                        ]
-                    },
-                    {
-                        title: 'Performance Compared to Current Models',
-                        points: [
-                            'GPT-3.5 demonstrates worse accuracy and far more factual errors in creative tasks than GPT-4',
-                            '70% Worse than OpenAI\'s o1-preview on complex reasoning and creative problem solving tasks',
-                            'Users report GPT-3.5 produces noticeably more repetitive and formulaic responses'
-                        ]
-                    },
-                    {
-                        title: 'Capabilities and Limitations',
-                        points: [
-                            'Quick to respond for basic questions and facts',
-                            'Struggles with creativity, humor, and complex writing tasks',
-                            'Simple questions where speed matters more than quality'
-                        ]
-                    }
-                ]
-            },
-            'GPT-4': {
-                year: '2023',
-                generation: '4.0',
-                slides: [
-                    {
-                        title: 'Background',
-                        points: [
-                            'Released March 2023 as OpenAI\'s mainstream model',
-                            'Achieved human-level performance on many standardized tests',
-                            'The reliable middle-ground between outdated GPT-3.5 and cutting-edge o1-preview'
-                        ]
-                    },
-                    {
-                        title: 'Performance Compared to Other Models',
-                        points: [
-                            'Outperforms GPT-3.5 in creative writing and professional communication',
-                            'However, o1-preview surpasses it by on creative problem-solving and wordplay tasks',
-                            'Maintains good balance between speed and capability for most general tasks'
-                        ]
-                    },
-                    {
-                        title: 'Capabilities and Limitations',
-                        points: [
-                            'Solid performance across writing, analysis, and creative tasks',
-                            'Can be too verbose and occasionally misses what was asked of it',
-                            'Professional writing and standard creative projects'
-                        ]
-                    }
-                ]
-            },
-            'o1-Preview': {
-                year: '2024',
-                generation: 'o1',
-                slides: [
-                    {
-                        title: 'Background',
-                        points: [
-                            'Released September 2024 with revolutionary "thought-based" reasoning',
-                            'Takes time to thoroughly think through problems before responding, ensuring accuracy and performance',
-                            'Specifically engineered for creative problem-solving and complex reasoning'
-                        ]
-                    },
-                    {
-                        title: 'Performance Compared to Other Models',
-                        points: [
-                            'Outperforms GPT-4 on creative puzzle-solving and linguistic challenges',
-                            'Scores 70% higher than GPT-3.5 on complex creative tasks',
-                            'Excels at finding unexpected connections and generating truly original ideas'
-                        ]
-                    },
-                    {
-                        title: 'Capabilities and Limitations',
-                        points: [
-                            'Exceptional at creative challenges, wordplay, and innovative thinking',
-                            'Slower response time due to deep reasoning process',
-                            'Complex creative tasks requiring originality and clever solutions'
-                        ]
-                    }
-                ]
-            },
-            'Claude 3 Haiku': {
-                year: '2024',
-                generation: '3.0',
-                slides: [
-                    {
-                        title: 'Background',
-                        points: [
-                            'Released March 2024 as Anthropic\'s fastest but most basic model',
-                            'Optimized for speed, not deep thinking or creativity',
-                            'Used as the lightweight entry-level option before more capable models arrived'
-                        ]
-                    },
-                    {
-                        title: 'Performance Compared to Current Models',
-                        points: [
-                            'Produces far simpler and less engaging output than Claude 3.5 Sonnet',
-                            'Falls dramatically short of Claude 3.7 Sonnet\'s advanced reasoning and originality',
-                            'Often feels like a quick search result rather than a creative partner'
-                        ]
-                    },
-                    {
-                        title: 'Capabilities and Limitations',
-                        points: [
-                            'Extremely fast on basic factual and procedural questions',
-                            'Struggles with nuance, depth, and creative tasks',
-                            'Best for quick answers where speed matters more than quality'
-                        ]
-                    }
-                ]
-            },
-
-            'Claude 3.5 Sonnet': {
-                year: '2024',
-                generation: '3.5',
-                slides: [
-                    {
-                        title: 'Background',
-                        points: [
-                            'Released June 2024 as Anthropic\'s balanced, all-purpose model',
-                            'Became the go-to choice for most professional and creative tasks',
-                            'The solid middle ground between basic Haiku and cutting-edge 3.7 Sonnet'
-                        ]
-                    },
-                    {
-                        title: 'Performance Compared to Other Models',
-                        points: [
-                            'Far outperforms Claude 3 Haiku in writing quality, analysis, and insight',
-                            'Lags behind Claude 3.7 Sonnet in complex reasoning and breakthrough ideas',
-                            'Offers a dependable mix of speed and capability for daily use'
-                        ]
-                    },
-                    {
-                        title: 'Capabilities and Limitations',
-                        points: [
-                            'Consistently strong across writing, research, and creative problem-solving',
-                            'Often misses the originality and depth of more advanced models',
-                            'Best for well-rounded professional and creative projects'
-                        ]
-                    }
-                ]
-            },
-
-            'Claude 3.7 Sonnet': {
-                year: '2025',
-                generation: '3.7',
-                slides: [
-                    {
-                        title: 'Background',
-                        points: [
-                            'Released February 2025 with revolutionary “hybrid reasoning” technology',
-                            'Combines instant responses with an advanced deep-thinking mode',
-                            'Built to excel at the hardest creative and analytical challenges'
-                        ]
-                    },
-                    {
-                        title: 'Performance Compared to Other Models',
-                        points: [
-                            'Massively outperforms Claude 3 Haiku across all creative and reasoning tasks',
-                            'Beats Claude 3.5 Sonnet with deeper insights and more original solutions',
-                            'Sets a new standard for innovation and problem-solving in AI'
-                        ]
-                    },
-                    {
-                        title: 'Capabilities and Limitations',
-                        points: [
-                            'Outstanding for complex writing, inventive solutions, and ambitious projects',
-                            'Slower when engaging deep-thinking mode for maximum accuracy',
-                            'Best for work requiring originality, insight, and high-level creativity'
-                        ]
-                    }
-                ]
-            },
-
-        };
-
-        // Initialize the app - load configuration first, then show welcome
+        // Initialize the application
         this.initializeApp();
     }
 
-    switchToTask(taskId) {
-        console.log('🔄 Switching to task:', taskId);
+    // ===================================================================
+    // INITIALIZATION & CONFIGURATION
+    // ===================================================================
 
-        // Track task switch timing
-        const oldTask = this.currentTask;
-        if (oldTask !== taskId) {
-            const now = Date.now();
-            // Update time spent on previous task (simplified)
-            this.behaviorMetrics.taskMetrics[oldTask].timeSpent += now - this.sessionStartTime;
-        }
+    /**
+     * Initialize the complete application
+     */
+    async initializeApp() {
+        // Show welcome experience immediately, load config in background
+        this.initializeWelcomeExperience();
+        this.showWelcomeExperience();
 
-        // Save current conversation if any
-        if (this.currentConversationId) {
-            const currentTaskConversations = this.taskConversations[this.currentTask];
-            const currentConv = currentTaskConversations.get(this.currentConversationId);
-            if (currentConv) {
-                currentConv.messages = [...this.currentChatlog];
-                currentConv.lastMessageAt = new Date();
+        // Load configuration in the background
+        try {
+            await this.loadConfiguration();
+            console.log('✅ Configuration loaded:', this.config);
+            this.setupReleaseHandler();
+
+            // If we're still on the model comparison step, refresh with loaded data
+            if (this.currentStepIndex >= 1) {
+                this.renderWelcomeStep(this.currentStepIndex, true);
             }
+
+        } catch (error) {
+            console.error('❌ Failed to load configuration:', error);
+            this.setupReleaseHandler();
         }
+    }
 
-        // Switch task
-        this.currentTask = taskId;
+    /**
+     * Load model configuration from server
+     */
+    async loadConfiguration() {
+        try {
+            console.log('🔄 Loading configuration...');
 
-        // Update UI
-        this.updateTaskTabs();
+            const response = await fetch('/api/configurations/assign', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.sessionId = data.sessionId;
+                this.configurationId = data.configuration.id;
+
+                this.config = {
+                    givenModel: data.configuration.displayedModel,
+                    trueModel: data.configuration.actualModel,
+                    displayName: data.configuration.displayedModel
+                };
+
+                console.log('🎯 Configuration loaded:', {
+                    displayed: this.config.givenModel,
+                    actual: this.config.trueModel,
+                    configId: this.configurationId
+                });
+
+                return true;
+            } else {
+                throw new Error('Failed to get configuration assignment');
+            }
+        } catch (error) {
+            console.error('❌ Error loading configuration:', error);
+            
+            // Fallback configuration
+            this.sessionId = `fallback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            this.configurationId = 1;
+            return false;
+        }
+    }
+
+    /**
+     * Register session with participant ID
+     */
+    async registerSession() {
+        try {
+            const response = await fetch('/api/sessions/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sessionId: this.sessionId,
+                    participantId: this.participantId,
+                    configurationId: this.configurationId
+                })
+            });
+
+            if (!response.ok) {
+                console.warn('Failed to register session');
+            }
+        } catch (error) {
+            console.warn('Session registration error:', error);
+        }
+    }
+
+    /**
+     * Set up page close handler for cleanup
+     */
+    setupReleaseHandler() {
+        window.addEventListener('beforeunload', (e) => this.onClose(e));
+        console.log('🔓 Release handler set up for config:', this.configurationId);
+    }
+
+    /**
+     * Initialize main app after welcome completion
+     */
+    async init() {
+        this.setupEventListeners();
+        this.updateBotName();
         this.updateTaskHeader();
-
-        // Check if task has conversations, if not create default
-        const taskConversations = this.taskConversations[this.currentTask];
-        if (taskConversations.size === 0) {
-            // Create default conversation for new task
-            this.createNewConversation();
-        } else {
-            // Switch to most recent conversation or clear current
-            const sortedConversations = Array.from(taskConversations.values())
-                .sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
-
-            if (sortedConversations.length > 0) {
-                this.switchToConversation(sortedConversations[0].id);
-            } else {
-                this.currentConversationId = null;
-                this.currentChatlog = [];
-                this.showWelcomeMessage();
-            }
-        }
-
-        // Update conversation list
-        this.updateConversationList();
-
-        console.log('✅ Switched to task:', taskId);
+        this.createNewConversation();
+        this.setupTextareaAutoResize();
+        this.setupAdvancedAnimations();
+        this.startSessionTimer();
+        this.initializeBehaviorTracking();
+        this.setupFinishButton();
     }
 
-    updateTaskTabs() {
-        const tabs = document.querySelectorAll('.task-tab');
-        tabs.forEach(tab => {
-            const taskId = tab.dataset.task;
-            if (taskId === this.currentTask) {
-                tab.classList.add('active');
-            } else {
-                tab.classList.remove('active');
-            }
-        });
-    }
+    // ===================================================================
+    // WELCOME EXPERIENCE
+    // ===================================================================
 
-    updateTaskHeader() {
-        const taskHeader = document.getElementById('task-header');
-        const taskTitle = taskHeader.querySelector('.task-title');
-
-        const config = this.taskConfig[this.currentTask];
-        taskTitle.textContent = config.name;
-    }
-
+    /**
+     * Get model comparison data based on assigned configuration
+     */
     getModelComparisonData() {
         const modelFamilies = {
             'openai': [
@@ -402,7 +294,7 @@ class ChatApp {
                     bestFor: "Professional writing, creative projects, and complex analysis tasks."
                 },
                 {
-                    name: 'o1-Preview',
+                    name: 'GPT-5',
                     year: '2024',
                     capabilities: {
                         creative: 95,
@@ -421,7 +313,7 @@ class ChatApp {
             ],
             'claude': [
                 {
-                    name: 'Claude 3 Haiku',
+                    name: 'Claude 3',
                     year: '2024',
                     capabilities: {
                         creative: 65,
@@ -438,7 +330,7 @@ class ChatApp {
                     bestFor: "Quick tasks, basic writing assistance, and straightforward questions."
                 },
                 {
-                    name: 'Claude 3.5 Sonnet',
+                    name: 'Claude 3.5',
                     year: '2024',
                     capabilities: {
                         creative: 88,
@@ -455,7 +347,7 @@ class ChatApp {
                     bestFor: "Professional communication, detailed analysis, and structured writing."
                 },
                 {
-                    name: 'Claude 3.7 Sonnet',
+                    name: 'Claude 4',
                     year: '2025',
                     capabilities: {
                         creative: 93,
@@ -474,10 +366,10 @@ class ChatApp {
             ]
         };
 
-        // Determine the family based on the assigned model
+        // Determine family based on assigned model
         const assignedModel = this.config?.trueModel || 'gpt-4-turbo';
         let family = 'openai';
-
+        
         if (assignedModel.includes('claude')) {
             family = 'claude';
         }
@@ -489,19 +381,24 @@ class ChatApp {
         };
     }
 
+    /**
+     * Get assigned model index from display name
+     */
     getAssignedModelIndex(models) {
         const assignedDisplayName = this.config?.displayName || 'GPT-4';
-
+        
         for (let i = 0; i < models.length; i++) {
             if (models[i].name === assignedDisplayName) {
                 return i;
             }
         }
-
+        
         return 1; // Default to middle model
     }
 
-    // Simplified welcome experience initialization
+    /**
+     * Initialize welcome experience
+     */
     initializeWelcomeExperience() {
         this.currentStepIndex = 0;
         this.maxSteps = 3;
@@ -509,6 +406,9 @@ class ChatApp {
         this.setupWelcomeEventListeners();
     }
 
+    /**
+     * Show welcome experience overlay
+     */
     showWelcomeExperience() {
         const experience = document.getElementById('welcome-experience');
         experience.style.display = 'block';
@@ -519,6 +419,9 @@ class ChatApp {
         });
     }
 
+    /**
+     * Render specific welcome step
+     */
     renderWelcomeStep(stepIndex) {
         this.currentStepIndex = stepIndex;
         this.updateProgressIndicator();
@@ -527,7 +430,7 @@ class ChatApp {
         panels.forEach((panel, index) => {
             if (index === stepIndex) {
                 panel.classList.add('active');
-
+                
                 // Special handling for step 2 (comparison animation)
                 if (stepIndex === 1) {
                     this.startComparisonAnimation();
@@ -540,6 +443,9 @@ class ChatApp {
         this.updateNavigationButtons();
     }
 
+    /**
+     * Update progress indicator
+     */
     updateProgressIndicator() {
         const progress = ((this.currentStepIndex + 1) / this.maxSteps) * 100;
         const indicator = document.getElementById('progress-indicator');
@@ -549,9 +455,12 @@ class ChatApp {
         currentStep.textContent = this.currentStepIndex + 1;
     }
 
+    /**
+     * Update navigation buttons based on current step
+     */
     updateNavigationButtons() {
         const continueBtn = document.getElementById('nav-continue');
-
+        
         // Hide navigation during animation
         if (this.currentStepIndex === 1 && this.isAnimationPlaying) {
             continueBtn.style.opacity = '0';
@@ -565,18 +474,18 @@ class ChatApp {
         // Update button text
         if (this.currentStepIndex === 2) {
             continueBtn.innerHTML = `
-            Start Study
-            <svg class="nav-icon" viewBox="0 0 24 24">
-                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-            </svg>
-        `;
+                Start Study
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                </svg>
+            `;
         } else {
             continueBtn.innerHTML = `
-            Continue
-            <svg class="nav-icon" viewBox="0 0 24 24">
-                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-            </svg>
-        `;
+                Continue
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                </svg>
+            `;
         }
 
         // Enable validation for Prolific ID step
@@ -586,17 +495,20 @@ class ChatApp {
         }
     }
 
+    /**
+     * Start model comparison animation sequence
+     */
     startComparisonAnimation() {
         this.isAnimationPlaying = true;
         const comparisonData = this.getModelComparisonData();
-
-        // Populate model data
+        
         this.populateModelComparison(comparisonData);
-
-        // Start the animation sequence
         this.runAnimationSequence(comparisonData);
     }
 
+    /**
+     * Populate model comparison table with data
+     */
     populateModelComparison(comparisonData) {
         const { models, assignedIndex } = comparisonData;
 
@@ -604,7 +516,7 @@ class ChatApp {
         models.forEach((model, index) => {
             const nameEl = document.getElementById(`model-name-${index}`);
             const yearEl = document.getElementById(`model-year-${index}`);
-
+            
             if (nameEl) nameEl.textContent = model.name;
             if (yearEl) yearEl.textContent = model.year;
         });
@@ -614,14 +526,14 @@ class ChatApp {
             const modelIndex = parseInt(fill.closest('.capability-bubble').dataset.model);
             const capabilityRow = fill.closest('.capability-row');
             const capability = capabilityRow.dataset.capability;
-
+            
             let value;
-            switch (capability) {
+            switch(capability) {
                 case 'creative': value = models[modelIndex].capabilities.creative; break;
                 case 'professional': value = models[modelIndex].capabilities.professional; break;
                 case 'speed': value = models[modelIndex].capabilities.speed; break;
             }
-
+            
             fill.dataset.value = value;
         });
 
@@ -629,15 +541,15 @@ class ChatApp {
         document.querySelectorAll('.ranking-value').forEach(valueEl => {
             const modelIndex = parseInt(valueEl.dataset.model);
             const rankingRow = valueEl.closest('.ranking-row');
-            const rankingType = Array.from(rankingRow.parentNode.children).indexOf(rankingRow) - 1; // -1 for title
-
+            const rankingType = Array.from(rankingRow.parentNode.children).indexOf(rankingRow) - 1;
+            
             let value;
-            switch (rankingType) {
+            switch(rankingType) {
                 case 0: value = models[modelIndex].lmarena.instruction; break;
                 case 1: value = models[modelIndex].lmarena.creative; break;
                 case 2: value = models[modelIndex].lmarena.hard; break;
             }
-
+            
             valueEl.textContent = value;
         });
 
@@ -648,57 +560,46 @@ class ChatApp {
         document.getElementById('usecase-text').textContent = assignedModel.bestFor;
     }
 
+    /**
+     * Run the complete animation sequence
+     */
     runAnimationSequence(comparisonData) {
         const { assignedIndex } = comparisonData;
 
-        // Animation timeline
         const timeline = [
-            // 0-1.5s: Headers fade in
-            () => {
-                document.querySelector('.model-headers').style.animation = 'fadeInStagger 1s ease-out forwards';
-            },
-
-            // Capability bubbles fill (1.5s-7.5s)
+            () => document.querySelector('.model-headers').style.animation = 'fadeInStagger 1s ease-out forwards',
             () => this.animateCapabilityBubbles(),
-
-            // 9-12s: Gold border highlight
             () => this.highlightAssignedModel(assignedIndex),
-
-            // 12-15s: Popup bubble
             () => this.showAssignmentPopup(),
-
-            // 15-16.5s: Table shrink and move up
             () => this.shrinkComparisonTable(),
-
-            // 16.5-18s: Capability cards slide up
             () => this.showCapabilityCards(),
-
-            // 18s: Enable continue button
             () => {
                 this.isAnimationPlaying = false;
                 this.updateNavigationButtons();
             }
         ];
 
-        // Execute timeline
         const delays = [0, 1500, 11000, 12000, 15000, 16500, 18000];
-
+        
         timeline.forEach((action, index) => {
             setTimeout(action, delays[index]);
         });
     }
 
+    /**
+     * Animate capability bubbles with staggered timing
+     */
     animateCapabilityBubbles() {
         const capabilityRows = document.querySelectorAll('.capability-row');
-
+        
         capabilityRows.forEach((row, rowIndex) => {
-            const delay = rowIndex * 2000; // 2 second stagger
-
+            const delay = rowIndex * 2000;
+            
             setTimeout(() => {
                 const bubbles = row.querySelectorAll('.bubble-fill');
                 bubbles.forEach((fill, bubbleIndex) => {
-                    const bubbleDelay = bubbleIndex * 200; // 200ms stagger within row
-
+                    const bubbleDelay = bubbleIndex * 200;
+                    
                     setTimeout(() => {
                         const value = parseInt(fill.dataset.value);
                         fill.style.height = value + '%';
@@ -709,12 +610,14 @@ class ChatApp {
         });
     }
 
+    /**
+     * Highlight the assigned model
+     */
     highlightAssignedModel(assignedIndex) {
         const modelHeader = document.querySelector(`.model-header[data-model="${assignedIndex}"]`);
         if (modelHeader) {
             modelHeader.classList.add('highlighted');
-
-            // Also highlight all bubbles and values for this model
+            
             document.querySelectorAll(`[data-model="${assignedIndex}"]`).forEach(el => {
                 if (el.classList.contains('capability-bubble')) {
                     el.style.borderColor = '#f59e0b';
@@ -728,20 +631,25 @@ class ChatApp {
         }
     }
 
+    /**
+     * Show assignment popup bubble
+     */
     showAssignmentPopup() {
         const popup = document.getElementById('assignment-popup');
         const assignedModelHeader = document.querySelector('.model-header.highlighted');
-
+        
         if (popup && assignedModelHeader) {
             const rect = assignedModelHeader.getBoundingClientRect();
             const tableRect = document.querySelector('.model-comparison-table').getBoundingClientRect();
-
-            // Position popup above the highlighted model
+            
             popup.style.left = `${rect.left - tableRect.left + (rect.width / 2)}px`;
             popup.classList.add('show');
         }
     }
 
+    /**
+     * Shrink and move comparison table
+     */
     shrinkComparisonTable() {
         const table = document.querySelector('.model-comparison-table');
         if (table) {
@@ -749,6 +657,9 @@ class ChatApp {
         }
     }
 
+    /**
+     * Show capability cards
+     */
     showCapabilityCards() {
         const cards = document.getElementById('capability-cards');
         if (cards) {
@@ -756,9 +667,12 @@ class ChatApp {
         }
     }
 
+    /**
+     * Set up welcome event listeners
+     */
     setupWelcomeEventListeners() {
         const continueBtn = document.getElementById('nav-continue');
-
+        
         continueBtn.addEventListener('click', () => {
             if (this.currentStepIndex < this.maxSteps - 1) {
                 this.renderWelcomeStep(this.currentStepIndex + 1);
@@ -768,6 +682,9 @@ class ChatApp {
         });
     }
 
+    /**
+     * Set up Prolific ID validation
+     */
     setupProlificValidation() {
         const input = document.getElementById('prolific-input');
         const continueBtn = document.getElementById('nav-continue');
@@ -806,31 +723,32 @@ class ChatApp {
         validateInput();
     }
 
+    /**
+     * Handle Prolific ID submission
+     */
     async handleProlificSubmission() {
         const input = document.getElementById('prolific-input');
         const prolificId = input.value.trim();
 
         if (!/^[a-zA-Z0-9]{24}$/.test(prolificId)) return;
 
-        // Show loading state
         const continueBtn = document.getElementById('nav-continue');
         const originalContent = continueBtn.innerHTML;
         continueBtn.innerHTML = `
-        <div class="loading-dots">
-            <div class="loading-dot"></div>
-            <div class="loading-dot"></div>
-            <div class="loading-dot"></div>
-        </div>
-        Starting...
-    `;
+            <div class="loading-dots">
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+            </div>
+            Starting...
+        `;
         continueBtn.disabled = true;
 
-        // Set participant ID and register session
         this.participantId = prolificId;
 
         try {
             await this.registerSession();
-
+            
             setTimeout(() => {
                 this.hideWelcomeExperience();
             }, 800);
@@ -842,170 +760,101 @@ class ChatApp {
         }
     }
 
+    /**
+     * Hide welcome experience and start main app
+     */
     hideWelcomeExperience() {
         const experience = document.getElementById('welcome-experience');
         experience.classList.remove('active');
 
         setTimeout(() => {
             experience.style.display = 'none';
-
             const appContainer = document.querySelector('.app-container');
             appContainer.classList.add('ready');
-
             this.init();
         }, 600);
     }
 
+    // ===================================================================
+    // TASK AND CONVERSATION MANAGEMENT
+    // ===================================================================
 
-    setupProlificValidation() {
-        const input = document.getElementById('prolific-input');
-        const continueBtn = document.getElementById('nav-continue');
-        const errorDiv = document.getElementById('input-error');
+    /**
+     * Switch to a different task tab
+     */
+    switchToTask(taskId) {
+        console.log('🔄 Switching to task:', taskId);
 
-        const validateInput = () => {
-            const value = input.value.trim();
-            const isValid = /^[a-zA-Z0-9]{24}$/.test(value);
+        const oldTask = this.currentTask;
+        if (oldTask !== taskId) {
+            const now = Date.now();
+            this.behaviorMetrics.taskMetrics[oldTask].timeSpent += now - this.sessionStartTime;
+        }
 
-            // Reset states
-            input.classList.remove('error', 'success');
-            errorDiv.classList.remove('show');
-
-            if (value.length === 0) {
-                continueBtn.disabled = true;
-                return;
+        // Save current conversation if any
+        if (this.currentConversationId) {
+            const currentTaskConversations = this.taskConversations[this.currentTask];
+            const currentConv = currentTaskConversations.get(this.currentConversationId);
+            if (currentConv) {
+                currentConv.messages = [...this.currentChatlog];
+                currentConv.lastMessageAt = new Date();
             }
+        }
 
-            if (isValid) {
-                input.classList.add('success');
-                continueBtn.disabled = false;
+        this.currentTask = taskId;
+        this.updateTaskTabs();
+        this.updateTaskHeader();
+
+        // Check if task has conversations
+        const taskConversations = this.taskConversations[this.currentTask];
+        if (taskConversations.size === 0) {
+            this.createNewConversation();
+        } else {
+            const sortedConversations = Array.from(taskConversations.values())
+                .sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
+
+            if (sortedConversations.length > 0) {
+                this.switchToConversation(sortedConversations[0].id);
             } else {
-                input.classList.add('error');
-                errorDiv.textContent = 'Please enter a valid 24-character Prolific ID';
-                errorDiv.classList.add('show');
-                continueBtn.disabled = true;
+                this.currentConversationId = null;
+                this.currentChatlog = [];
+                this.showWelcomeMessage();
             }
-        };
+        }
 
-        input.addEventListener('input', validateInput);
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !continueBtn.disabled) {
-                this.handleProlificSubmission();
+        this.updateConversationList();
+        console.log('✅ Switched to task:', taskId);
+    }
+
+    /**
+     * Update task tabs UI
+     */
+    updateTaskTabs() {
+        const tabs = document.querySelectorAll('.task-tab');
+        tabs.forEach(tab => {
+            const taskId = tab.dataset.task;
+            if (taskId === this.currentTask) {
+                tab.classList.add('active');
+            } else {
+                tab.classList.remove('active');
             }
         });
-
-        // Initial validation
-        validateInput();
     }
 
-    async handleProlificSubmission() {
-        const input = document.getElementById('prolific-input');
-        const prolificId = input.value.trim();
-
-        if (!/^[a-zA-Z0-9]{24}$/.test(prolificId)) return;
-
-        // Show loading state
-        const continueBtn = document.getElementById('nav-continue');
-        const originalContent = continueBtn.innerHTML;
-        continueBtn.innerHTML = `
-        <div class="loading-dots">
-            <div class="loading-dot"></div>
-            <div class="loading-dot"></div>
-            <div class="loading-dot"></div>
-        </div>
-        Starting...
-    `;
-        continueBtn.disabled = true;
-
-        // Set participant ID and register session
-        this.participantId = prolificId;
-
-        try {
-            await this.registerSession();
-
-            // Hide welcome experience
-            setTimeout(() => {
-                this.hideWelcomeExperience();
-            }, 800);
-
-        } catch (error) {
-            console.error('Session registration failed:', error);
-            continueBtn.innerHTML = originalContent;
-            continueBtn.disabled = false;
-        }
+    /**
+     * Update task header display
+     */
+    updateTaskHeader() {
+        const taskHeader = document.getElementById('task-header');
+        const taskTitle = taskHeader.querySelector('.task-title');
+        const config = this.taskConfig[this.currentTask];
+        taskTitle.textContent = config.name;
     }
 
-    hideWelcomeExperience() {
-        const experience = document.getElementById('welcome-experience');
-        experience.classList.remove('active');
-
-        setTimeout(() => {
-            experience.style.display = 'none';
-
-            // Show main app
-            const appContainer = document.querySelector('.app-container');
-            appContainer.classList.add('ready');
-
-            this.init(); // Start the main app
-        }, 600);
-    }
-
-    async initializeApp() {
-        // Show welcome experience immediately, load config in background
-        this.initializeWelcomeExperience();
-        this.showWelcomeExperience();
-
-        // Load configuration in the background
-        try {
-            await this.loadConfiguration();
-            console.log('✅ Configuration loaded:', this.config);
-
-            // ✅ SET UP RELEASE HANDLER IMMEDIATELY after config is loaded
-            this.setupReleaseHandler();
-
-            // Update welcome steps with loaded configuration
-            this.buildWelcomeSteps();
-
-            // If we're still on the model intro step or later, refresh the content
-            if (this.currentStepIndex >= 1) {
-                this.renderWelcomeStep(this.currentStepIndex, true);
-            }
-
-        } catch (error) {
-            console.error('❌ Failed to load configuration:', error);
-            // Still set up release handler even with fallback config
-            this.setupReleaseHandler();
-        }
-    }
-
-    setupReleaseHandler() {
-        // Set up release handler immediately (not waiting for welcome completion)
-        window.addEventListener('beforeunload', (e) => this.onClose(e));
-        console.log('🔓 Release handler set up for config:', this.configurationId);
-    }
-
-    async init() {
-        // Setup event listeners and UI
-        this.setupEventListeners();
-        this.updateBotName();
-        this.updateTaskHeader();
-        this.createNewConversation();
-        this.setupTextareaAutoResize();
-        this.setupAdvancedAnimations();
-        this.startSessionTimer();
-        this.initializeBehaviorTracking();
-        this.setupFinishButton();
-    }
-
-    setupFinishButton() {
-        // The button already exists in HTML, just make sure it's visible and functional
-        const finishBtn = document.getElementById('finish-btn');
-        if (finishBtn) {
-            finishBtn.style.display = 'flex'; // Ensure it's visible
-        }
-    }
-
+    /**
+     * Create new conversation for current task
+     */
     createNewConversation() {
-        // Increment conversation count for current task
         this.behaviorMetrics.conversationCount++;
         this.behaviorMetrics.taskMetrics[this.currentTask].conversations++;
 
@@ -1019,24 +868,19 @@ class ChatApp {
             lastMessageAt: new Date()
         };
 
-        // Add to appropriate task conversation map
         this.taskConversations[this.currentTask].set(conversationId, conversation);
-
-        // Switch to new conversation
         this.switchToConversation(conversationId);
-
-        // Update UI
         this.updateConversationList();
         this.updateTaskHeader();
-
-        // Clear welcome message and show task-specific welcome
         this.showWelcomeMessage();
 
         console.log('✅ Created new conversation for task:', this.currentTask, conversationId);
     }
 
+    /**
+     * Switch to specific conversation
+     */
     switchToConversation(conversationId) {
-        // Only count as switch if actually changing conversations
         if (this.currentConversationId && this.currentConversationId !== conversationId) {
             this.behaviorMetrics.conversationSwitches++;
         }
@@ -1050,7 +894,6 @@ class ChatApp {
             }
         }
 
-        // Switch to new conversation
         this.currentConversationId = conversationId;
         const taskConversations = this.taskConversations[this.currentTask];
         const conversation = taskConversations.get(conversationId);
@@ -1062,6 +905,9 @@ class ChatApp {
         }
     }
 
+    /**
+     * Render current conversation
+     */
     renderConversation() {
         const messagesContainer = document.getElementById('messages');
         messagesContainer.innerHTML = '';
@@ -1071,12 +917,15 @@ class ChatApp {
             this.showWelcomeMessage();
         } else {
             this.currentChatlog.forEach(msg => {
-                this.renderMessage(msg, false); // false = don't auto-scroll
+                this.renderMessage(msg, false);
             });
             this.scrollToBottom();
         }
     }
 
+    /**
+     * Show welcome message for current task
+     */
     showWelcomeMessage() {
         const messagesContainer = document.getElementById('messages');
         const config = this.taskConfig[this.currentTask];
@@ -1092,136 +941,108 @@ class ChatApp {
         `;
     }
 
-    showErrorModal(error, context = 'chat') {
-        console.error('🚨 Showing error modal:', error);
+    /**
+     * Update conversation list display
+     */
+    updateConversationList() {
+        const conversationList = document.getElementById('conversation-list');
+        const taskConversations = this.taskConversations[this.currentTask];
 
-        const modal = document.getElementById('error-modal');
-        const errorCodeSpan = document.getElementById('error-code');
-        const participantIdSpan = document.getElementById('error-participant-id');
+        // Get existing items to avoid re-animating them
+        const existingItems = new Set();
+        conversationList.querySelectorAll('.conversation-item').forEach(item => {
+            const convId = item.dataset.conversationId;
+            if (convId) existingItems.add(convId);
+        });
 
-        // Generate error code based on error type and context
-        let errorCode = 'UNKNOWN';
-        if (error.status) {
-            errorCode = `HTTP_${error.status}`;
-        } else if (error.message) {
-            if (error.message.includes('fetch')) {
-                errorCode = 'NETWORK_ERROR';
-            } else if (error.message.includes('JSON')) {
-                errorCode = 'PARSE_ERROR';
-            } else if (error.message.includes('timeout')) {
-                errorCode = 'TIMEOUT_ERROR';
+        const sortedConversations = Array.from(taskConversations.values())
+            .sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
+
+        conversationList.innerHTML = '';
+
+        if (sortedConversations.length === 0) {
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-task-state';
+            emptyState.innerHTML = `
+                <div class="empty-icon">${this.taskConfig[this.currentTask].icon}</div>
+                <p>No conversations yet</p>
+                <p>Click "New Chat" to get started</p>
+            `;
+            conversationList.appendChild(emptyState);
+            return;
+        }
+
+        sortedConversations.forEach((conversation, index) => {
+            const conversationItem = document.createElement('div');
+            conversationItem.className = 'conversation-item';
+            conversationItem.dataset.conversationId = conversation.id;
+            conversationItem.dataset.task = conversation.task;
+
+            const isExisting = existingItems.has(conversation.id);
+            if (!isExisting) {
+                conversationItem.style.animationDelay = `${index * 0.1}s`;
             } else {
-                errorCode = 'API_ERROR';
+                conversationItem.style.opacity = '1';
+                conversationItem.style.transform = 'translateX(0)';
+                conversationItem.style.animation = 'none';
             }
-        }
 
-        // Add context and timestamp
-        const timestamp = new Date().toISOString().substring(0, 19).replace('T', '_');
-        errorCode += `_${context.toUpperCase()}_${timestamp}`;
+            if (conversation.id === this.currentConversationId) {
+                conversationItem.classList.add('active');
+                conversationItem.style.opacity = '1';
+                conversationItem.style.transform = 'translateX(0)';
+                conversationItem.style.animation = 'none';
+            }
 
-        // Update modal content
-        errorCodeSpan.textContent = errorCode;
-        participantIdSpan.textContent = this.participantId || 'Not Set';
+            const title = document.createElement('div');
+            title.className = 'conversation-title';
+            title.textContent = conversation.title;
 
-        // Show modal
-        modal.style.display = 'flex';
+            const preview = document.createElement('div');
+            preview.className = 'conversation-preview';
+            const lastMessage = conversation.messages[conversation.messages.length - 1];
+            preview.textContent = lastMessage
+                ? `${lastMessage.sender}: ${lastMessage.content.substring(0, 50)}${lastMessage.content.length > 50 ? '...' : ''}`
+                : 'No messages yet';
 
-        // Setup event listeners
-        this.setupErrorModalListeners();
+            conversationItem.appendChild(title);
+            conversationItem.appendChild(preview);
+            conversationItem.onclick = () => this.switchToConversation(conversation.id);
+            conversationList.appendChild(conversationItem);
+        });
     }
 
-    hideErrorModal() {
-        const modal = document.getElementById('error-modal');
-        modal.style.display = 'none';
-    }
+    // ===================================================================
+    // MESSAGE HANDLING
+    // ===================================================================
 
-    setupErrorModalListeners() {
-        // Prevent multiple listeners
-        const closeBtn = document.getElementById('error-modal-close');
-        const closeBtn2 = document.getElementById('error-close');
-        const tryAgainBtn = document.getElementById('error-try-again');
-
-        // Remove existing listeners
-        closeBtn.onclick = null;
-        closeBtn2.onclick = null;
-        tryAgainBtn.onclick = null;
-
-        // Add new listeners
-        closeBtn.onclick = () => this.hideErrorModal();
-        closeBtn2.onclick = () => this.hideErrorModal();
-        tryAgainBtn.onclick = () => {
-            this.hideErrorModal();
-            // Retry the last message
-            if (this.currentChatlog.length > 0) {
-                const lastMessage = this.currentChatlog[this.currentChatlog.length - 1];
-                if (lastMessage.sender === 'User') {
-                    this.showTypingIndicator();
-                    setTimeout(() => this.getLLMResponse(), 500);
-                }
-            }
-        };
-
-        // Close on backdrop click
-        const modal = document.getElementById('error-modal');
-        modal.onclick = (e) => {
-            if (e.target === modal) {
-                this.hideErrorModal();
-            }
-        };
-    }
-
-    // Enhanced error parsing
-    parseError(error) {
-        let errorInfo = {
-            message: 'Unknown error occurred',
-            status: null,
-            context: {}
-        };
-
-        if (error.response) {
-            // HTTP error response
-            errorInfo.status = error.response.status;
-            errorInfo.message = `HTTP ${error.response.status}: ${error.response.statusText}`;
-            errorInfo.context.url = error.response.url;
-        } else if (error.message) {
-            errorInfo.message = error.message;
-            if (error.message.includes('Failed to fetch')) {
-                errorInfo.context.type = 'network';
-            } else if (error.message.includes('JSON')) {
-                errorInfo.context.type = 'parsing';
-            }
-        }
-
-        return errorInfo;
-    }
-
+    /**
+     * Send user message
+     */
     sendMessage() {
-        console.log('📤 [NEW] sendMessage() called');
+        console.log('📤 sendMessage() called');
 
         const messageInput = document.getElementById('message-input');
         const message = messageInput.value.trim();
 
         if (!message) {
-            console.log('❌ [NEW] Empty message, returning');
+            console.log('❌ Empty message, returning');
             return;
         }
 
-        console.log('💬 [NEW] Sending message:', message);
+        console.log('💬 Sending message:', message);
 
-        // If no current conversation, create one
         if (!this.currentConversationId) {
             this.createNewConversation();
         }
 
-        // Track task-specific metrics
+        // Track metrics
         this.behaviorMetrics.taskMetrics[this.currentTask].messages++;
-
-        // Track basic metrics (keep this from original)
         this.behaviorMetrics.messageLengths.push(message.length);
         this.behaviorMetrics.messageCount++;
         this.behaviorMetrics.messageTimes.push(new Date().toISOString());
 
-        // Remove welcome message if it exists
+        // Remove welcome message
         const welcomeMsg = document.querySelector('.welcome-message');
         if (welcomeMsg) {
             welcomeMsg.remove();
@@ -1237,7 +1058,6 @@ class ChatApp {
             task: this.currentTask
         };
 
-        // Add to chatlog and render
         this.currentChatlog.push(userMsg);
         this.renderMessage(userMsg);
 
@@ -1245,270 +1065,18 @@ class ChatApp {
         messageInput.value = '';
         messageInput.style.height = 'auto';
 
-        // Update conversation title if needed
         this.updateConversationTitle(message);
-
-        // Show typing and get response
         this.showTypingIndicator();
         setTimeout(() => this.getLLMResponse(), 500);
     }
 
-    showTypingIndicator() {
-        console.log('⏳ [NEW] Showing typing indicator');
-
-        const messagesContainer = document.getElementById('messages');
-
-        // Remove existing typing indicator
-        const existing = document.getElementById('typing-indicator');
-        if (existing) existing.remove();
-
-        const typingDiv = document.createElement('div');
-        typingDiv.className = 'typing-message';
-        typingDiv.id = 'typing-indicator';
-
-        const iconImg = document.createElement('img');
-        iconImg.className = 'message-icon';
-        iconImg.alt = 'Bot';
-
-        // Use dynamic icon
-        const displayedModel = this.config?.displayName || '';
-        console.log(`⏳ [NEW] Setting typing icon for displayed model: "${displayedModel}"`);
-
-        if (displayedModel.toLowerCase().includes('claude')) {
-            iconImg.src = 'images/claude.png';
-            console.log('⏳ [NEW] Using Claude typing icon');
-        } else {
-            iconImg.src = 'images/gpt.png';
-            console.log('⏳ [NEW] Using GPT typing icon');
-        }
-
-        const typingContent = document.createElement('div');
-        typingContent.className = 'typing-content';
-        typingContent.innerHTML = '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
-
-        typingDiv.appendChild(iconImg);
-        typingDiv.appendChild(typingContent);
-        messagesContainer.appendChild(typingDiv);
-
-        this.scrollToBottom();
-    }
-
-    hideTypingIndicator() {
-        console.log('⏳ [NEW] Hiding typing indicator');
-        const typingIndicator = document.getElementById('typing-indicator');
-        if (typingIndicator) {
-            typingIndicator.remove();
-        }
-    }
-
-    renderMessage(msgInfo, autoScroll = true) {
-        console.log('🎨 [NEW] renderMessage() called for:', msgInfo.sender, msgInfo.content);
-
-        const messagesContainer = document.getElementById('messages');
-
-        // Create message wrapper
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${msgInfo.sender.toLowerCase()}`;
-        messageDiv.dataset.msgId = msgInfo.msg_id;
-
-        // Create icon
-        const iconImg = document.createElement('img');
-        iconImg.className = 'message-icon';
-        iconImg.alt = msgInfo.sender;
-
-        if (msgInfo.sender === 'User') {
-            iconImg.src = 'images/user.png';
-        } else {
-            // Use dynamic icon based on displayed model
-            const displayedModel = this.config?.displayName || '';
-            console.log(`🎨 [NEW] Setting icon for displayed model: "${displayedModel}"`);
-
-            if (displayedModel.toLowerCase().includes('claude')) {
-                iconImg.src = 'images/claude.png';
-                console.log('🎨 [NEW] Using Claude icon');
-            } else {
-                iconImg.src = 'images/gpt.png';
-                console.log('🎨 [NEW] Using GPT icon');
-            }
-        }
-
-        // Create content
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'message-content';
-
-        // Make content div relatively positioned for edit button
-        contentDiv.style.position = 'relative';
-
-        // For bot messages, parse markdown
-        if (msgInfo.sender === 'Bot') {
-            contentDiv.innerHTML = marked.parse(msgInfo.content, {
-                breaks: true,
-                gfm: true,
-                sanitize: false
-            });
-
-            // Setup image click handlers for enlargement
-            this.setupImageClickHandlers(contentDiv);
-        } else {
-            contentDiv.textContent = msgInfo.content;
-
-            // Add edit button for user messages
-            const editBtn = document.createElement('button');
-            editBtn.className = 'edit-btn';
-            editBtn.textContent = '✎';
-            editBtn.title = 'Edit message';
-            editBtn.onclick = () => this.editMessage(msgInfo.msg_id);
-            contentDiv.appendChild(editBtn);
-        }
-
-        // Assemble message
-        messageDiv.appendChild(iconImg);
-        messageDiv.appendChild(contentDiv);
-        messagesContainer.appendChild(messageDiv);
-
-        // Store reference
-        this.msgWidgets[msgInfo.msg_id] = {
-            element: messageDiv,
-            info: msgInfo
-        };
-
-        // Auto-scroll if requested
-        if (autoScroll) {
-            this.scrollToBottom();
-        }
-
-        console.log('✅ [NEW] Message rendered successfully');
-    }
-
-    setupImageClickHandlers(contentDiv) {
-        const images = contentDiv.querySelectorAll('img');
-        images.forEach(img => {
-            img.addEventListener('click', () => this.showImageModal(img.src, img.alt));
-            img.style.cursor = 'pointer';
-            img.title = 'Click to view full size';
-        });
-    }
-
-    showImageModal(imageSrc, altText) {
-        // Remove existing modal if present
-        const existingModal = document.querySelector('.image-modal');
-        if (existingModal) {
-            existingModal.remove();
-        }
-
-        // Create modal
-        const modal = document.createElement('div');
-        modal.className = 'image-modal';
-
-        const img = document.createElement('img');
-        img.src = imageSrc;
-        img.alt = altText || 'Generated image';
-
-        const closeButton = document.createElement('button');
-        closeButton.className = 'close-button';
-        closeButton.innerHTML = '×';
-        closeButton.title = 'Close (Esc)';
-
-        modal.appendChild(img);
-        modal.appendChild(closeButton);
-        document.body.appendChild(modal);
-
-        // Show modal with animation
-        setTimeout(() => modal.classList.add('show'), 10);
-
-        // Close handlers
-        const closeModal = () => {
-            modal.classList.remove('show');
-            setTimeout(() => modal.remove(), 300);
-        };
-
-        closeButton.addEventListener('click', closeModal);
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
-        });
-
-        // Keyboard handler
-        const handleKeydown = (e) => {
-            if (e.key === 'Escape') {
-                closeModal();
-                document.removeEventListener('keydown', handleKeydown);
-            }
-        };
-        document.addEventListener('keydown', handleKeydown);
-    }
-
-    async loadConfiguration() {
-        try {
-            console.log('🔄 Loading configuration...');
-
-            // Get configuration assignment (no participant ID needed yet)
-            const response = await fetch('/api/configurations/assign', {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-
-            if (data.success) {
-                this.sessionId = data.sessionId;
-                this.configurationId = data.configuration.id;
-
-                // Set up models
-                this.config = {
-                    givenModel: data.configuration.displayedModel,
-                    trueModel: data.configuration.actualModel,
-                    displayName: data.configuration.displayedModel
-                };
-
-                console.log('🎯 Configuration loaded:', {
-                    displayed: this.config.givenModel,
-                    actual: this.config.trueModel,
-                    configId: this.configurationId
-                });
-
-                return true;
-            } else {
-                throw new Error('Failed to get configuration assignment');
-            }
-        } catch (error) {
-            console.error('❌ Error loading configuration:', error);
-            // Keep default configuration
-            this.sessionId = `fallback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            this.configurationId = 1;
-            return false;
-        }
-    }
-
-    // Add this new method to register the session with participant ID
-    async registerSession() {
-        try {
-            const response = await fetch('/api/sessions/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    sessionId: this.sessionId,
-                    participantId: this.participantId,
-                    configurationId: this.configurationId
-                })
-            });
-
-            if (!response.ok) {
-                console.warn('Failed to register session');
-            }
-        } catch (error) {
-            console.warn('Session registration error:', error);
-        }
-    }
-
+    /**
+     * Get response from LLM
+     */
     async getLLMResponse() {
-        console.log('🤖 [NEW] getLLMResponse() called');
+        console.log('🤖 getLLMResponse() called');
 
         try {
-            // Prepare request data
             const requestData = {
                 messages: this.currentChatlog,
                 model: this.config.trueModel,
@@ -1517,9 +1085,8 @@ class ChatApp {
                 imageContext: this.imageContext
             };
 
-            console.log('📡 [NEW] Making API request to /api/chat/stream');
+            console.log('📡 Making API request to /api/chat/stream');
 
-            // Make the API call
             const response = await fetch('/api/chat/stream', {
                 method: 'POST',
                 headers: {
@@ -1528,10 +1095,9 @@ class ChatApp {
                 body: JSON.stringify(requestData)
             });
 
-            console.log('📡 [NEW] Response status:', response.status);
+            console.log('📡 Response status:', response.status);
 
             if (!response.ok) {
-                // Handle HTTP errors with detailed error modal
                 const errorText = await response.text();
                 const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
                 error.status = response.status;
@@ -1539,7 +1105,6 @@ class ChatApp {
                 throw error;
             }
 
-            // Process the stream
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
 
@@ -1548,7 +1113,6 @@ class ChatApp {
             let fullResponse = '';
             let isImageGeneration = false;
 
-            // Read the stream
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
@@ -1560,29 +1124,25 @@ class ChatApp {
                     if (line.startsWith('data: ')) {
                         try {
                             const data = JSON.parse(line.slice(6));
-                            console.log('📦 [NEW] Stream data:', data.type);
+                            console.log('📦 Stream data:', data.type);
 
                             if (data.type === 'error') {
-                                // Handle stream errors
                                 const error = new Error(data.error || 'Stream error occurred');
                                 error.context = 'stream';
                                 throw error;
                             }
 
                             if (data.type === 'image_request_detected') {
-                                console.log('🎨 [NEW] Image request detected - showing generation indicator');
+                                console.log('🎨 Image request detected');
                                 isImageGeneration = true;
                                 this.hideTypingIndicator();
                                 this.showImageGenerationIndicator();
 
                             } else if (data.type === 'typing_start') {
-                                console.log('⏳ [NEW] Typing start signal received - keeping typing indicator');
-                                // Keep the typing indicator visible for regular chat
+                                console.log('⏳ Typing start signal received');
 
                             } else if (data.type === 'content') {
-                                // Handle content normally...
                                 if (!botMsg && !isImageGeneration) {
-                                    // Hide typing indicator when first content arrives
                                     this.hideTypingIndicator();
 
                                     botMsgId = ++this.messageIdCounter;
@@ -1631,39 +1191,267 @@ class ChatApp {
                                 }
 
                             } else if (data.type === 'done') {
-                                console.log('✅ [NEW] Stream completed');
+                                console.log('✅ Stream completed');
                                 this.hideImageGenerationIndicator();
                                 this.hideTypingIndicator();
                                 break;
                             }
                         } catch (parseError) {
-                            console.error('❌ [NEW] JSON parse error:', parseError);
-                            // Continue processing other lines
+                            console.error('❌ JSON parse error:', parseError);
                         }
                     }
                 }
             }
 
-            console.log('✅ [NEW] Full response received');
+            console.log('✅ Full response received');
 
         } catch (error) {
-            console.error('❌ [NEW] getLLMResponse error:', error);
+            console.error('❌ getLLMResponse error:', error);
             this.hideTypingIndicator();
             this.hideImageGenerationIndicator();
-
-            // Show error modal instead of chat error message
             this.showErrorModal(error, 'chat');
         }
     }
 
+    /**
+     * Show typing indicator
+     */
+    showTypingIndicator() {
+        console.log('⏳ Showing typing indicator');
+
+        const messagesContainer = document.getElementById('messages');
+
+        const existing = document.getElementById('typing-indicator');
+        if (existing) existing.remove();
+
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'typing-message';
+        typingDiv.id = 'typing-indicator';
+
+        const iconImg = document.createElement('img');
+        iconImg.className = 'message-icon';
+        iconImg.alt = 'Bot';
+
+        const displayedModel = this.config?.displayName || '';
+        console.log(`⏳ Setting typing icon for displayed model: "${displayedModel}"`);
+
+        if (displayedModel.toLowerCase().includes('claude')) {
+            iconImg.src = 'images/claude.png';
+            console.log('⏳ Using Claude typing icon');
+        } else {
+            iconImg.src = 'images/gpt.png';
+            console.log('⏳ Using GPT typing icon');
+        }
+
+        const typingContent = document.createElement('div');
+        typingContent.className = 'typing-content';
+        typingContent.innerHTML = '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+
+        typingDiv.appendChild(iconImg);
+        typingDiv.appendChild(typingContent);
+        messagesContainer.appendChild(typingDiv);
+
+        this.scrollToBottom();
+    }
+
+    /**
+     * Hide typing indicator
+     */
+    hideTypingIndicator() {
+        console.log('⏳ Hiding typing indicator');
+        const typingIndicator = document.getElementById('typing-indicator');
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
+    }
+
+    /**
+     * Show image generation indicator
+     */
+    showImageGenerationIndicator() {
+        console.log('🎨 Showing image generation indicator');
+
+        const messagesContainer = document.getElementById('messages');
+
+        const existingTyping = document.getElementById('typing-indicator');
+        const existingImageGen = document.getElementById('image-generation-indicator');
+        if (existingTyping) existingTyping.remove();
+        if (existingImageGen) existingImageGen.remove();
+
+        const imageGenDiv = document.createElement('div');
+        imageGenDiv.className = 'typing-message';
+        imageGenDiv.id = 'image-generation-indicator';
+
+        const iconImg = document.createElement('img');
+        iconImg.className = 'message-icon';
+        iconImg.alt = 'Bot';
+
+        const displayedModel = this.config?.displayName || '';
+        if (displayedModel.toLowerCase().includes('claude')) {
+            iconImg.src = 'images/claude.png';
+        } else {
+            iconImg.src = 'images/gpt.png';
+        }
+
+        const generatingContent = document.createElement('div');
+        generatingContent.className = 'typing-content';
+        generatingContent.innerHTML = '<div class="image-generating-text"><em>Generating image...</em></div>';
+
+        imageGenDiv.appendChild(iconImg);
+        imageGenDiv.appendChild(generatingContent);
+        messagesContainer.appendChild(imageGenDiv);
+
+        this.scrollToBottom();
+    }
+
+    /**
+     * Hide image generation indicator
+     */
+    hideImageGenerationIndicator() {
+        console.log('🎨 Hiding image generation indicator');
+        const imageGenIndicator = document.getElementById('image-generation-indicator');
+        if (imageGenIndicator) {
+            imageGenIndicator.remove();
+        }
+    }
+
+    /**
+     * Render message in chat
+     */
+    renderMessage(msgInfo, autoScroll = true) {
+        console.log('🎨 renderMessage() called for:', msgInfo.sender, msgInfo.content);
+
+        const messagesContainer = document.getElementById('messages');
+
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${msgInfo.sender.toLowerCase()}`;
+        messageDiv.dataset.msgId = msgInfo.msg_id;
+
+        const iconImg = document.createElement('img');
+        iconImg.className = 'message-icon';
+        iconImg.alt = msgInfo.sender;
+
+        if (msgInfo.sender === 'User') {
+            iconImg.src = 'images/user.png';
+        } else {
+            const displayedModel = this.config?.displayName || '';
+            console.log(`🎨 Setting icon for displayed model: "${displayedModel}"`);
+
+            if (displayedModel.toLowerCase().includes('claude')) {
+                iconImg.src = 'images/claude.png';
+                console.log('🎨 Using Claude icon');
+            } else {
+                iconImg.src = 'images/gpt.png';
+                console.log('🎨 Using GPT icon');
+            }
+        }
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        contentDiv.style.position = 'relative';
+
+        if (msgInfo.sender === 'Bot') {
+            contentDiv.innerHTML = marked.parse(msgInfo.content, {
+                breaks: true,
+                gfm: true,
+                sanitize: false
+            });
+
+            this.setupImageClickHandlers(contentDiv);
+        } else {
+            contentDiv.textContent = msgInfo.content;
+
+            const editBtn = document.createElement('button');
+            editBtn.className = 'edit-btn';
+            editBtn.textContent = '✎';
+            editBtn.title = 'Edit message';
+            editBtn.onclick = () => this.editMessage(msgInfo.msg_id);
+            contentDiv.appendChild(editBtn);
+        }
+
+        messageDiv.appendChild(iconImg);
+        messageDiv.appendChild(contentDiv);
+        messagesContainer.appendChild(messageDiv);
+
+        this.msgWidgets[msgInfo.msg_id] = {
+            element: messageDiv,
+            info: msgInfo
+        };
+
+        if (autoScroll) {
+            this.scrollToBottom();
+        }
+
+        console.log('✅ Message rendered successfully');
+    }
+
+    /**
+     * Set up image click handlers for modal viewing
+     */
+    setupImageClickHandlers(contentDiv) {
+        const images = contentDiv.querySelectorAll('img');
+        images.forEach(img => {
+            img.addEventListener('click', () => this.showImageModal(img.src, img.alt));
+            img.style.cursor = 'pointer';
+            img.title = 'Click to view full size';
+        });
+    }
+
+    /**
+     * Show image in modal
+     */
+    showImageModal(imageSrc, altText) {
+        const existingModal = document.querySelector('.image-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        const modal = document.createElement('div');
+        modal.className = 'image-modal';
+
+        const img = document.createElement('img');
+        img.src = imageSrc;
+        img.alt = altText || 'Generated image';
+
+        const closeButton = document.createElement('button');
+        closeButton.className = 'close-button';
+        closeButton.innerHTML = '×';
+        closeButton.title = 'Close (Esc)';
+
+        modal.appendChild(img);
+        modal.appendChild(closeButton);
+        document.body.appendChild(modal);
+
+        setTimeout(() => modal.classList.add('show'), 10);
+
+        const closeModal = () => {
+            modal.classList.remove('show');
+            setTimeout(() => modal.remove(), 300);
+        };
+
+        closeButton.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        const handleKeydown = (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                document.removeEventListener('keydown', handleKeydown);
+            }
+        };
+        document.addEventListener('keydown', handleKeydown);
+    }
+
+    /**
+     * Edit message functionality
+     */
     editMessage(msgId) {
         const widget = this.msgWidgets[msgId];
         if (!widget) return;
 
-        // Track edit metrics
         this.behaviorMetrics.editCount++;
 
-        // Calculate how many messages back this edit is
         const currentMessages = Array.from(document.querySelectorAll('.message.user'));
         const editMessageIndex = currentMessages.findIndex(msg =>
             parseInt(msg.dataset.msgId) === msgId
@@ -1674,12 +1462,10 @@ class ChatApp {
         const contentDiv = widget.element.querySelector('.message-content');
         const originalText = widget.info.content;
 
-        // Check if edit mode is already active - prevents multiple edit boxes
         if (contentDiv.querySelector('.edit-mode')) {
-            return; // Exit if already in edit mode
+            return;
         }
 
-        // Create edit interface
         const editContainer = document.createElement('div');
         editContainer.className = 'edit-mode';
 
@@ -1729,8 +1515,10 @@ class ChatApp {
         editTextarea.select();
     }
 
+    /**
+     * Delete messages from a certain point
+     */
     deleteMessages(fromMsgId) {
-        // Remove from UI
         Object.keys(this.msgWidgets).forEach(msgId => {
             const id = parseInt(msgId);
             if (id >= fromMsgId) {
@@ -1739,17 +1527,16 @@ class ChatApp {
             }
         });
 
-        // Remove from chatlog
         this.currentChatlog = this.currentChatlog.filter(msg => msg.msg_id < fromMsgId);
-
-        // Auto-save after deletion
         this.autoSaveConversation();
     }
 
+    /**
+     * Update conversation title from first message
+     */
     updateConversationTitle(firstMessage) {
         if (!this.currentConversationId) return;
 
-        // Get the current task's conversations
         const taskConversations = this.taskConversations[this.currentTask];
         const conversation = taskConversations.get(this.currentConversationId);
 
@@ -1761,15 +1548,16 @@ class ChatApp {
         }
     }
 
+    /**
+     * Auto-save conversation with debouncing
+     */
     autoSaveConversation() {
         if (!this.currentConversationId) return;
 
-        // Clear existing timeout
         if (this.autoSaveTimeout) {
             clearTimeout(this.autoSaveTimeout);
         }
 
-        // Set new timeout for auto-save
         this.autoSaveTimeout = setTimeout(() => {
             const taskConversations = this.taskConversations[this.currentTask];
             const conversation = taskConversations.get(this.currentConversationId);
@@ -1782,6 +1570,9 @@ class ChatApp {
         }, 1000);
     }
 
+    /**
+     * Show auto-save indicator
+     */
     showAutoSaveIndicator() {
         let indicator = document.getElementById('auto-save-indicator');
         if (!indicator) {
@@ -1799,181 +1590,47 @@ class ChatApp {
         }, 2000);
     }
 
-    updateConversationList() {
-        const conversationList = document.getElementById('conversation-list');
+    // ===================================================================
+    // UI MANAGEMENT
+    // ===================================================================
 
-        // Get conversations for current task
-        const taskConversations = this.taskConversations[this.currentTask];
-
-        // Get currently existing conversation elements to avoid re-animating them
-        const existingItems = new Set();
-        conversationList.querySelectorAll('.conversation-item').forEach(item => {
-            const convId = item.dataset.conversationId;
-            if (convId) existingItems.add(convId);
-        });
-
-        // Sort conversations by last message time
-        const sortedConversations = Array.from(taskConversations.values())
-            .sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
-
-        // Clear and rebuild
-        conversationList.innerHTML = '';
-
-        if (sortedConversations.length === 0) {
-            const emptyState = document.createElement('div');
-            emptyState.className = 'empty-task-state';
-            emptyState.innerHTML = `
-            <div class="empty-icon">${this.taskConfig[this.currentTask].icon}</div>
-            <p>No conversations yet</p>
-            <p>Click "New Chat" to get started</p>
-        `;
-            conversationList.appendChild(emptyState);
-            return;
-        }
-
-        sortedConversations.forEach((conversation, index) => {
-            const conversationItem = document.createElement('div');
-            conversationItem.className = 'conversation-item';
-            conversationItem.dataset.conversationId = conversation.id;
-            conversationItem.dataset.task = conversation.task;
-
-            // Only animate NEW conversation items
-            const isExisting = existingItems.has(conversation.id);
-            if (!isExisting) {
-                conversationItem.style.animationDelay = `${index * 0.1}s`;
-            } else {
-                conversationItem.style.opacity = '1';
-                conversationItem.style.transform = 'translateX(0)';
-                conversationItem.style.animation = 'none';
-            }
-
-            // Set active state
-            if (conversation.id === this.currentConversationId) {
-                conversationItem.classList.add('active');
-                conversationItem.style.opacity = '1';
-                conversationItem.style.transform = 'translateX(0)';
-                conversationItem.style.animation = 'none';
-            }
-
-            const title = document.createElement('div');
-            title.className = 'conversation-title';
-            title.textContent = conversation.title;
-
-            const preview = document.createElement('div');
-            preview.className = 'conversation-preview';
-            const lastMessage = conversation.messages[conversation.messages.length - 1];
-            preview.textContent = lastMessage
-                ? `${lastMessage.sender}: ${lastMessage.content.substring(0, 50)}${lastMessage.content.length > 50 ? '...' : ''}`
-                : 'No messages yet';
-
-            conversationItem.appendChild(title);
-            conversationItem.appendChild(preview);
-
-            conversationItem.onclick = () => this.switchToConversation(conversation.id);
-
-            conversationList.appendChild(conversationItem);
-        });
+    /**
+     * Update bot name display
+     */
+    updateBotName() {
+        document.getElementById('bot-name').textContent = `Currently Chatting with ${this.config.displayName}`;
+        document.getElementById('header-participant-id').textContent = this.participantId;
+        document.getElementById('welcome-model-name').textContent = this.config.displayName;
+        document.title = `${this.config.displayName} - Study ${this.participantId}`;
     }
 
-    async saveToServer() {
-        try {
-            console.log('🔵 Starting save to server...');
-
-            const behaviorMetrics = this.calculateFinalMetrics();
-
-            // Organize conversations by task
-            const organizedConversations = {};
-            for (const [taskId, conversations] of Object.entries(this.taskConversations)) {
-                organizedConversations[taskId] = Object.fromEntries(conversations);
-            }
-
-            const saveData = {
-                participantId: this.participantId,
-                conversations: organizedConversations, // Now organized by task
-                sessionId: this.sessionId,
-                completedAt: new Date().toISOString(),
-                modelConfig: {
-                    displayedModel: this.config.givenModel,
-                    actualModel: this.config.trueModel,
-                    configurationId: this.configurationId
-                },
-                behaviorMetrics: behaviorMetrics,
-                taskMetrics: this.behaviorMetrics.taskMetrics
-            };
-
-            const response = await fetch('/api/save', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(saveData)
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                console.log('✅ Save successful:', result);
-                return result;
-            } else {
-                const error = new Error(result.error || 'Save failed');
-                error.status = response.status;
-                throw error;
-            }
-        } catch (error) {
-            console.error('❌ Error saving to server:', error);
-            this.showErrorModal(error, 'save');
-            throw error;
-        }
+    /**
+     * Scroll to bottom of chat
+     */
+    scrollToBottom() {
+        const chatContainer = document.getElementById('chat-container');
+        chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
-    manualSave() {
-        if (this.currentChatlog.length === 0) {
-            alert('No messages to save!');
-            return;
-        }
-
-        // Force save current conversation
-        this.autoSaveConversation();
-
-        // Save to server
-        this.saveToServer().then(result => {
-            // Show confirmation with participant ID
-            const indicator = document.createElement('div');
-            indicator.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #10b981;
-                color: white;
-                padding: 12px 20px;
-                border-radius: 8px;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-                z-index: 1000;
-                font-weight: 500;
-                max-width: 300px;
-            `;
-            indicator.innerHTML = `
-                💾 Chat saved!<br>
-                <small>Participant ID: ${this.participantId}</small>
-            `;
-            document.body.appendChild(indicator);
-
-            setTimeout(() => {
-                indicator.remove();
-            }, 4000);
-        }).catch(error => {
-            alert('Error saving chat. Please try again.');
-        });
-    }
-
+    /**
+     * Toggle theme
+     */
     toggleTheme() {
         document.body.classList.toggle('light-theme');
         this.currentTheme = document.body.classList.contains('light-theme') ? 'light' : 'dark';
     }
 
+    /**
+     * Toggle sidebar
+     */
     toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         sidebar.classList.toggle('collapsed');
     }
 
+    /**
+     * Toggle mobile sidebar
+     */
     toggleMobileSidebar() {
         const sidebar = document.getElementById('sidebar');
         const backdrop = this.getOrCreateBackdrop();
@@ -1987,6 +1644,9 @@ class ChatApp {
         }
     }
 
+    /**
+     * Get or create sidebar backdrop
+     */
     getOrCreateBackdrop() {
         let backdrop = document.querySelector('.sidebar-backdrop');
         if (!backdrop) {
@@ -1998,6 +1658,9 @@ class ChatApp {
         return backdrop;
     }
 
+    /**
+     * Handle outside clicks for mobile
+     */
     handleOutsideClick(e) {
         const sidebar = document.getElementById('sidebar');
         const toggle = document.getElementById('mobile-sidebar-toggle');
@@ -2010,124 +1673,21 @@ class ChatApp {
         }
     }
 
-    scrollToBottom() {
-        const chatContainer = document.getElementById('chat-container');
-        chatContainer.scrollTop = chatContainer.scrollHeight;
+    /**
+     * Set up textarea auto-resize
+     */
+    setupTextareaAutoResize() {
+        const textarea = document.getElementById('message-input');
+        textarea.addEventListener('input', () => {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+        });
     }
 
-    async onClose(event) {
-        this.stopSessionTimer();
-
-        if (this.isFinishing) return;
-
-        // Prevent immediate close and show brief message
-        if (event && !this._isDelayedClose) {
-            event.preventDefault();
-            event.returnValue = 'Saving...';
-
-            // Mark this as a delayed close to prevent infinite loop
-            this._isDelayedClose = true;
-
-            // Show brief saving indicator
-            this.showSavingIndicator();
-
-            // Release the reservation and wait for it to complete
-            await this.releaseReservation();
-
-            // Brief additional delay to ensure GitHub commit completes
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            // Now actually close the page
-            window.location.reload(); // Forces close
-            return;
-        }
-
-        // Auto-save before closing
-        if (this.currentConversationId && this.currentChatlog.length > 0) {
-            const conversation = this.conversations.get(this.currentConversationId);
-            if (conversation) {
-                conversation.messages = [...this.currentChatlog];
-            }
-
-            // Try to save with beacon API (works better for page unload)
-            try {
-                const behaviorMetrics = this.calculateFinalMetrics();
-                const saveData = {
-                    participantId: this.participantId,
-                    sessionId: this.sessionId,
-                    conversations: Object.fromEntries(this.conversations),
-                    modelConfig: {
-                        displayedModel: this.config.givenModel,
-                        actualModel: this.config.trueModel,
-                        configurationId: this.configurationId
-                    },
-                    behaviorMetrics: behaviorMetrics
-                };
-
-                // Use sendBeacon for reliable unload saves
-                const blob = new Blob([JSON.stringify(saveData)], { type: 'application/json' });
-                navigator.sendBeacon('/api/save', blob);
-
-                console.log('📤 Beacon save sent');
-            } catch (error) {
-                console.error('Error saving on close:', error);
-                // Show warning if save might have failed
-                event.preventDefault();
-                event.returnValue = 'Your data may not be saved. Are you sure you want to leave?';
-                return event.returnValue;
-            }
-        }
-    }
-
-    showSavingIndicator() {
-        // Create a simple overlay
-        const overlay = document.createElement('div');
-        overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0,0,0,0.8);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            z-index: 99999;
-        `;
-        overlay.innerHTML = `
-            <div>
-                <div style="margin-bottom: 10px;">💾 Saving...</div>
-                <div style="font-size: 14px; opacity: 0.7;">Please wait a moment</div>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-    }
-
-    async releaseReservation() {
-        try {
-            const response = await fetch('/api/sessions/release', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ configurationId: this.configurationId })
-            });
-
-            if (response.ok) {
-                console.log('✅ Reservation released successfully');
-            } else {
-                console.warn('⚠️ Release request failed:', response.status);
-            }
-
-            return response.ok;
-        } catch (error) {
-            console.error('❌ Release request error:', error);
-            return false;
-        }
-    }
-
+    /**
+     * Set up advanced UI animations
+     */
     setupAdvancedAnimations() {
-        // Add ripple effect to buttons
         document.querySelectorAll('.new-chat-btn, .save-btn, .send-btn').forEach(button => {
             button.addEventListener('click', function (e) {
                 const ripple = document.createElement('span');
@@ -2137,34 +1697,224 @@ class ChatApp {
                 const y = e.clientY - rect.top - size / 2;
 
                 ripple.style.cssText = `
-                position: absolute;
-                border-radius: 50%;
-                background: rgba(255,255,255,0.4);
-                transform: scale(0);
-                animation: ripple 0.6s linear;
-                left: ${x}px;
-                top: ${y}px;
-                width: ${size}px;
-                height: ${size}px;
-                pointer-events: none;
-            `;
+                    position: absolute;
+                    border-radius: 50%;
+                    background: rgba(255,255,255,0.4);
+                    transform: scale(0);
+                    animation: ripple 0.6s linear;
+                    left: ${x}px;
+                    top: ${y}px;
+                    width: ${size}px;
+                    height: ${size}px;
+                    pointer-events: none;
+                `;
 
                 this.appendChild(ripple);
-
                 setTimeout(() => ripple.remove(), 600);
             });
         });
 
-        // Add CSS for ripple animation
         const style = document.createElement('style');
         style.textContent = `
-        @keyframes ripple {
-            to { transform: scale(2); opacity: 0; }
-        }
-    `;
+            @keyframes ripple {
+                to { transform: scale(2); opacity: 0; }
+            }
+        `;
         document.head.appendChild(style);
     }
 
+    /**
+     * Set up finish button
+     */
+    setupFinishButton() {
+        const finishBtn = document.getElementById('finish-btn');
+        if (finishBtn) {
+            finishBtn.style.display = 'flex';
+        }
+    }
+
+    // ===================================================================
+    // SESSION MANAGEMENT
+    // ===================================================================
+
+    /**
+     * Start session timer
+     */
+    startSessionTimer() {
+        console.log('⏱️ Starting session timer');
+
+        if (this.sessionTimer.isRunning) {
+            console.log('⏱️ Timer already running');
+            return;
+        }
+
+        this.sessionTimer.startTime = Date.now();
+        this.sessionTimer.isRunning = true;
+
+        this.updateTimerDisplay();
+
+        this.sessionTimer.intervalId = setInterval(() => {
+            this.updateTimerDisplay();
+        }, 1000);
+
+        console.log('⏱️ Session timer started');
+    }
+
+    /**
+     * Stop session timer
+     */
+    stopSessionTimer() {
+        console.log('⏱️ Stopping session timer');
+
+        if (this.sessionTimer.intervalId) {
+            clearInterval(this.sessionTimer.intervalId);
+            this.sessionTimer.intervalId = null;
+        }
+
+        this.sessionTimer.isRunning = false;
+    }
+
+    /**
+     * Update timer display
+     */
+    updateTimerDisplay() {
+        if (!this.sessionTimer.startTime) return;
+
+        const elapsed = Date.now() - this.sessionTimer.startTime;
+        const formattedTime = this.formatElapsedTime(elapsed);
+
+        const timerDisplay = document.getElementById('timer-display');
+        if (timerDisplay) {
+            timerDisplay.textContent = formattedTime;
+        }
+    }
+
+    /**
+     * Format elapsed time as HH:MM:SS
+     */
+    formatElapsedTime(milliseconds) {
+        const totalSeconds = Math.floor(milliseconds / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    /**
+     * Get elapsed time in milliseconds
+     */
+    getElapsedTime() {
+        if (!this.sessionTimer.startTime) return 0;
+        return Date.now() - this.sessionTimer.startTime;
+    }
+
+    // ===================================================================
+    // BEHAVIOR TRACKING
+    // ===================================================================
+
+    /**
+     * Initialize behavior tracking
+     */
+    initializeBehaviorTracking() {
+        // Track backspaces and keystrokes
+        document.addEventListener('keydown', (e) => {
+            if (document.activeElement.id === 'message-input') {
+                this.updateActivity();
+
+                if (e.key === 'Backspace') {
+                    this.behaviorMetrics.backspaceCount++;
+                }
+
+                if (!this.behaviorMetrics.typingPatterns.typingStartTime) {
+                    this.behaviorMetrics.typingPatterns.typingStartTime = Date.now();
+                }
+                this.behaviorMetrics.typingPatterns.totalKeystrokes++;
+            }
+        });
+
+        // Disable copy/paste
+        document.addEventListener('paste', (e) => {
+            if (document.activeElement.id === 'message-input') {
+                e.preventDefault();
+                this.showNotification('Paste is disabled for this study', 'warning');
+                return false;
+            }
+        });
+
+        document.addEventListener('copy', (e) => {
+            if (document.activeElement.id === 'message-input' &&
+                window.getSelection().toString().length > 0) {
+                e.preventDefault();
+                this.showNotification('Copy is disabled for this study', 'warning');
+                return false;
+            }
+        });
+
+        document.getElementById('message-input').addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            return false;
+        });
+
+        this.startIdleTracking();
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                this.behaviorMetrics.idleStartTime = Date.now();
+            } else {
+                this.updateIdleTime();
+            }
+        });
+    }
+
+    /**
+     * Update user activity timestamp
+     */
+    updateActivity() {
+        const now = Date.now();
+        const timeSinceLastActivity = now - this.behaviorMetrics.lastUserActivity;
+
+        if (timeSinceLastActivity > this.idleThreshold) {
+            this.behaviorMetrics.totalIdleTime += timeSinceLastActivity;
+        }
+
+        this.behaviorMetrics.lastUserActivity = now;
+    }
+
+    /**
+     * Update idle time calculation
+     */
+    updateIdleTime() {
+        const idleDuration = Date.now() - this.behaviorMetrics.idleStartTime;
+        if (idleDuration > this.idleThreshold) {
+            this.behaviorMetrics.totalIdleTime += idleDuration;
+        }
+        this.behaviorMetrics.idleStartTime = Date.now();
+    }
+
+    /**
+     * Start idle time tracking
+     */
+    startIdleTracking() {
+        this.idleCheckInterval = setInterval(() => {
+            const timeSinceLastActivity = Date.now() - this.behaviorMetrics.lastUserActivity;
+            if (timeSinceLastActivity > this.idleThreshold) {
+                if (!this.behaviorMetrics.currentlyIdle) {
+                    this.behaviorMetrics.currentlyIdle = true;
+                    this.behaviorMetrics.idleStartTime = this.behaviorMetrics.lastUserActivity;
+                }
+            } else {
+                if (this.behaviorMetrics.currentlyIdle) {
+                    this.behaviorMetrics.currentlyIdle = false;
+                    this.updateIdleTime();
+                }
+            }
+        }, 1000);
+    }
+
+    /**
+     * Calculate final behavior metrics
+     */
     calculateFinalMetrics() {
         const metrics = {
             backspaceCount: this.behaviorMetrics.backspaceCount,
@@ -2199,59 +1949,220 @@ class ChatApp {
         return metrics;
     }
 
-    setupProlificIdValidation() {
-        const input = document.getElementById('prolific-id-input');
-        const continueBtn = document.getElementById('welcome-continue-btn');
-        const errorDiv = document.getElementById('prolific-id-error');
+    // ===================================================================
+    // ERROR HANDLING
+    // ===================================================================
 
-        if (!input || !continueBtn || !errorDiv) return;
+    /**
+     * Show error modal
+     */
+    showErrorModal(error, context = 'chat') {
+        console.error('🚨 Showing error modal:', error);
 
-        const validateInput = () => {
-            const value = input.value.trim();
-            const isValid = /^[a-zA-Z0-9]{24}$/.test(value);
+        const modal = document.getElementById('error-modal');
+        const errorCodeSpan = document.getElementById('error-code');
+        const participantIdSpan = document.getElementById('error-participant-id');
 
-            if (value.length === 0) {
-                // Empty input - neutral state
-                input.classList.remove('error');
-                errorDiv.classList.remove('show');
-                continueBtn.disabled = true;
-                continueBtn.textContent = 'Continue';
-            } else if (isValid) {
-                // Valid input
-                input.classList.remove('error');
-                errorDiv.classList.remove('show');
-                continueBtn.disabled = false;
-                continueBtn.textContent = 'Start Study';
+        let errorCode = 'UNKNOWN';
+        if (error.status) {
+            errorCode = `HTTP_${error.status}`;
+        } else if (error.message) {
+            if (error.message.includes('fetch')) {
+                errorCode = 'NETWORK_ERROR';
+            } else if (error.message.includes('JSON')) {
+                errorCode = 'PARSE_ERROR';
+            } else if (error.message.includes('timeout')) {
+                errorCode = 'TIMEOUT_ERROR';
             } else {
-                // Invalid input
-                input.classList.add('error');
-                errorDiv.textContent = 'Please enter a valid 24-character Prolific ID';
-                errorDiv.classList.add('show');
-                continueBtn.disabled = true;
-                continueBtn.textContent = 'Continue';
+                errorCode = 'API_ERROR';
+            }
+        }
+
+        const timestamp = new Date().toISOString().substring(0, 19).replace('T', '_');
+        errorCode += `_${context.toUpperCase()}_${timestamp}`;
+
+        errorCodeSpan.textContent = errorCode;
+        participantIdSpan.textContent = this.participantId || 'Not Set';
+
+        modal.style.display = 'flex';
+        this.setupErrorModalListeners();
+    }
+
+    /**
+     * Hide error modal
+     */
+    hideErrorModal() {
+        const modal = document.getElementById('error-modal');
+        modal.style.display = 'none';
+    }
+
+    /**
+     * Set up error modal event listeners
+     */
+    setupErrorModalListeners() {
+        const closeBtn = document.getElementById('error-modal-close');
+        const closeBtn2 = document.getElementById('error-close');
+        const tryAgainBtn = document.getElementById('error-try-again');
+
+        closeBtn.onclick = null;
+        closeBtn2.onclick = null;
+        tryAgainBtn.onclick = null;
+
+        closeBtn.onclick = () => this.hideErrorModal();
+        closeBtn2.onclick = () => this.hideErrorModal();
+        tryAgainBtn.onclick = () => {
+            this.hideErrorModal();
+            if (this.currentChatlog.length > 0) {
+                const lastMessage = this.currentChatlog[this.currentChatlog.length - 1];
+                if (lastMessage.sender === 'User') {
+                    this.showTypingIndicator();
+                    setTimeout(() => this.getLLMResponse(), 500);
+                }
             }
         };
 
-        input.addEventListener('input', validateInput);
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !continueBtn.disabled) {
-                this.handleProlificIdSubmit();
+        const modal = document.getElementById('error-modal');
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                this.hideErrorModal();
             }
-        });
-
-        // Initial validation
-        validateInput();
+        };
     }
 
+    /**
+     * Show notification
+     */
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: ${type === 'warning' ? '#ef4444' : '#10b981'};
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 2000;
+            animation: slideIn 0.3s ease-out;
+        `;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    // ===================================================================
+    // SAVE AND FINISH FUNCTIONALITY
+    // ===================================================================
+
+    /**
+     * Save data to server
+     */
+    async saveToServer() {
+        try {
+            console.log('🔵 Starting save to server...');
+
+            const behaviorMetrics = this.calculateFinalMetrics();
+
+            const organizedConversations = {};
+            for (const [taskId, conversations] of Object.entries(this.taskConversations)) {
+                organizedConversations[taskId] = Object.fromEntries(conversations);
+            }
+
+            const saveData = {
+                participantId: this.participantId,
+                conversations: organizedConversations,
+                sessionId: this.sessionId,
+                completedAt: new Date().toISOString(),
+                modelConfig: {
+                    displayedModel: this.config.givenModel,
+                    actualModel: this.config.trueModel,
+                    configurationId: this.configurationId
+                },
+                behaviorMetrics: behaviorMetrics,
+                taskMetrics: this.behaviorMetrics.taskMetrics
+            };
+
+            const response = await fetch('/api/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(saveData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                console.log('✅ Save successful:', result);
+                return result;
+            } else {
+                const error = new Error(result.error || 'Save failed');
+                error.status = response.status;
+                throw error;
+            }
+        } catch (error) {
+            console.error('❌ Error saving to server:', error);
+            this.showErrorModal(error, 'save');
+            throw error;
+        }
+    }
+
+    /**
+     * Manual save function
+     */
+    manualSave() {
+        if (this.currentChatlog.length === 0) {
+            alert('No messages to save!');
+            return;
+        }
+
+        this.autoSaveConversation();
+
+        this.saveToServer().then(result => {
+            const indicator = document.createElement('div');
+            indicator.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #10b981;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                z-index: 1000;
+                font-weight: 500;
+                max-width: 300px;
+            `;
+            indicator.innerHTML = `
+                💾 Chat saved!<br>
+                <small>Participant ID: ${this.participantId}</small>
+            `;
+            document.body.appendChild(indicator);
+
+            setTimeout(() => {
+                indicator.remove();
+            }, 4000);
+        }).catch(error => {
+            alert('Error saving chat. Please try again.');
+        });
+    }
+
+    /**
+     * Handle finish study
+     */
     async handleFinishStudy() {
         console.log('🏁 Finish button clicked');
 
-        // Prevent multiple clicks
         const finishBtn = document.getElementById('finish-btn');
         if (finishBtn.disabled) return;
         finishBtn.disabled = true;
 
-        // Show confirmation dialog
         const confirmed = await this.showFinishConfirmationDialog();
         if (!confirmed) {
             finishBtn.disabled = false;
@@ -2259,10 +2170,8 @@ class ChatApp {
         }
 
         try {
-            // Show loading indicator
             this.showFinishLoadingIndicator();
 
-            // First, ensure all conversations are saved locally
             if (this.currentConversationId && this.currentChatlog.length > 0) {
                 const conversation = this.conversations.get(this.currentConversationId);
                 if (conversation) {
@@ -2270,10 +2179,8 @@ class ChatApp {
                 }
             }
 
-            // Calculate final metrics
             const behaviorMetrics = this.calculateFinalMetrics();
 
-            // Prepare data for download
             const exportData = {
                 participantId: this.participantId,
                 sessionId: this.sessionId,
@@ -2290,16 +2197,10 @@ class ChatApp {
 
             console.log('📦 Export data prepared:', exportData);
 
-            // Download the data as a JSON file
             await this.downloadConversationData(exportData);
-
-            // Save to server
             await this.saveToServer();
-
-            // IMPORTANT: Mark session as completed on server
             await this.markSessionCompleted();
 
-            // Close the application
             this.closeApplication();
 
         } catch (error) {
@@ -2310,16 +2211,20 @@ class ChatApp {
         }
     }
 
+    /**
+     * Show finish confirmation dialog
+     */
     showFinishConfirmationDialog() {
         return new Promise((resolve) => {
             const modal = document.getElementById('finish-confirmation-modal');
             modal.style.display = 'flex';
-
-            // Store the resolve function so we can call it from button handlers
             this.finishDialogResolve = resolve;
         });
     }
 
+    /**
+     * Hide finish confirmation dialog
+     */
     hideFinishConfirmationDialog(confirmed) {
         const modal = document.getElementById('finish-confirmation-modal');
         modal.style.display = 'none';
@@ -2330,25 +2235,32 @@ class ChatApp {
         }
     }
 
+    /**
+     * Show finish loading indicator
+     */
     showFinishLoadingIndicator() {
         const indicator = document.getElementById('finish-loading-indicator');
         indicator.style.display = 'block';
     }
 
+    /**
+     * Hide finish loading indicator
+     */
     hideFinishLoadingIndicator() {
         const indicator = document.getElementById('finish-loading-indicator');
         indicator.style.display = 'none';
     }
 
+    /**
+     * Download conversation data as JSON
+     */
     async downloadConversationData(data) {
         try {
-            // Create a simple text file with the data
             const jsonContent = JSON.stringify(data, null, 2);
             const filename = `study-data-${this.participantId}-${Date.now()}.json`;
 
             console.log('💾 Creating download:', filename);
 
-            // Create a blob and download link
             const blob = new Blob([jsonContent], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
 
@@ -2361,7 +2273,6 @@ class ChatApp {
             link.click();
             document.body.removeChild(link);
 
-            // Clean up the URL
             setTimeout(() => URL.revokeObjectURL(url), 1000);
 
             console.log('✅ Study data downloaded:', filename);
@@ -2372,6 +2283,9 @@ class ChatApp {
         }
     }
 
+    /**
+     * Mark session as completed on server
+     */
     async markSessionCompleted() {
         try {
             console.log('🏁 Marking session as completed...', {
@@ -2403,195 +2317,167 @@ class ChatApp {
             return result;
         } catch (error) {
             console.error('❌ Error marking session complete:', error);
-            throw error; // Re-throw so handleFinishStudy can catch it
+            throw error;
         }
     }
 
+    /**
+     * Close application
+     */
     closeApplication() {
         this.stopSessionTimer();
-
-        // Set flag to prevent duplicate saves
         this.isFinishing = true;
 
-        // Hide finish button to prevent double-clicking
         const finishBtn = document.getElementById('finish-btn');
         if (finishBtn) finishBtn.style.display = 'none';
 
-        // Hide loading indicator
         this.hideFinishLoadingIndicator();
 
-        // Show completion message
         document.body.innerHTML = `
-        <div style="
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: var(--main-bg-dark);
-            color: var(--text-dark);
-            text-align: center;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-        ">
-            <div>
-                <h1 style="color: #10b981; margin-bottom: 20px;">✅ Study Completed!</h1>
-                <p style="font-size: 18px; margin-bottom: 15px;">
-                    Thank you for participating. Your data has been downloaded.
-                </p>
-                <p style="color: #9ca3af;">
-                    Please upload the downloaded file to the Tally survey to complete your submission.
-                </p>
-                <p style="color: #9ca3af; margin-top: 30px; font-size: 14px;">
-                    This window will remain open. You may close it when you're ready.
-                </p>
+            <div style="
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                background: var(--main-bg-dark);
+                color: var(--text-dark);
+                text-align: center;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            ">
+                <div>
+                    <h1 style="color: #10b981; margin-bottom: 20px;">✅ Study Completed!</h1>
+                    <p style="font-size: 18px; margin-bottom: 15px;">
+                        Thank you for participating. Your data has been downloaded.
+                    </p>
+                    <p style="color: #9ca3af;">
+                        Please upload the downloaded file to the Tally survey to complete your submission.
+                    </p>
+                    <p style="color: #9ca3af; margin-top: 30px; font-size: 14px;">
+                        This window will remain open. You may close it when you're ready.
+                    </p>
+                </div>
             </div>
-        </div>
         `;
 
         console.log('Study completed. Window will remain open.');
     }
 
-    updateBotName() {
-        // Update main title (clean, no participant ID)
-        document.getElementById('bot-name').textContent = `Currently Chatting with ${this.config.displayName}`;
+    // ===================================================================
+    // CLEANUP AND EVENT HANDLERS
+    // ===================================================================
 
-        // Update participant ID in header
-        document.getElementById('header-participant-id').textContent = this.participantId;
+    /**
+     * Handle page close event
+     */
+    async onClose(event) {
+        this.stopSessionTimer();
 
-        // Update other elements
-        document.getElementById('welcome-model-name').textContent = this.config.displayName;
-        document.title = `${this.config.displayName} - Study ${this.participantId}`;
-    }
+        if (this.isFinishing) return;
 
-    initializeBehaviorTracking() {
-        // Track backspaces and keystrokes
-        document.addEventListener('keydown', (e) => {
-            if (document.activeElement.id === 'message-input') {
-                this.updateActivity();
+        if (event && !this._isDelayedClose) {
+            event.preventDefault();
+            event.returnValue = 'Saving...';
 
-                if (e.key === 'Backspace') {
-                    this.behaviorMetrics.backspaceCount++;
-                }
+            this._isDelayedClose = true;
+            this.showSavingIndicator();
 
-                // Track typing patterns
-                if (!this.behaviorMetrics.typingPatterns.typingStartTime) {
-                    this.behaviorMetrics.typingPatterns.typingStartTime = Date.now();
-                }
-                this.behaviorMetrics.typingPatterns.totalKeystrokes++;
-            }
-        });
+            await this.releaseReservation();
+            await new Promise(resolve => setTimeout(resolve, 500));
 
-        // Disable copy/paste
-        document.addEventListener('paste', (e) => {
-            if (document.activeElement.id === 'message-input') {
-                e.preventDefault();
-                this.showNotification('Paste is disabled for this study', 'warning');
-                return false;
-            }
-        });
-
-        document.addEventListener('copy', (e) => {
-            if (document.activeElement.id === 'message-input' &&
-                window.getSelection().toString().length > 0) {
-                e.preventDefault();
-                this.showNotification('Copy is disabled for this study', 'warning');
-                return false;
-            }
-        });
-
-        // Also disable context menu on input
-        document.getElementById('message-input').addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            return false;
-        });
-
-        // Track idle time
-        this.startIdleTracking();
-
-        // Track page visibility changes
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                this.behaviorMetrics.idleStartTime = Date.now();
-            } else {
-                this.updateIdleTime();
-            }
-        });
-    }
-
-    updateActivity() {
-        const now = Date.now();
-        const timeSinceLastActivity = now - this.behaviorMetrics.lastUserActivity;
-
-        if (timeSinceLastActivity > this.idleThreshold) {
-            this.behaviorMetrics.totalIdleTime += timeSinceLastActivity;
+            window.location.reload();
+            return;
         }
 
-        this.behaviorMetrics.lastUserActivity = now;
-    }
-
-    updateIdleTime() {
-        const idleDuration = Date.now() - this.behaviorMetrics.idleStartTime;
-        if (idleDuration > this.idleThreshold) {
-            this.behaviorMetrics.totalIdleTime += idleDuration;
-        }
-        this.behaviorMetrics.idleStartTime = Date.now();
-    }
-
-    startIdleTracking() {
-        // Check for idle every second
-        this.idleCheckInterval = setInterval(() => {
-            const timeSinceLastActivity = Date.now() - this.behaviorMetrics.lastUserActivity;
-            if (timeSinceLastActivity > this.idleThreshold) {
-                // User is idle
-                if (!this.behaviorMetrics.currentlyIdle) {
-                    this.behaviorMetrics.currentlyIdle = true;
-                    this.behaviorMetrics.idleStartTime = this.behaviorMetrics.lastUserActivity;
-                }
-            } else {
-                // User is active
-                if (this.behaviorMetrics.currentlyIdle) {
-                    this.behaviorMetrics.currentlyIdle = false;
-                    this.updateIdleTime();
-                }
+        if (this.currentConversationId && this.currentChatlog.length > 0) {
+            const conversation = this.conversations.get(this.currentConversationId);
+            if (conversation) {
+                conversation.messages = [...this.currentChatlog];
             }
-        }, 1000);
+
+            try {
+                const behaviorMetrics = this.calculateFinalMetrics();
+                const saveData = {
+                    participantId: this.participantId,
+                    sessionId: this.sessionId,
+                    conversations: Object.fromEntries(this.conversations),
+                    modelConfig: {
+                        displayedModel: this.config.givenModel,
+                        actualModel: this.config.trueModel,
+                        configurationId: this.configurationId
+                    },
+                    behaviorMetrics: behaviorMetrics
+                };
+
+                const blob = new Blob([JSON.stringify(saveData)], { type: 'application/json' });
+                navigator.sendBeacon('/api/save', blob);
+
+                console.log('📤 Beacon save sent');
+            } catch (error) {
+                console.error('Error saving on close:', error);
+                event.preventDefault();
+                event.returnValue = 'Your data may not be saved. Are you sure you want to leave?';
+                return event.returnValue;
+            }
+        }
     }
 
-    showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.textContent = message;
-        notification.style.cssText = `
+    /**
+     * Show saving indicator
+     */
+    showSavingIndicator() {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
             position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: ${type === 'warning' ? '#ef4444' : '#10b981'};
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.8);
             color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            z-index: 2000;
-            animation: slideIn 0.3s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            z-index: 99999;
         `;
-
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease-out';
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
+        overlay.innerHTML = `
+            <div>
+                <div style="margin-bottom: 10px;">💾 Saving...</div>
+                <div style="font-size: 14px; opacity: 0.7;">Please wait a moment</div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
     }
 
-    setupTextareaAutoResize() {
-        const textarea = document.getElementById('message-input');
-        textarea.addEventListener('input', () => {
-            textarea.style.height = 'auto';
-            textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
-        });
+    /**
+     * Release reservation
+     */
+    async releaseReservation() {
+        try {
+            const response = await fetch('/api/sessions/release', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ configurationId: this.configurationId })
+            });
+
+            if (response.ok) {
+                console.log('✅ Reservation released successfully');
+            } else {
+                console.warn('⚠️ Release request failed:', response.status);
+            }
+
+            return response.ok;
+        } catch (error) {
+            console.error('❌ Release request error:', error);
+            return false;
+        }
     }
 
+    /**
+     * Set up all event listeners
+     */
     setupEventListeners() {
-        // Remove any existing listeners to prevent duplicates
+        // Remove existing listeners to prevent duplicates
         const sendBtn = document.getElementById('send-btn');
         const messageInput = document.getElementById('message-input');
         const newChatBtn = document.getElementById('new-chat-btn');
@@ -2611,7 +2497,7 @@ class ChatApp {
         const newSidebarToggle = sidebarToggle.cloneNode(true);
         const newMobileSidebarToggle = mobileSidebarToggle.cloneNode(true);
 
-        // Replace the elements
+        // Replace elements
         sendBtn.parentNode.replaceChild(newSendBtn, sendBtn);
         messageInput.parentNode.replaceChild(newMessageInput, messageInput);
         newChatBtn.parentNode.replaceChild(newNewChatBtn, newChatBtn);
@@ -2621,7 +2507,7 @@ class ChatApp {
         sidebarToggle.parentNode.replaceChild(newSidebarToggle, sidebarToggle);
         mobileSidebarToggle.parentNode.replaceChild(newMobileSidebarToggle, mobileSidebarToggle);
 
-        // Now add the event listeners to the new elements
+        // Add event listeners to new elements
         document.getElementById('send-btn').addEventListener('click', () => this.sendMessage());
         document.getElementById('message-input').addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -2630,27 +2516,17 @@ class ChatApp {
             }
         });
 
-        // Theme toggle
         document.getElementById('theme-switch').addEventListener('change', () => this.toggleTheme());
-
-        // New chat button
         document.getElementById('new-chat-btn').addEventListener('click', () => this.createNewConversation());
-
-        // Save chat button (manual save)
         document.getElementById('save-chat-btn').addEventListener('click', () => this.manualSave());
-
-        // Finish button
         document.getElementById('finish-btn').addEventListener('click', () => this.handleFinishStudy());
 
-        // Finish modal buttons
         document.getElementById('finish-cancel-btn').addEventListener('click', () => this.hideFinishConfirmationDialog(false));
         document.getElementById('finish-confirm-btn').addEventListener('click', () => this.hideFinishConfirmationDialog(true));
 
-        // Sidebar toggles
         document.getElementById('sidebar-toggle').addEventListener('click', () => this.toggleSidebar());
         document.getElementById('mobile-sidebar-toggle').addEventListener('click', () => this.toggleMobileSidebar());
 
-        // Click outside sidebar on mobile
         document.addEventListener('click', (e) => this.handleOutsideClick(e));
 
         // Task tab listeners
@@ -2661,168 +2537,15 @@ class ChatApp {
             });
         });
     }
-
-    async loadConfiguration() {
-        try {
-            // Pass Prolific ID to get or resume configuration
-            const response = await fetch('/api/configurations/assign', {
-                method: 'GET', // Change to GET since the route expects GET
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-
-            if (data.success) {
-                this.sessionId = data.sessionId;
-                this.configurationId = data.configuration.id;
-
-                // Set up models
-                this.config = {
-                    givenModel: data.configuration.displayedModel,
-                    trueModel: data.configuration.actualModel,
-                    displayName: data.configuration.displayedModel
-                };
-
-                console.log(`🎯 Configuration assigned:`, {
-                    participant: this.participantId,
-                    displayed: this.config.givenModel,
-                    actual: this.config.trueModel,
-                    configId: this.configurationId
-                });
-
-                return true;
-            } else {
-                throw new Error('Failed to get configuration assignment');
-            }
-        } catch (error) {
-            console.error('Error loading configuration:', error);
-            // Fallback to default
-            this.config = {
-                givenModel: 'GPT-4',
-                trueModel: 'gpt-4-turbo',
-                displayName: 'GPT-4'
-            };
-
-            // Generate a fallback session ID
-            this.sessionId = `fallback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            this.configurationId = 1;
-
-            return false;
-        }
-    }
-
-    showImageGenerationIndicator() {
-        console.log('🎨 [NEW] Showing image generation indicator');
-
-        const messagesContainer = document.getElementById('messages');
-
-        // Remove existing indicators
-        const existingTyping = document.getElementById('typing-indicator');
-        const existingImageGen = document.getElementById('image-generation-indicator');
-        if (existingTyping) existingTyping.remove();
-        if (existingImageGen) existingImageGen.remove();
-
-        const imageGenDiv = document.createElement('div');
-        imageGenDiv.className = 'typing-message';
-        imageGenDiv.id = 'image-generation-indicator';
-
-        const iconImg = document.createElement('img');
-        iconImg.className = 'message-icon';
-        iconImg.alt = 'Bot';
-
-        // Use dynamic icon
-        const displayedModel = this.config?.displayName || '';
-        if (displayedModel.toLowerCase().includes('claude')) {
-            iconImg.src = 'images/claude.png';
-        } else {
-            iconImg.src = 'images/gpt.png';
-        }
-
-        const generatingContent = document.createElement('div');
-        generatingContent.className = 'typing-content';
-        generatingContent.innerHTML = '<div class="image-generating-text"><em>Generating image...</em></div>';
-
-        imageGenDiv.appendChild(iconImg);
-        imageGenDiv.appendChild(generatingContent);
-        messagesContainer.appendChild(imageGenDiv);
-
-        this.scrollToBottom();
-    }
-
-    hideImageGenerationIndicator() {
-        console.log('🎨 [NEW] Hiding image generation indicator');
-        const imageGenIndicator = document.getElementById('image-generation-indicator');
-        if (imageGenIndicator) {
-            imageGenIndicator.remove();
-        }
-    }
-
-    startSessionTimer() {
-        console.log('⏱️ Starting session timer');
-
-        if (this.sessionTimer.isRunning) {
-            console.log('⏱️ Timer already running');
-            return;
-        }
-
-        this.sessionTimer.startTime = Date.now();
-        this.sessionTimer.isRunning = true;
-
-        // Update timer immediately
-        this.updateTimerDisplay();
-
-        // Update every second
-        this.sessionTimer.intervalId = setInterval(() => {
-            this.updateTimerDisplay();
-        }, 1000);
-
-        console.log('⏱️ Session timer started');
-    }
-
-    stopSessionTimer() {
-        console.log('⏱️ Stopping session timer');
-
-        if (this.sessionTimer.intervalId) {
-            clearInterval(this.sessionTimer.intervalId);
-            this.sessionTimer.intervalId = null;
-        }
-
-        this.sessionTimer.isRunning = false;
-    }
-
-    updateTimerDisplay() {
-        if (!this.sessionTimer.startTime) return;
-
-        const elapsed = Date.now() - this.sessionTimer.startTime;
-        const formattedTime = this.formatElapsedTime(elapsed);
-
-        const timerDisplay = document.getElementById('timer-display');
-        if (timerDisplay) {
-            timerDisplay.textContent = formattedTime;
-        }
-    }
-
-    formatElapsedTime(milliseconds) {
-        const totalSeconds = Math.floor(milliseconds / 1000);
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
-
-        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }
-
-    getElapsedTime() {
-        if (!this.sessionTimer.startTime) return 0;
-        return Date.now() - this.sessionTimer.startTime;
-    }
-
 }
 
-// Initialize the app when page loads
+// ===================================================================
+// INITIALIZE APPLICATION
+// ===================================================================
+
+/**
+ * Initialize the ChatApp when page loads
+ */
 document.addEventListener('DOMContentLoaded', () => {
     window.chatApp = new ChatApp();
 });
