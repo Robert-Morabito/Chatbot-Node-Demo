@@ -31,7 +31,7 @@ class ChatApp {
         this.currentConversationId = null;
         this.currentChatlog = [];
         this.msgWidgets = {};
-        
+
         // UI State
         this.currentTheme = 'dark';
         this.autoSaveTimeout = null;
@@ -131,8 +131,8 @@ class ChatApp {
     // ===================================================================
 
     /**
-     * Initialize the complete application
-     */
+ * Initialize the complete application
+ */
     async initializeApp() {
         // Show welcome experience immediately, load config in background
         this.initializeWelcomeExperience();
@@ -143,11 +143,6 @@ class ChatApp {
             await this.loadConfiguration();
             console.log('✅ Configuration loaded:', this.config);
             this.setupReleaseHandler();
-
-            // If we're still on the model comparison step, refresh with loaded data
-            if (this.currentStepIndex >= 1) {
-                this.renderWelcomeStep(this.currentStepIndex, true);
-            }
 
         } catch (error) {
             console.error('❌ Failed to load configuration:', error);
@@ -195,7 +190,7 @@ class ChatApp {
             }
         } catch (error) {
             console.error('❌ Error loading configuration:', error);
-            
+
             // Fallback configuration
             this.sessionId = `fallback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
             this.configurationId = 1;
@@ -369,7 +364,7 @@ class ChatApp {
         // Determine family based on assigned model
         const assignedModel = this.config?.trueModel || 'gpt-4-turbo';
         let family = 'openai';
-        
+
         if (assignedModel.includes('claude')) {
             family = 'claude';
         }
@@ -386,13 +381,13 @@ class ChatApp {
      */
     getAssignedModelIndex(models) {
         const assignedDisplayName = this.config?.displayName || 'GPT-4';
-        
+
         for (let i = 0; i < models.length; i++) {
             if (models[i].name === assignedDisplayName) {
                 return i;
             }
         }
-        
+
         return 1; // Default to middle model
     }
 
@@ -430,7 +425,7 @@ class ChatApp {
         panels.forEach((panel, index) => {
             if (index === stepIndex) {
                 panel.classList.add('active');
-                
+
                 // Special handling for step 2 (comparison animation)
                 if (stepIndex === 1) {
                     this.startComparisonAnimation();
@@ -460,7 +455,7 @@ class ChatApp {
      */
     updateNavigationButtons() {
         const continueBtn = document.getElementById('nav-continue');
-        
+
         // Hide navigation during animation
         if (this.currentStepIndex === 1 && this.isAnimationPlaying) {
             continueBtn.style.opacity = '0';
@@ -501,7 +496,7 @@ class ChatApp {
     startComparisonAnimation() {
         this.isAnimationPlaying = true;
         const comparisonData = this.getModelComparisonData();
-        
+
         this.populateModelComparison(comparisonData);
         this.runAnimationSequence(comparisonData);
     }
@@ -516,7 +511,7 @@ class ChatApp {
         models.forEach((model, index) => {
             const nameEl = document.getElementById(`model-name-${index}`);
             const yearEl = document.getElementById(`model-year-${index}`);
-            
+
             if (nameEl) nameEl.textContent = model.name;
             if (yearEl) yearEl.textContent = model.year;
         });
@@ -526,14 +521,14 @@ class ChatApp {
             const modelIndex = parseInt(fill.closest('.capability-bubble').dataset.model);
             const capabilityRow = fill.closest('.capability-row');
             const capability = capabilityRow.dataset.capability;
-            
+
             let value;
-            switch(capability) {
+            switch (capability) {
                 case 'creative': value = models[modelIndex].capabilities.creative; break;
                 case 'professional': value = models[modelIndex].capabilities.professional; break;
                 case 'speed': value = models[modelIndex].capabilities.speed; break;
             }
-            
+
             fill.dataset.value = value;
         });
 
@@ -542,14 +537,14 @@ class ChatApp {
             const modelIndex = parseInt(valueEl.dataset.model);
             const rankingRow = valueEl.closest('.ranking-row');
             const rankingType = Array.from(rankingRow.parentNode.children).indexOf(rankingRow) - 1;
-            
+
             let value;
-            switch(rankingType) {
+            switch (rankingType) {
                 case 0: value = models[modelIndex].lmarena.instruction; break;
                 case 1: value = models[modelIndex].lmarena.creative; break;
                 case 2: value = models[modelIndex].lmarena.hard; break;
             }
-            
+
             valueEl.textContent = value;
         });
 
@@ -580,7 +575,7 @@ class ChatApp {
         ];
 
         const delays = [0, 1500, 11000, 12000, 15000, 16500, 18000];
-        
+
         timeline.forEach((action, index) => {
             setTimeout(action, delays[index]);
         });
@@ -591,15 +586,15 @@ class ChatApp {
      */
     animateCapabilityBubbles() {
         const capabilityRows = document.querySelectorAll('.capability-row');
-        
+
         capabilityRows.forEach((row, rowIndex) => {
             const delay = rowIndex * 2000;
-            
+
             setTimeout(() => {
                 const bubbles = row.querySelectorAll('.bubble-fill');
                 bubbles.forEach((fill, bubbleIndex) => {
                     const bubbleDelay = bubbleIndex * 200;
-                    
+
                     setTimeout(() => {
                         const value = parseInt(fill.dataset.value);
                         fill.style.height = value + '%';
@@ -617,7 +612,7 @@ class ChatApp {
         const modelHeader = document.querySelector(`.model-header[data-model="${assignedIndex}"]`);
         if (modelHeader) {
             modelHeader.classList.add('highlighted');
-            
+
             document.querySelectorAll(`[data-model="${assignedIndex}"]`).forEach(el => {
                 if (el.classList.contains('capability-bubble')) {
                     el.style.borderColor = '#f59e0b';
@@ -637,11 +632,11 @@ class ChatApp {
     showAssignmentPopup() {
         const popup = document.getElementById('assignment-popup');
         const assignedModelHeader = document.querySelector('.model-header.highlighted');
-        
+
         if (popup && assignedModelHeader) {
             const rect = assignedModelHeader.getBoundingClientRect();
             const tableRect = document.querySelector('.model-comparison-table').getBoundingClientRect();
-            
+
             popup.style.left = `${rect.left - tableRect.left + (rect.width / 2)}px`;
             popup.classList.add('show');
         }
@@ -672,7 +667,7 @@ class ChatApp {
      */
     setupWelcomeEventListeners() {
         const continueBtn = document.getElementById('nav-continue');
-        
+
         continueBtn.addEventListener('click', () => {
             if (this.currentStepIndex < this.maxSteps - 1) {
                 this.renderWelcomeStep(this.currentStepIndex + 1);
@@ -748,7 +743,7 @@ class ChatApp {
 
         try {
             await this.registerSession();
-            
+
             setTimeout(() => {
                 this.hideWelcomeExperience();
             }, 800);

@@ -3434,7 +3434,7 @@ body.light-theme {
     display: flex;
     gap: 1rem;
     margin: 1rem 0 2rem 0;
-    opacity: 0;
+    opacity: 1; /* Changed from 0 to 1 to always show */
     transition: opacity 0.3s ease;
     flex-shrink: 0;
     width: 100%;
@@ -3476,6 +3476,12 @@ body.light-theme {
 .nav-primary:hover:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.nav-icon {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
 }
 
 .nav-secondary {
