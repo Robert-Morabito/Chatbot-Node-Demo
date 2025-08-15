@@ -6,7 +6,7 @@ function validateModel(model) {
     console.log(`✅ [Stream] Validating model: "${model}"`);
 
     const validOpenAIModels = ['gpt-3.5-turbo-0125', 'gpt-4-turbo', 'gpt-5']; // Added gpt-5
-    const validClaudeModels = ['claude-3-haiku-20240307', 'claude-3-5-sonnet-20241022', 'claude-4-sonnet-20250219']; // Updated names
+    const validClaudeModels = ['claude-3-haiku-20240307', 'claude-3-5-haiku-20241022', 'claude-sonnet-4-20250514']; // Updated names
 
     if (validOpenAIModels.includes(model)) {
         console.log(`✅ [Stream] Valid OpenAI model: ${model}`);
