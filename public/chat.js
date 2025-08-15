@@ -20,7 +20,7 @@ class ChatApp {
      * CONSTRUCTOR & INITIALIZATION
      * ===================================================================
      */
-    
+
     constructor() {
         // Core identifiers
         this.participantId = null;
@@ -45,7 +45,7 @@ class ChatApp {
         // UI state
         this.currentTheme = 'dark';
         this.autoSaveTimeout = null;
-        
+
         // Welcome system
         this.welcomeSteps = [];
         this.currentStepIndex = 0;
@@ -313,8 +313,8 @@ class ChatApp {
     }
 
     /**
-     * Build the welcome steps based on current configuration
-     */
+ * Build the welcome steps based on current configuration
+ */
     buildWelcomeSteps() {
         const displayName = this.config?.displayName || 'GPT-4';
 
@@ -324,17 +324,17 @@ class ChatApp {
                 id: 'welcome',
                 title: 'Welcome to Our Study',
                 content: `
-                    <div class="content-card">
-                        <h1 class="content-title">Research Study</h1>
-                        <p class="content-subtitle">Thank you for participating in this important research</p>
-                        <div class="content-body">
-                            <div class="welcome-instructions">
-                                <h3>Study Instructions</h3>
-                                <p>Complete all tasks in the provided <a href="https://tally.so/r/wz8yra">Tally Survey</a> alongside this conversation interface. The following screen will show you details about your AI conversation partner. Click "Finish" when done to download your data and complete the study.</p>
-                            </div>
+                <div class="content-card">
+                    <h1 class="content-title">Research Study</h1>
+                    <p class="content-subtitle">Thank you for participating in this important research</p>
+                    <div class="content-body">
+                        <div class="welcome-instructions">
+                            <h3>Study Instructions</h3>
+                            <p>Complete all tasks in the provided <a href="https://tally.so/r/wz8yra" target="_blank">Tally Survey</a> alongside this conversation interface. The following screen will show you details about your AI conversation partner. Click "Finish" when done to download your data and complete the study.</p>
                         </div>
                     </div>
-                `
+                </div>
+            `
             },
 
             // Step 2: Animated Model Comparison
@@ -342,17 +342,13 @@ class ChatApp {
                 id: 'model-comparison',
                 title: 'Meet Your AI Partner',
                 content: `
-                    <div class="content-card comparison-card">
-                        <h1 class="content-title">AI Model Comparison</h1>
-                        <p class="content-subtitle">See how different models compare for your tasks</p>
-                        <div id="comparison-container" class="comparison-container">
-                            <!-- Dynamic comparison table will be inserted here -->
-                        </div>
-                        <div id="capability-cards" class="capability-cards-container">
-                            <!-- Capability cards will be inserted here -->
-                        </div>
-                    </div>
-                `
+                <div class="content-card comparison-card">
+                    <h1 class="content-title">AI Model Comparison</h1>
+                    <p class="content-subtitle">See how different models compare for your tasks</p>
+                    <div id="comparison-container" class="comparison-container"></div>
+                    <div id="capability-cards" class="capability-cards-container"></div>
+                </div>
+            `
             },
 
             // Step 3: Prolific ID
@@ -360,25 +356,25 @@ class ChatApp {
                 id: 'prolific-id',
                 title: 'Study Registration',
                 content: `
-                    <div class="content-card">
-                        <h1 class="content-title">Enter Your ID</h1>
-                        <p class="content-subtitle">We'll use this to connect your responses with the study</p>
-                        <div class="id-input-system">
-                            <div class="input-group">
-                                <input 
-                                    type="text" 
-                                    id="prolific-input" 
-                                    class="input-field"
-                                    placeholder="24-character Prolific ID"
-                                    maxlength="24"
-                                    autocomplete="off"
-                                >
-                                <div id="input-error" class="input-error"></div>
-                                <div class="input-hint">Your ID should contain exactly 24 letters and numbers</div>
-                            </div>
+                <div class="content-card">
+                    <h1 class="content-title">Enter Your ID</h1>
+                    <p class="content-subtitle">We'll use this to connect your responses with the study</p>
+                    <div class="id-input-system">
+                        <div class="input-group">
+                            <input 
+                                type="text" 
+                                id="prolific-input" 
+                                class="input-field"
+                                placeholder="24-character Prolific ID"
+                                maxlength="24"
+                                autocomplete="off"
+                            >
+                            <div id="input-error" class="input-error"></div>
+                            <div class="input-hint">Your ID should contain exactly 24 letters and numbers</div>
                         </div>
                     </div>
-                `
+                </div>
+            `
             }
         ];
     }
@@ -389,7 +385,7 @@ class ChatApp {
     showWelcomeExperience() {
         const experience = document.getElementById('welcome-experience');
         const appContainer = document.querySelector('.app-container');
-        
+
         // Hide main app and show welcome
         appContainer.style.display = 'none';
         experience.style.display = 'block';
@@ -410,7 +406,7 @@ class ChatApp {
     hideWelcomeExperience() {
         const experience = document.getElementById('welcome-experience');
         const appContainer = document.querySelector('.app-container');
-        
+
         experience.classList.remove('active');
 
         setTimeout(() => {
@@ -422,10 +418,10 @@ class ChatApp {
     }
 
     /**
-     * Render a specific welcome step
-     * @param {number} stepIndex - Step index to render
-     * @param {boolean} skipTimer - Skip timer functionality
-     */
+ * Render a specific welcome step
+ * @param {number} stepIndex - Step index to render
+ * @param {boolean} skipTimer - Skip timer functionality
+ */
     renderWelcomeStep(stepIndex, skipTimer = false) {
         if (this.isTransitioning) return;
         this.isTransitioning = true;
@@ -466,7 +462,7 @@ class ChatApp {
                 navigation.classList.add('visible');
                 const continueBtn = document.getElementById('nav-continue');
                 continueBtn.disabled = true;
-                
+
                 setTimeout(() => {
                     this.startComparisonAnimation();
                 }, 500);
@@ -2754,7 +2750,7 @@ class ChatApp {
 
         // Add event listeners to fresh elements
         elements.sendBtn?.addEventListener('click', () => this.sendMessage());
-        
+
         elements.messageInput?.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
