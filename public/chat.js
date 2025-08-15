@@ -20,7 +20,7 @@ class ChatApp {
      * CONSTRUCTOR & INITIALIZATION
      * ===================================================================
      */
-
+    
     constructor() {
         // Core identifiers
         this.participantId = null;
@@ -45,7 +45,7 @@ class ChatApp {
         // UI state
         this.currentTheme = 'dark';
         this.autoSaveTimeout = null;
-
+        
         // Welcome system
         this.welcomeSteps = [];
         this.currentStepIndex = 0;
@@ -504,7 +504,7 @@ class ChatApp {
         const displayName = this.config?.displayName || 'GPT-4';
 
         this.welcomeSteps = [
-            // Step 1: Welcome/Intro (keep existing)
+            // Step 1: Welcome/Intro
             {
                 id: 'welcome',
                 title: 'Welcome to Our Study',
@@ -540,7 +540,7 @@ class ChatApp {
                 `
             },
 
-            // Step 3: Prolific ID (keep existing)
+            // Step 3: Prolific ID
             {
                 id: 'prolific-id',
                 title: 'Study Registration',
@@ -574,7 +574,7 @@ class ChatApp {
     showWelcomeExperience() {
         const experience = document.getElementById('welcome-experience');
         const appContainer = document.querySelector('.app-container');
-
+        
         // Hide main app and show welcome
         appContainer.style.display = 'none';
         experience.style.display = 'block';
@@ -595,7 +595,7 @@ class ChatApp {
     hideWelcomeExperience() {
         const experience = document.getElementById('welcome-experience');
         const appContainer = document.querySelector('.app-container');
-
+        
         experience.classList.remove('active');
 
         setTimeout(() => {
@@ -651,7 +651,7 @@ class ChatApp {
                 navigation.classList.add('visible');
                 const continueBtn = document.getElementById('nav-continue');
                 continueBtn.disabled = true;
-
+                
                 setTimeout(() => {
                     this.startComparisonAnimation();
                 }, 500);
@@ -807,12 +807,12 @@ class ChatApp {
         models.forEach((model, index) => {
             const isUserModel = model.displayName === userModel;
             html += `
-            <div class="model-header${isUserModel ? ' highlight' : ''}" data-model="${model.displayName}" style="animation-delay: ${index * 0.3}s">
-                <div class="model-name">${model.displayName}</div>
-                <div class="model-subtitle">${this.getModelSubtitle(model.displayName)}</div>
-                ${isUserModel ? '<div class="model-popup">This is your model today!</div>' : ''}
-            </div>
-        `;
+                <div class="model-header${isUserModel ? ' highlight' : ''}" data-model="${model.displayName}" style="animation-delay: ${index * 0.3}s">
+                    <div class="model-name">${model.displayName}</div>
+                    <div class="model-subtitle">${this.getModelSubtitle(model.displayName)}</div>
+                    ${isUserModel ? '<div class="model-popup">This is your model today!</div>' : ''}
+                </div>
+            `;
         });
 
         // Metric rows
@@ -824,10 +824,10 @@ class ChatApp {
                 const value = metric.category ? model[metric.category][metric.key] : model.capabilities[metric.key];
 
                 html += `
-                <div class="metric-cell${isUserModel ? ' highlight' : ''}" data-metric="${metric.key}" data-model="${model.displayName}">
-                    ${metric.type === 'bubble' ? this.createBubbleRating(value) : this.createScoreDisplay(value)}
-                </div>
-            `;
+                    <div class="metric-cell${isUserModel ? ' highlight' : ''}" data-metric="${metric.key}" data-model="${model.displayName}">
+                        ${metric.type === 'bubble' ? this.createBubbleRating(value) : this.createScoreDisplay(value)}
+                    </div>
+                `;
             });
         });
 
@@ -925,7 +925,6 @@ class ChatApp {
         continueBtn.classList.add('pulse');
     }
 
-
     /**
      * Animate capability bubbles filling
      */
@@ -1006,21 +1005,21 @@ class ChatApp {
         const capabilities = this.getModelCapabilities(userModel);
 
         const html = `
-        <div class="capability-cards">
-            <div class="capability-card strength">
-                <h4>Strengths</h4>
-                <p>${capabilities.strengths}</p>
+            <div class="capability-cards">
+                <div class="capability-card strength">
+                    <h4>Strengths</h4>
+                    <p>${capabilities.strengths}</p>
+                </div>
+                <div class="capability-card weakness">
+                    <h4>Areas for Improvement</h4>
+                    <p>${capabilities.weaknesses}</p>
+                </div>
+                <div class="capability-card use-case">
+                    <h4>Best Applications</h4>
+                    <p>${capabilities.useCases}</p>
+                </div>
             </div>
-            <div class="capability-card weakness">
-                <h4>Areas for Improvement</h4>
-                <p>${capabilities.weaknesses}</p>
-            </div>
-            <div class="capability-card use-case">
-                <h4>Best Applications</h4>
-                <p>${capabilities.useCases}</p>
-            </div>
-        </div>
-    `;
+        `;
 
         container.innerHTML = html;
     }
@@ -2940,7 +2939,7 @@ class ChatApp {
 
         // Add event listeners to fresh elements
         elements.sendBtn?.addEventListener('click', () => this.sendMessage());
-
+        
         elements.messageInput?.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
