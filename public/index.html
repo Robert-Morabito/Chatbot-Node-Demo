@@ -11,10 +11,11 @@
 
 <body>
     <!-- Sophisticated Welcome Experience -->
+    <!-- In index.html, replace the existing welcome experience content -->
     <div id="welcome-experience" class="welcome-experience">
         <div class="welcome-backdrop"></div>
         <div class="welcome-container">
-            <!-- Progress System -->
+            <!-- Simplified Progress System -->
             <div class="progress-system">
                 <div class="progress-track">
                     <div class="progress-indicator" id="progress-indicator"></div>
@@ -22,23 +23,206 @@
                 <div class="progress-counter">
                     <span id="current-step">1</span>
                     <span class="step-separator">/</span>
-                    <span id="total-steps">6</span>
+                    <span>3</span>
                 </div>
             </div>
 
             <!-- Content Container -->
             <div class="content-stage" id="content-stage">
-                <!-- Content will be dynamically inserted -->
+                <!-- Step 1: Welcome Message -->
+                <div class="content-panel welcome-panel">
+                    <div class="content-card">
+                        <h1 class="content-title">Research Study</h1>
+                        <p class="content-subtitle">Thank you for participating in this important research</p>
+                        <div class="content-body">
+                            <div class="welcome-instructions">
+                                <h3>Study Instructions</h3>
+                                <p>Complete all tasks in the provided <a href="https://tally.so/r/wz8yra"
+                                        target="_blank">Tally Survey</a> alongside this conversation interface. The
+                                    following screen will show you details about your AI conversation partner. Click
+                                    "Finish" when done to download your data and complete the study.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Model Comparison Animation -->
+                <div class="content-panel comparison-panel">
+                    <div class="comparison-container">
+                        <div class="comparison-title">
+                            <h2>Meet Your AI Assistant</h2>
+                            <p>Here's how today's models compare across key capabilities</p>
+                        </div>
+
+                        <!-- Model Comparison Table -->
+                        <div class="model-comparison-table" id="comparison-table">
+                            <!-- Headers -->
+                            <div class="model-headers" id="model-headers">
+                                <div class="model-header" data-model="0">
+                                    <h3 class="model-name" id="model-name-0">GPT-3.5</h3>
+                                    <p class="model-year" id="model-year-0">2022</p>
+                                </div>
+                                <div class="model-header" data-model="1">
+                                    <h3 class="model-name" id="model-name-1">GPT-4</h3>
+                                    <p class="model-year" id="model-year-1">2023</p>
+                                </div>
+                                <div class="model-header" data-model="2">
+                                    <h3 class="model-name" id="model-name-2">o1-Preview</h3>
+                                    <p class="model-year" id="model-year-2">2024</p>
+                                </div>
+                            </div>
+
+                            <!-- Capability Rows -->
+                            <div class="capability-section" id="capability-section">
+                                <div class="capability-row" data-capability="creative">
+                                    <div class="capability-label">Creative Reasoning</div>
+                                    <div class="capability-bubbles">
+                                        <div class="bubble-container">
+                                            <div class="capability-bubble" data-model="0">
+                                                <div class="bubble-fill" data-value="60"></div>
+                                            </div>
+                                        </div>
+                                        <div class="bubble-container">
+                                            <div class="capability-bubble" data-model="1">
+                                                <div class="bubble-fill" data-value="85"></div>
+                                            </div>
+                                        </div>
+                                        <div class="bubble-container">
+                                            <div class="capability-bubble" data-model="2">
+                                                <div class="bubble-fill" data-value="95"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="capability-row" data-capability="professional">
+                                    <div class="capability-label">Professional Communication</div>
+                                    <div class="capability-bubbles">
+                                        <div class="bubble-container">
+                                            <div class="capability-bubble" data-model="0">
+                                                <div class="bubble-fill" data-value="70"></div>
+                                            </div>
+                                        </div>
+                                        <div class="bubble-container">
+                                            <div class="capability-bubble" data-model="1">
+                                                <div class="bubble-fill" data-value="90"></div>
+                                            </div>
+                                        </div>
+                                        <div class="bubble-container">
+                                            <div class="capability-bubble" data-model="2">
+                                                <div class="bubble-fill" data-value="88"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="capability-row" data-capability="speed">
+                                    <div class="capability-label">Speed & Responsiveness</div>
+                                    <div class="capability-bubbles">
+                                        <div class="bubble-container">
+                                            <div class="capability-bubble" data-model="0">
+                                                <div class="bubble-fill" data-value="95"></div>
+                                            </div>
+                                        </div>
+                                        <div class="bubble-container">
+                                            <div class="capability-bubble" data-model="1">
+                                                <div class="bubble-fill" data-value="80"></div>
+                                            </div>
+                                        </div>
+                                        <div class="bubble-container">
+                                            <div class="capability-bubble" data-model="2">
+                                                <div class="bubble-fill" data-value="65"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- LMArena Rankings -->
+                            <div class="lmarena-section" id="lmarena-section">
+                                <div class="lmarena-title">LMArena Performance Rankings</div>
+
+                                <div class="ranking-row">
+                                    <div class="ranking-label">Instruction Following</div>
+                                    <div class="ranking-values">
+                                        <div class="ranking-value" data-model="0">7.2</div>
+                                        <div class="ranking-value" data-model="1">8.4</div>
+                                        <div class="ranking-value" data-model="2">8.9</div>
+                                    </div>
+                                </div>
+
+                                <div class="ranking-row">
+                                    <div class="ranking-label">Creative Writing</div>
+                                    <div class="ranking-values">
+                                        <div class="ranking-value" data-model="0">6.8</div>
+                                        <div class="ranking-value" data-model="1">7.9</div>
+                                        <div class="ranking-value" data-model="2">8.6</div>
+                                    </div>
+                                </div>
+
+                                <div class="ranking-row">
+                                    <div class="ranking-label">Hard Prompts</div>
+                                    <div class="ranking-values">
+                                        <div class="ranking-value" data-model="0">6.5</div>
+                                        <div class="ranking-value" data-model="1">8.1</div>
+                                        <div class="ranking-value" data-model="2">8.8</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Assignment Popup -->
+                            <div class="assignment-popup" id="assignment-popup">
+                                <div class="popup-content">
+                                    <div class="popup-icon">✨</div>
+                                    <div class="popup-text">This is your AI assistant for today</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Capability Cards (appear after table shrinks) -->
+                        <div class="capability-cards" id="capability-cards">
+                            <div class="capability-card strength-card">
+                                <div class="card-indicator"></div>
+                                <h4>Strengths</h4>
+                                <p id="strength-text">Excellent at complex reasoning and creative problem-solving tasks.
+                                </p>
+                            </div>
+
+                            <div class="capability-card weakness-card">
+                                <div class="card-indicator"></div>
+                                <h4>Considerations</h4>
+                                <p id="weakness-text">Takes more time to process complex requests thoroughly.</p>
+                            </div>
+
+                            <div class="capability-card usecase-card">
+                                <div class="card-indicator"></div>
+                                <h4>Best For</h4>
+                                <p id="usecase-text">Creative writing, professional communication, and complex analysis.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Prolific ID Entry -->
+                <div class="content-panel id-panel">
+                    <div class="content-card">
+                        <h1 class="content-title">Enter Your ID</h1>
+                        <p class="content-subtitle">We'll use this to connect your responses with the study</p>
+                        <div class="id-input-system">
+                            <div class="input-group">
+                                <input type="text" id="prolific-input" class="input-field"
+                                    placeholder="24-character Prolific ID" maxlength="24" autocomplete="off">
+                                <div id="input-error" class="input-error"></div>
+                                <div class="input-hint">Your ID should contain exactly 24 letters and numbers</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Navigation System -->
             <div class="navigation-system">
-                <button id="nav-back" class="nav-button nav-secondary" disabled>
-                    <svg class="nav-icon" viewBox="0 0 24 24">
-                        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
-                    </svg>
-                    Back
-                </button>
                 <button id="nav-continue" class="nav-button nav-primary">
                     Continue
                     <svg class="nav-icon" viewBox="0 0 24 24">

@@ -291,16 +291,6 @@ class ChatApp {
         this.initializeApp();
     }
 
-    // Enhanced Welcome Experience Class Integration
-    initializeWelcomeExperience() {
-        this.welcomeSteps = [];
-        this.currentStepIndex = 0;
-        this.isTransitioning = false;
-
-        this.buildWelcomeSteps();
-        this.setupWelcomeEventListeners();
-    }
-
     switchToTask(taskId) {
         console.log('🔄 Switching to task:', taskId);
 
@@ -374,318 +364,206 @@ class ChatApp {
         taskTitle.textContent = config.name;
     }
 
-    renderWelcomeStep(stepIndex, skipTimer = false) {
-        if (this.isTransitioning) return;
-        this.isTransitioning = true;
+    getModelComparisonData() {
+        const modelFamilies = {
+            'openai': [
+                {
+                    name: 'GPT-3.5',
+                    year: '2022',
+                    capabilities: {
+                        creative: 60,
+                        professional: 70,
+                        speed: 95
+                    },
+                    lmarena: {
+                        instruction: 7.2,
+                        creative: 6.8,
+                        hard: 6.5
+                    },
+                    strengths: "Quick responses and good general knowledge for everyday tasks.",
+                    weaknesses: "Limited creativity and may struggle with complex reasoning tasks.",
+                    bestFor: "Quick questions, basic writing, and simple problem-solving tasks."
+                },
+                {
+                    name: 'GPT-4',
+                    year: '2023',
+                    capabilities: {
+                        creative: 85,
+                        professional: 90,
+                        speed: 80
+                    },
+                    lmarena: {
+                        instruction: 8.4,
+                        creative: 7.9,
+                        hard: 8.1
+                    },
+                    strengths: "Excellent balance of creativity, accuracy, and professional communication.",
+                    weaknesses: "Slower response times compared to simpler models.",
+                    bestFor: "Professional writing, creative projects, and complex analysis tasks."
+                },
+                {
+                    name: 'o1-Preview',
+                    year: '2024',
+                    capabilities: {
+                        creative: 95,
+                        professional: 88,
+                        speed: 65
+                    },
+                    lmarena: {
+                        instruction: 8.9,
+                        creative: 8.6,
+                        hard: 8.8
+                    },
+                    strengths: "Exceptional reasoning abilities and highly creative problem-solving.",
+                    weaknesses: "Takes significantly more time to process and respond to requests.",
+                    bestFor: "Complex creative challenges, advanced reasoning, and innovative solutions."
+                }
+            ],
+            'claude': [
+                {
+                    name: 'Claude 3 Haiku',
+                    year: '2024',
+                    capabilities: {
+                        creative: 65,
+                        professional: 75,
+                        speed: 90
+                    },
+                    lmarena: {
+                        instruction: 7.5,
+                        creative: 7.1,
+                        hard: 7.0
+                    },
+                    strengths: "Fast responses with good accuracy for routine tasks.",
+                    weaknesses: "Limited depth in creative and complex analytical tasks.",
+                    bestFor: "Quick tasks, basic writing assistance, and straightforward questions."
+                },
+                {
+                    name: 'Claude 3.5 Sonnet',
+                    year: '2024',
+                    capabilities: {
+                        creative: 88,
+                        professional: 92,
+                        speed: 85
+                    },
+                    lmarena: {
+                        instruction: 8.6,
+                        creative: 8.2,
+                        hard: 8.3
+                    },
+                    strengths: "Outstanding professional communication and analytical capabilities.",
+                    weaknesses: "May be overly verbose in some responses.",
+                    bestFor: "Professional communication, detailed analysis, and structured writing."
+                },
+                {
+                    name: 'Claude 3.7 Sonnet',
+                    year: '2025',
+                    capabilities: {
+                        creative: 93,
+                        professional: 95,
+                        speed: 78
+                    },
+                    lmarena: {
+                        instruction: 9.1,
+                        creative: 8.8,
+                        hard: 9.0
+                    },
+                    strengths: "Cutting-edge reasoning with exceptional creative and analytical depth.",
+                    weaknesses: "Slower processing for maximum accuracy and thoughtfulness.",
+                    bestFor: "Advanced creative projects, complex reasoning, and high-stakes communication."
+                }
+            ]
+        };
 
-        const stage = document.getElementById('content-stage');
-        const currentPanel = stage.querySelector('.content-panel.active');
-        const step = this.welcomeSteps[stepIndex];
+        // Determine the family based on the assigned model
+        const assignedModel = this.config?.trueModel || 'gpt-4-turbo';
+        let family = 'openai';
 
-        // Update progress
-        this.updateWelcomeProgress(stepIndex);
-
-        // Create new panel
-        const newPanel = document.createElement('div');
-        newPanel.className = 'content-panel';
-        newPanel.innerHTML = step.content;
-        stage.appendChild(newPanel);
-
-        // Animate transition
-        if (currentPanel) {
-            currentPanel.classList.add('exit-left');
-            setTimeout(() => {
-                currentPanel.remove();
-            }, 600);
+        if (assignedModel.includes('claude')) {
+            family = 'claude';
         }
 
-        // Show new panel
-        requestAnimationFrame(() => {
-            newPanel.classList.add('active');
-            this.isTransitioning = false;
-
-            // Setup step-specific functionality
-            if (step.id === 'prolific-id') {
-                this.setupProlificValidation();
-                // Show navigation immediately for ID step
-                const navigation = document.querySelector('.navigation-system');
-                navigation.classList.add('visible');
-            } else if (!skipTimer) {
-                // Start timer for other steps
-                this.startStepTimer();
-            } else {
-                // Show navigation immediately if skipping timer
-                const navigation = document.querySelector('.navigation-system');
-                navigation.classList.add('visible');
-            }
-        });
-
-        // Update navigation
-        this.updateWelcomeNavigation(stepIndex);
+        return {
+            family: family,
+            models: modelFamilies[family],
+            assignedIndex: this.getAssignedModelIndex(modelFamilies[family])
+        };
     }
 
+    getAssignedModelIndex(models) {
+        const assignedDisplayName = this.config?.displayName || 'GPT-4';
 
-    startStepTimer() {
-        const navigation = document.querySelector('.navigation-system');
-        const continueBtn = document.getElementById('nav-continue');
-
-        // Remove any existing timer
-        const existingTimer = document.querySelector('.circular-timer');
-        if (existingTimer) {
-            existingTimer.remove();
+        for (let i = 0; i < models.length; i++) {
+            if (models[i].name === assignedDisplayName) {
+                return i;
+            }
         }
 
-        // Show navigation but disable continue button
-        navigation.classList.add('visible');
-        continueBtn.disabled = true;
-
-        // Create sleek circular timer
-        const circularTimer = document.createElement('div');
-        circularTimer.className = 'circular-timer';
-
-        circularTimer.innerHTML = `
-            <div class="timer-wheel">
-                <svg viewBox="0 0 32 32">
-                    <circle class="timer-background" cx="16" cy="16" r="15"></circle>
-                    <circle class="timer-progress-circle" cx="16" cy="16" r="15"></circle>
-                </svg>
-                <div class="timer-center">
-                    <span class="timer-countdown">4</span>
-                </div>
-            </div>
-            <div class="timer-label">Please read</div>
-        `;
-
-        document.querySelector('.welcome-container').appendChild(circularTimer);
-
-        // Animate the circular progress over 4 seconds
-        const progressCircle = circularTimer.querySelector('.timer-progress-circle');
-        const countdownElement = circularTimer.querySelector('.timer-countdown');
-        const circumference = 2 * Math.PI * 15; // radius = 15
-
-        // Show the timer with smooth fade-in
-        setTimeout(() => {
-            circularTimer.classList.add('visible');
-        }, 150);
-
-        let progress = 0;
-        let timeRemaining = 4;
-
-        const interval = setInterval(() => {
-            progress += 2.5; // 100% / 40 steps = 2.5% per 100ms
-
-            // Update circular progress
-            const offset = circumference - (progress / 100) * circumference;
-            progressCircle.style.strokeDashoffset = offset;
-
-            // Update countdown every second
-            if (progress % 25 === 0 && timeRemaining > 0) {
-                timeRemaining--;
-                countdownElement.textContent = timeRemaining;
-
-                // Subtle scale animation
-                countdownElement.classList.add('update');
-                setTimeout(() => {
-                    countdownElement.classList.remove('update');
-                }, 150);
-            }
-
-            if (progress >= 100) {
-                clearInterval(interval);
-
-                // Clean completion state
-                circularTimer.classList.add('timer-complete');
-                countdownElement.textContent = '✓';
-
-                // Enable continue button and fade out timer
-                continueBtn.disabled = false;
-
-                setTimeout(() => {
-                    circularTimer.style.opacity = '0';
-                    setTimeout(() => {
-                        circularTimer.remove();
-                    }, 400);
-                }, 600);
-            }
-        }, 100);
+        return 1; // Default to middle model
     }
 
-    buildWelcomeSteps() {
-        const displayName = this.config?.displayName || 'Chatbot';
-        const modelInfo = this.modelDescriptions[displayName] || this.modelDescriptions['Chatbot'];
-
-        this.welcomeSteps = [
-            // Step 1: Welcome - Consolidated instruction block
-            {
-                id: 'welcome',
-                title: 'Welcome to Our Study',
-                content: `
-            <div class="content-card">
-                <h1 class="content-title">Research Study</h1>
-                <p class="content-subtitle">Thank you for participating in this important research</p>
-                <div class="content-body">
-                    <div class="welcome-instructions">
-                        <h3>Study Instructions</h3>
-                        <p>Complete all tasks in the provided <a href="https://tally.so/r/wz8yra"> Tally Survey </a> alongside this conversation interface. The following screens contain essential details about your AI conversation partner. Click "Finish" when done to download your data and complete the study.</p>
-                    </div>
-                </div>
-            </div>
-        `
-            },
-
-            // Step 2: Model Introduction
-            {
-                id: 'model-intro',
-                title: 'Meet Your AI Partner',
-                content: `
-            <div class="content-card">
-                <h1 class="content-title">Meet ${displayName}</h1>
-                <p class="content-subtitle">Your conversation partner for this study</p>
-                <div class="model-hero">
-                    <div class="model-info">
-                        <h3>${displayName}</h3>
-                        <p>Released ${modelInfo.year}</p>
-                    </div>
-                </div>
-            </div>
-        `
-            },
-
-            // Step 3: Background
-            {
-                id: 'background',
-                title: 'Background & Development',
-                content: `
-            <div class="content-card">
-                <h1 class="content-title">Development Story</h1>
-                <p class="content-subtitle">The journey behind ${displayName}</p>
-                <div class="info-grid">
-                    ${modelInfo.slides[0].points.map((point, index) => `
-                        <div class="info-item info-item-with-header" style="animation: fadeInUp 0.6s ease-out ${index * 0.1}s both">
-                            <div class="info-item-top-bar"></div>
-                            <div class="info-item-content">
-                                <div class="info-item-dot"></div>
-                                <div class="info-item-text">
-                                    <h4>${point}</h4>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `
-            },
-
-            // Step 4: Comparison
-            {
-                id: 'comparison',
-                title: 'Performance Landscape',
-                content: `
-            <div class="content-card">
-                <h1 class="content-title">How ${displayName} Compares</h1>
-                <p class="content-subtitle">Understanding its position in the AI landscape</p>
-                <div class="info-grid">
-                    ${modelInfo.slides[1].points.map((point, index) => `
-                        <div class="info-item info-item-with-header" style="animation: slideInRight 0.6s ease-out ${index * 0.15}s both">
-                            <div class="info-item-top-bar"></div>
-                            <div class="info-item-content">
-                                <div class="info-item-dot"></div>
-                                <div class="info-item-text">
-                                    <h4>${point}</h4>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `
-            },
-
-            // Step 5: Capabilities (keep existing structure)
-            {
-                id: 'capabilities',
-                title: 'What to Expect',
-                content: `
-            <div class="content-card">
-                <h1 class="content-title">Capabilities Overview</h1>
-                <p class="content-subtitle">Strengths, weaknesses, and optimal use cases</p>
-                <div class="feature-grid">
-                    ${modelInfo.slides[2].points.map((point, index) => {
-                    const types = ['strength', 'weakness', 'use-case'];
-                    const titles = ['Strengths', 'Weaknesses', 'Best Applications'];
-                    return `
-                            <div class="feature-card ${types[index]}" style="animation: scaleIn 0.6s ease-out ${index * 0.2}s both">
-                                <div class="feature-indicator"></div>
-                                <h4>${titles[index]}</h4>
-                                <p>${point}</p>
-                            </div>
-                        `;
-                }).join('')}
-                </div>
-            </div>
-        `
-            },
-
-            // Step 6: Prolific ID
-            {
-                id: 'prolific-id',
-                title: 'Study Registration',
-                content: `
-            <div class="content-card">
-                <h1 class="content-title">Enter Your ID</h1>
-                <p class="content-subtitle">We'll use this to connect your responses with the study</p>
-                <div class="id-input-system">
-                    <div class="input-group">
-                        <input 
-                            type="text" 
-                            id="prolific-input" 
-                            class="input-field"
-                            placeholder="24-character Prolific ID"
-                            maxlength="24"
-                            autocomplete="off"
-                        >
-                        <div id="input-error" class="input-error"></div>
-                        <div class="input-hint">Your ID should contain exactly 24 letters and numbers</div>
-                    </div>
-                </div>
-            </div>
-        `
-            }
-        ];
+    // Simplified welcome experience initialization
+    initializeWelcomeExperience() {
+        this.currentStepIndex = 0;
+        this.maxSteps = 3;
+        this.isAnimationPlaying = false;
+        this.setupWelcomeEventListeners();
     }
 
     showWelcomeExperience() {
         const experience = document.getElementById('welcome-experience');
         experience.style.display = 'block';
 
-        // Update total steps
-        document.getElementById('total-steps').textContent = this.welcomeSteps.length;
-
-        // Force reflow and show
         requestAnimationFrame(() => {
             experience.classList.add('active');
             this.renderWelcomeStep(0);
         });
     }
 
-    updateWelcomeProgress(stepIndex) {
-        const progress = ((stepIndex + 1) / this.welcomeSteps.length) * 100;
+    renderWelcomeStep(stepIndex) {
+        this.currentStepIndex = stepIndex;
+        this.updateProgressIndicator();
+
+        const panels = document.querySelectorAll('.content-panel');
+        panels.forEach((panel, index) => {
+            if (index === stepIndex) {
+                panel.classList.add('active');
+
+                // Special handling for step 2 (comparison animation)
+                if (stepIndex === 1) {
+                    this.startComparisonAnimation();
+                }
+            } else {
+                panel.classList.remove('active');
+            }
+        });
+
+        this.updateNavigationButtons();
+    }
+
+    updateProgressIndicator() {
+        const progress = ((this.currentStepIndex + 1) / this.maxSteps) * 100;
         const indicator = document.getElementById('progress-indicator');
         const currentStep = document.getElementById('current-step');
 
         indicator.style.width = `${progress}%`;
-        currentStep.textContent = stepIndex + 1;
+        currentStep.textContent = this.currentStepIndex + 1;
     }
 
-    updateWelcomeNavigation(stepIndex) {
-        const backBtn = document.getElementById('nav-back');
+    updateNavigationButtons() {
         const continueBtn = document.getElementById('nav-continue');
 
-        // Back button
-        backBtn.disabled = stepIndex === 0;
+        // Hide navigation during animation
+        if (this.currentStepIndex === 1 && this.isAnimationPlaying) {
+            continueBtn.style.opacity = '0';
+            continueBtn.disabled = true;
+            return;
+        }
 
-        // Continue button content
-        if (stepIndex === this.welcomeSteps.length - 1) {
+        continueBtn.style.opacity = '1';
+        continueBtn.disabled = false;
+
+        // Update button text
+        if (this.currentStepIndex === 2) {
             continueBtn.innerHTML = `
             Start Study
             <svg class="nav-icon" viewBox="0 0 24 24">
@@ -701,40 +579,283 @@ class ChatApp {
         `;
         }
 
-        // For prolific ID step, enable immediately but validation will disable if needed
-        if (this.welcomeSteps[stepIndex].id === 'prolific-id') {
-            continueBtn.disabled = true; // Will be enabled by validation
-        } else {
-            // Will be disabled by timer, then enabled after 4 seconds
-            continueBtn.disabled = false;
+        // Enable validation for Prolific ID step
+        if (this.currentStepIndex === 2) {
+            continueBtn.disabled = true;
+            this.setupProlificValidation();
+        }
+    }
+
+    startComparisonAnimation() {
+        this.isAnimationPlaying = true;
+        const comparisonData = this.getModelComparisonData();
+
+        // Populate model data
+        this.populateModelComparison(comparisonData);
+
+        // Start the animation sequence
+        this.runAnimationSequence(comparisonData);
+    }
+
+    populateModelComparison(comparisonData) {
+        const { models, assignedIndex } = comparisonData;
+
+        // Populate headers
+        models.forEach((model, index) => {
+            const nameEl = document.getElementById(`model-name-${index}`);
+            const yearEl = document.getElementById(`model-year-${index}`);
+
+            if (nameEl) nameEl.textContent = model.name;
+            if (yearEl) yearEl.textContent = model.year;
+        });
+
+        // Populate capability bubbles
+        document.querySelectorAll('.bubble-fill').forEach(fill => {
+            const modelIndex = parseInt(fill.closest('.capability-bubble').dataset.model);
+            const capabilityRow = fill.closest('.capability-row');
+            const capability = capabilityRow.dataset.capability;
+
+            let value;
+            switch (capability) {
+                case 'creative': value = models[modelIndex].capabilities.creative; break;
+                case 'professional': value = models[modelIndex].capabilities.professional; break;
+                case 'speed': value = models[modelIndex].capabilities.speed; break;
+            }
+
+            fill.dataset.value = value;
+        });
+
+        // Populate LMArena rankings
+        document.querySelectorAll('.ranking-value').forEach(valueEl => {
+            const modelIndex = parseInt(valueEl.dataset.model);
+            const rankingRow = valueEl.closest('.ranking-row');
+            const rankingType = Array.from(rankingRow.parentNode.children).indexOf(rankingRow) - 1; // -1 for title
+
+            let value;
+            switch (rankingType) {
+                case 0: value = models[modelIndex].lmarena.instruction; break;
+                case 1: value = models[modelIndex].lmarena.creative; break;
+                case 2: value = models[modelIndex].lmarena.hard; break;
+            }
+
+            valueEl.textContent = value;
+        });
+
+        // Populate capability cards
+        const assignedModel = models[assignedIndex];
+        document.getElementById('strength-text').textContent = assignedModel.strengths;
+        document.getElementById('weakness-text').textContent = assignedModel.weaknesses;
+        document.getElementById('usecase-text').textContent = assignedModel.bestFor;
+    }
+
+    runAnimationSequence(comparisonData) {
+        const { assignedIndex } = comparisonData;
+
+        // Animation timeline
+        const timeline = [
+            // 0-1.5s: Headers fade in
+            () => {
+                document.querySelector('.model-headers').style.animation = 'fadeInStagger 1s ease-out forwards';
+            },
+
+            // Capability bubbles fill (1.5s-7.5s)
+            () => this.animateCapabilityBubbles(),
+
+            // 9-12s: Gold border highlight
+            () => this.highlightAssignedModel(assignedIndex),
+
+            // 12-15s: Popup bubble
+            () => this.showAssignmentPopup(),
+
+            // 15-16.5s: Table shrink and move up
+            () => this.shrinkComparisonTable(),
+
+            // 16.5-18s: Capability cards slide up
+            () => this.showCapabilityCards(),
+
+            // 18s: Enable continue button
+            () => {
+                this.isAnimationPlaying = false;
+                this.updateNavigationButtons();
+            }
+        ];
+
+        // Execute timeline
+        const delays = [0, 1500, 11000, 12000, 15000, 16500, 18000];
+
+        timeline.forEach((action, index) => {
+            setTimeout(action, delays[index]);
+        });
+    }
+
+    animateCapabilityBubbles() {
+        const capabilityRows = document.querySelectorAll('.capability-row');
+
+        capabilityRows.forEach((row, rowIndex) => {
+            const delay = rowIndex * 2000; // 2 second stagger
+
+            setTimeout(() => {
+                const bubbles = row.querySelectorAll('.bubble-fill');
+                bubbles.forEach((fill, bubbleIndex) => {
+                    const bubbleDelay = bubbleIndex * 200; // 200ms stagger within row
+
+                    setTimeout(() => {
+                        const value = parseInt(fill.dataset.value);
+                        fill.style.height = value + '%';
+                        fill.classList.add('filled');
+                    }, bubbleDelay);
+                });
+            }, delay);
+        });
+    }
+
+    highlightAssignedModel(assignedIndex) {
+        const modelHeader = document.querySelector(`.model-header[data-model="${assignedIndex}"]`);
+        if (modelHeader) {
+            modelHeader.classList.add('highlighted');
+
+            // Also highlight all bubbles and values for this model
+            document.querySelectorAll(`[data-model="${assignedIndex}"]`).forEach(el => {
+                if (el.classList.contains('capability-bubble')) {
+                    el.style.borderColor = '#f59e0b';
+                    el.style.boxShadow = '0 0 15px rgba(245, 158, 11, 0.4)';
+                }
+                if (el.classList.contains('ranking-value')) {
+                    el.style.borderColor = '#f59e0b';
+                    el.style.boxShadow = '0 0 10px rgba(245, 158, 11, 0.3)';
+                }
+            });
+        }
+    }
+
+    showAssignmentPopup() {
+        const popup = document.getElementById('assignment-popup');
+        const assignedModelHeader = document.querySelector('.model-header.highlighted');
+
+        if (popup && assignedModelHeader) {
+            const rect = assignedModelHeader.getBoundingClientRect();
+            const tableRect = document.querySelector('.model-comparison-table').getBoundingClientRect();
+
+            // Position popup above the highlighted model
+            popup.style.left = `${rect.left - tableRect.left + (rect.width / 2)}px`;
+            popup.classList.add('show');
+        }
+    }
+
+    shrinkComparisonTable() {
+        const table = document.querySelector('.model-comparison-table');
+        if (table) {
+            table.classList.add('shrink');
+        }
+    }
+
+    showCapabilityCards() {
+        const cards = document.getElementById('capability-cards');
+        if (cards) {
+            cards.style.animation = 'slideUpStagger 1s ease-out forwards';
         }
     }
 
     setupWelcomeEventListeners() {
-        // Navigation buttons
-        document.getElementById('nav-back').addEventListener('click', () => {
-            if (this.currentStepIndex > 0 && !this.isTransitioning) {
-                this.currentStepIndex--;
-                this.renderWelcomeStep(this.currentStepIndex);
-            }
-        });
+        const continueBtn = document.getElementById('nav-continue');
 
-        document.getElementById('nav-continue').addEventListener('click', () => {
-            if (this.isTransitioning) return;
-
-            const currentStep = this.welcomeSteps[this.currentStepIndex];
-
-            if (currentStep.id === 'prolific-id') {
+        continueBtn.addEventListener('click', () => {
+            if (this.currentStepIndex < this.maxSteps - 1) {
+                this.renderWelcomeStep(this.currentStepIndex + 1);
+            } else if (this.currentStepIndex === 2) {
                 this.handleProlificSubmission();
-                return;
-            }
-
-            if (this.currentStepIndex < this.welcomeSteps.length - 1) {
-                this.currentStepIndex++;
-                this.renderWelcomeStep(this.currentStepIndex);
             }
         });
     }
+
+    setupProlificValidation() {
+        const input = document.getElementById('prolific-input');
+        const continueBtn = document.getElementById('nav-continue');
+        const errorDiv = document.getElementById('input-error');
+
+        const validateInput = () => {
+            const value = input.value.trim();
+            const isValid = /^[a-zA-Z0-9]{24}$/.test(value);
+
+            input.classList.remove('error', 'success');
+            errorDiv.classList.remove('show');
+
+            if (value.length === 0) {
+                continueBtn.disabled = true;
+                return;
+            }
+
+            if (isValid) {
+                input.classList.add('success');
+                continueBtn.disabled = false;
+            } else {
+                input.classList.add('error');
+                errorDiv.textContent = 'Please enter a valid 24-character Prolific ID';
+                errorDiv.classList.add('show');
+                continueBtn.disabled = true;
+            }
+        };
+
+        input.addEventListener('input', validateInput);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !continueBtn.disabled) {
+                this.handleProlificSubmission();
+            }
+        });
+
+        validateInput();
+    }
+
+    async handleProlificSubmission() {
+        const input = document.getElementById('prolific-input');
+        const prolificId = input.value.trim();
+
+        if (!/^[a-zA-Z0-9]{24}$/.test(prolificId)) return;
+
+        // Show loading state
+        const continueBtn = document.getElementById('nav-continue');
+        const originalContent = continueBtn.innerHTML;
+        continueBtn.innerHTML = `
+        <div class="loading-dots">
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+        </div>
+        Starting...
+    `;
+        continueBtn.disabled = true;
+
+        // Set participant ID and register session
+        this.participantId = prolificId;
+
+        try {
+            await this.registerSession();
+
+            setTimeout(() => {
+                this.hideWelcomeExperience();
+            }, 800);
+
+        } catch (error) {
+            console.error('Session registration failed:', error);
+            continueBtn.innerHTML = originalContent;
+            continueBtn.disabled = false;
+        }
+    }
+
+    hideWelcomeExperience() {
+        const experience = document.getElementById('welcome-experience');
+        experience.classList.remove('active');
+
+        setTimeout(() => {
+            experience.style.display = 'none';
+
+            const appContainer = document.querySelector('.app-container');
+            appContainer.classList.add('ready');
+
+            this.init();
+        }, 600);
+    }
+
 
     setupProlificValidation() {
         const input = document.getElementById('prolific-input');
