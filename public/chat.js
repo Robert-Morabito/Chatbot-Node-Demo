@@ -455,7 +455,7 @@ class ChatApp {
      */
     updateNavigationButtons() {
         const continueBtn = document.getElementById('nav-continue');
-        
+
         // Always show button unless specifically during animation
         if (this.currentStepIndex === 1 && this.isAnimationPlaying) {
             continueBtn.style.opacity = '0';
@@ -562,17 +562,9 @@ class ChatApp {
                 speedContainer.appendChild(icon);
             }
 
-            // Update knowledge label to "Knowledge Cutoff"
-            const knowledgeLabel = card.querySelector('[data-capability="knowledge"] .capability-item-label span:last-child');
-            if (knowledgeLabel) knowledgeLabel.textContent = 'Knowledge Cutoff';
-
             // Populate knowledge date
             const knowledgeEl = card.querySelector('.knowledge-date-inline');
             knowledgeEl.textContent = model.capabilities.knowledge;
-
-            // Update section title to "Global Rankings"
-            const rankingTitle = card.querySelector('.lmarena-title-card');
-            if (rankingTitle) rankingTitle.textContent = 'Global Rankings';
 
             // Populate LMArena rankings
             const rankingItems = card.querySelectorAll('.ranking-item');
@@ -580,28 +572,19 @@ class ChatApp {
 
             rankingItems.forEach((item, rankIndex) => {
                 const rankText = item.querySelector('.rank-text-card');
-                const crown = item.querySelector('.rank-crown-card');
                 const rank = model.lmarena[rankings[rankIndex]];
 
                 rankText.textContent = this.formatOrdinal(rank);
 
-                // Show crown for top 10 ranks
-                const shouldShowCrown = rank <= 10;
-                crown.style.display = shouldShowCrown ? 'block' : 'none';
+                // Hide all crowns (they're already hidden in CSS)
             });
         });
 
-        // Populate capability cards and header
+        // Populate capability cards
         const assignedModel = models[assignedIndex];
         document.getElementById('strength-text').textContent = assignedModel.strengths;
         document.getElementById('weakness-text').textContent = assignedModel.weaknesses;
         document.getElementById('usecase-text').textContent = assignedModel.bestFor;
-
-        // Update capability cards header with assigned model name
-        const headerTitle = document.getElementById('capability-cards-title');
-        if (headerTitle) {
-            headerTitle.textContent = `Things to know about ${assignedModel.name}`;
-        }
     }
 
     /**
@@ -790,11 +773,11 @@ class ChatApp {
     showCapabilityCards() {
         const header = document.getElementById('capability-cards-header');
         const cards = document.getElementById('capability-cards');
-        
+
         if (header) {
             header.classList.add('show');
         }
-        
+
         if (cards) {
             setTimeout(() => {
                 cards.classList.add('show');
