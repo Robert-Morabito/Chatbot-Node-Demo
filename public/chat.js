@@ -258,14 +258,14 @@ class ChatApp {
                     name: 'GPT-3.5',
                     year: '2022',
                     capabilities: {
-                        creative: 60,
-                        professional: 70,
-                        speed: 95
+                        reasoning: 1, // number of lightbulbs
+                        speed: 2, // number of lightning bolts
+                        knowledge: 'Sept 2021'
                     },
                     lmarena: {
-                        instruction: 7.2,
-                        creative: 6.8,
-                        hard: 6.5
+                        creative: 139,
+                        instruction: 139,
+                        hard: 144
                     },
                     strengths: "Quick responses and good general knowledge for everyday tasks.",
                     weaknesses: "Limited creativity and may struggle with complex reasoning tasks.",
@@ -275,14 +275,14 @@ class ChatApp {
                     name: 'GPT-4',
                     year: '2023',
                     capabilities: {
-                        creative: 85,
-                        professional: 90,
-                        speed: 80
+                        reasoning: 2,
+                        speed: 3,
+                        knowledge: 'Dec 2023'
                     },
                     lmarena: {
-                        instruction: 8.4,
-                        creative: 7.9,
-                        hard: 8.1
+                        creative: 88,
+                        instruction: 102,
+                        hard: 110
                     },
                     strengths: "Excellent balance of creativity, accuracy, and professional communication.",
                     weaknesses: "Slower response times compared to simpler models.",
@@ -292,14 +292,14 @@ class ChatApp {
                     name: 'GPT-5',
                     year: '2024',
                     capabilities: {
-                        creative: 95,
-                        professional: 88,
-                        speed: 65
+                        reasoning: 4,
+                        speed: 3,
+                        knowledge: 'Sept 2024'
                     },
                     lmarena: {
-                        instruction: 8.9,
-                        creative: 8.6,
-                        hard: 8.8
+                        creative: 3,
+                        instruction: 1,
+                        hard: 1
                     },
                     strengths: "Exceptional reasoning abilities and highly creative problem-solving.",
                     weaknesses: "Takes significantly more time to process and respond to requests.",
@@ -311,14 +311,14 @@ class ChatApp {
                     name: 'Claude 3',
                     year: '2024',
                     capabilities: {
-                        creative: 65,
-                        professional: 75,
-                        speed: 90
+                        reasoning: 1,
+                        speed: 3,
+                        knowledge: 'Aug 2023'
                     },
                     lmarena: {
-                        instruction: 7.5,
-                        creative: 7.1,
-                        hard: 7.0
+                        creative: 127,
+                        instruction: 122,
+                        hard: 122
                     },
                     strengths: "Fast responses with good accuracy for routine tasks.",
                     weaknesses: "Limited depth in creative and complex analytical tasks.",
@@ -328,14 +328,14 @@ class ChatApp {
                     name: 'Claude 3.5',
                     year: '2024',
                     capabilities: {
-                        creative: 88,
-                        professional: 92,
-                        speed: 85
+                        reasoning: 2,
+                        speed: 3,
+                        knowledge: 'July 2024'
                     },
                     lmarena: {
-                        instruction: 8.6,
-                        creative: 8.2,
-                        hard: 8.3
+                        creative: 57,
+                        instruction: 62,
+                        hard: 59
                     },
                     strengths: "Outstanding professional communication and analytical capabilities.",
                     weaknesses: "May be overly verbose in some responses.",
@@ -345,14 +345,14 @@ class ChatApp {
                     name: 'Claude 4',
                     year: '2025',
                     capabilities: {
-                        creative: 93,
-                        professional: 95,
-                        speed: 78
+                        reasoning: 4,
+                        speed: 2,
+                        knowledge: 'Mar 2025'
                     },
                     lmarena: {
-                        instruction: 9.1,
-                        creative: 8.8,
-                        hard: 9.0
+                        creative: 11,
+                        instruction: 14,
+                        hard: 18
                     },
                     strengths: "Cutting-edge reasoning with exceptional creative and analytical depth.",
                     weaknesses: "Slower processing for maximum accuracy and thoughtfulness.",
@@ -456,14 +456,17 @@ class ChatApp {
     updateNavigationButtons() {
         const continueBtn = document.getElementById('nav-continue');
 
-        // Hide navigation during animation
+        // Always show button unless specifically during animation
         if (this.currentStepIndex === 1 && this.isAnimationPlaying) {
             continueBtn.style.opacity = '0';
             continueBtn.disabled = true;
             return;
         }
 
+        // Make sure button is visible and enabled
         continueBtn.style.opacity = '1';
+        continueBtn.style.visibility = 'visible';
+        continueBtn.style.display = 'flex';
         continueBtn.disabled = false;
 
         // Update button text
@@ -504,6 +507,9 @@ class ChatApp {
     /**
      * Populate model comparison table with data
      */
+    /**
+ * Populate model comparison table with data
+ */
     populateModelComparison(comparisonData) {
         const { models, assignedIndex } = comparisonData;
 
@@ -516,36 +522,75 @@ class ChatApp {
             if (yearEl) yearEl.textContent = model.year;
         });
 
-        // Populate capability bubbles
-        document.querySelectorAll('.bubble-fill').forEach(fill => {
-            const modelIndex = parseInt(fill.closest('.capability-bubble').dataset.model);
-            const capabilityRow = fill.closest('.capability-row');
+        // Populate capability icons
+        document.querySelectorAll('.capability-icons-group').forEach(group => {
+            const container = group.closest('.icon-container');
+            const modelIndex = parseInt(container.dataset.model);
+            const capabilityRow = group.closest('.capability-row');
             const capability = capabilityRow.dataset.capability;
 
-            let value;
+            let count, iconType;
             switch (capability) {
-                case 'creative': value = models[modelIndex].capabilities.creative; break;
-                case 'professional': value = models[modelIndex].capabilities.professional; break;
-                case 'speed': value = models[modelIndex].capabilities.speed; break;
+                case 'reasoning':
+                    count = models[modelIndex].capabilities.reasoning;
+                    iconType = 'bulb';
+                    break;
+                case 'speed':
+                    count = models[modelIndex].capabilities.speed;
+                    iconType = 'bolt';
+                    break;
             }
 
-            fill.dataset.value = value;
+            group.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                const icon = document.createElement('span');
+                icon.className = `capability-icon-item ${iconType}`;
+                icon.textContent = iconType === 'bulb' ? '💡' : '⚡';
+                icon.style.animationDelay = `${i * 100}ms`;
+                group.appendChild(icon);
+            }
         });
 
-        // Populate LMArena rankings
-        document.querySelectorAll('.ranking-value').forEach(valueEl => {
-            const modelIndex = parseInt(valueEl.dataset.model);
-            const rankingRow = valueEl.closest('.ranking-row');
-            const rankingType = Array.from(rankingRow.parentNode.children).indexOf(rankingRow) - 1;
+        // Populate knowledge dates
+        document.querySelectorAll('.knowledge-date').forEach(dateEl => {
+            const modelIndex = parseInt(dateEl.dataset.model);
+            dateEl.textContent = models[modelIndex].capabilities.knowledge;
+        });
 
-            let value;
-            switch (rankingType) {
-                case 0: value = models[modelIndex].lmarena.instruction; break;
-                case 1: value = models[modelIndex].lmarena.creative; break;
-                case 2: value = models[modelIndex].lmarena.hard; break;
-            }
+        // Populate LMArena rankings with proper ordinals and crowns
+        const rankingRows = document.querySelectorAll('.ranking-row');
+        rankingRows.forEach((row, rowIndex) => {
+            if (rowIndex === 0) return; // Skip title row
 
-            valueEl.textContent = value;
+            const values = row.querySelectorAll('.ranking-value');
+            const rankType = ['creative', 'instruction', 'hard'][rowIndex - 1];
+
+            // Find the best rank (lowest number) for crown placement
+            let bestRank = Infinity;
+            let bestModelIndex = -1;
+
+            values.forEach((valueEl, modelIndex) => {
+                const rank = models[modelIndex].lmarena[rankType];
+                if (rank < bestRank) {
+                    bestRank = rank;
+                    bestModelIndex = modelIndex;
+                }
+            });
+
+            values.forEach((valueEl, modelIndex) => {
+                const rank = models[modelIndex].lmarena[rankType];
+                const rankText = valueEl.querySelector('.rank-text');
+                const crown = valueEl.querySelector('.rank-crown');
+
+                rankText.textContent = this.formatOrdinal(rank);
+
+                // Show crown only for the best rank
+                if (modelIndex === bestModelIndex) {
+                    crown.style.display = 'block';
+                } else {
+                    crown.style.display = 'none';
+                }
+            });
         });
 
         // Populate capability cards
@@ -556,6 +601,55 @@ class ChatApp {
     }
 
     /**
+     * Format number as ordinal (1st, 2nd, 3rd, etc.)
+     */
+    formatOrdinal(num) {
+        const suffixes = ["th", "st", "nd", "rd"];
+        const v = num % 100;
+        return num + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
+    }
+
+    /**
+     * Animate capability icons with staggered timing
+     */
+    animateCapabilityIcons() {
+        const capabilityRows = document.querySelectorAll('.capability-row');
+
+        capabilityRows.forEach((row, rowIndex) => {
+            const delay = rowIndex * 2000;
+
+            setTimeout(() => {
+                const iconGroups = row.querySelectorAll('.capability-icons-group');
+                iconGroups.forEach((group, groupIndex) => {
+                    const groupDelay = groupIndex * 200;
+
+                    setTimeout(() => {
+                        const icons = group.querySelectorAll('.capability-icon-item');
+                        icons.forEach((icon, iconIndex) => {
+                            const iconDelay = iconIndex * 150;
+
+                            setTimeout(() => {
+                                icon.classList.add('lit');
+                            }, iconDelay);
+                        });
+                    }, groupDelay);
+                });
+
+                // Animate knowledge dates for knowledge row
+                if (row.dataset.capability === 'knowledge') {
+                    const knowledgeDates = row.querySelectorAll('.knowledge-date');
+                    knowledgeDates.forEach((date, dateIndex) => {
+                        const dateDelay = dateIndex * 200;
+                        setTimeout(() => {
+                            date.classList.add('show');
+                        }, dateDelay);
+                    });
+                }
+            }, delay);
+        });
+    }
+
+    /**
      * Run the complete animation sequence
      */
     runAnimationSequence(comparisonData) {
@@ -563,7 +657,7 @@ class ChatApp {
 
         const timeline = [
             () => document.querySelector('.model-headers').style.animation = 'fadeInStagger 1s ease-out forwards',
-            () => this.animateCapabilityBubbles(),
+            () => this.animateCapabilityIcons(), // Updated method name
             () => this.highlightAssignedModel(assignedIndex),
             () => this.showAssignmentPopup(),
             () => this.shrinkComparisonTable(),
@@ -578,30 +672,6 @@ class ChatApp {
 
         timeline.forEach((action, index) => {
             setTimeout(action, delays[index]);
-        });
-    }
-
-    /**
-     * Animate capability bubbles with staggered timing
-     */
-    animateCapabilityBubbles() {
-        const capabilityRows = document.querySelectorAll('.capability-row');
-
-        capabilityRows.forEach((row, rowIndex) => {
-            const delay = rowIndex * 2000;
-
-            setTimeout(() => {
-                const bubbles = row.querySelectorAll('.bubble-fill');
-                bubbles.forEach((fill, bubbleIndex) => {
-                    const bubbleDelay = bubbleIndex * 200;
-
-                    setTimeout(() => {
-                        const value = parseInt(fill.dataset.value);
-                        fill.style.height = value + '%';
-                        fill.classList.add('filled');
-                    }, bubbleDelay);
-                });
-            }, delay);
         });
     }
 
