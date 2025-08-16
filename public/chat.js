@@ -546,7 +546,9 @@ class ChatApp {
                         icon.classList.add('lit');
                     }
                     icon.textContent = '💡';
-                    icon.style.animationDelay = `${i * 100}ms`;
+                    if (icon && icon.style) {  // Add this check
+                        icon.style.animationDelay = `${i * 100}ms`;
+                    }
                     reasoningContainer.appendChild(icon);
                 }
             }
@@ -563,7 +565,9 @@ class ChatApp {
                         icon.classList.add('lit');
                     }
                     icon.textContent = '⚡';
-                    icon.style.animationDelay = `${i * 100}ms`;
+                    if (icon && icon.style) {  // Add this check
+                        icon.style.animationDelay = `${i * 100}ms`;
+                    }
                     speedContainer.appendChild(icon);
                 }
             }
@@ -795,10 +799,10 @@ class ChatApp {
     setupWelcomeEventListeners() {
         const continueBtn = document.getElementById('nav-continue');
         let compactModeShown = true; // Track if we've shown compact mode
-        
+
         continueBtn.addEventListener('click', () => {
             console.log('Continue clicked, current step:', this.currentStepIndex, 'compact shown:', compactModeShown);
-            
+
             if (this.currentStepIndex < this.maxSteps - 1) {
                 // Special handling for step 1 (comparison step)
                 if (this.currentStepIndex === 1 && !compactModeShown) {
@@ -807,14 +811,14 @@ class ChatApp {
                     compactModeShown = true;
                     return; // Don't advance step yet
                 }
-                
+
                 // If we're on step 1 and compact mode was already shown, advance to step 2
                 if (this.currentStepIndex === 1 && compactModeShown) {
                     console.log('Advancing to next step');
                     this.renderWelcomeStep(this.currentStepIndex + 1);
                     return;
                 }
-                
+
                 // For other steps, advance normally
                 this.renderWelcomeStep(this.currentStepIndex + 1);
             } else if (this.currentStepIndex === 2) {
@@ -828,13 +832,13 @@ class ChatApp {
      */
     showCompactModeAndCards() {
         console.log('showCompactModeAndCards called');
-        
+
         const container = document.getElementById('model-comparison-container');
         const comparisonContainer = document.querySelector('.comparison-container');
         const cardsHeader = document.getElementById('capability-cards-header');
         const cards = document.getElementById('capability-cards');
         const continueBtn = document.getElementById('nav-continue');
-        
+
         console.log('Elements found:', {
             container: !!container,
             comparisonContainer: !!comparisonContainer,
@@ -842,13 +846,13 @@ class ChatApp {
             cards: !!cards,
             continueBtn: !!continueBtn
         });
-        
+
         // Hide the popup first
         const popup = document.getElementById('assignment-popup');
         if (popup) {
             popup.classList.remove('show');
         }
-        
+
         // Add compact mode
         if (container) {
             container.classList.add('compact');
@@ -858,7 +862,7 @@ class ChatApp {
             comparisonContainer.classList.add('showing-cards');
             console.log('Added showing-cards class');
         }
-        
+
         // Update button text immediately
         if (continueBtn) {
             continueBtn.innerHTML = `
@@ -869,14 +873,14 @@ class ChatApp {
             `;
             console.log('Updated button text');
         }
-        
+
         // Show capability cards after a short delay
         setTimeout(() => {
             if (cardsHeader) {
                 cardsHeader.classList.add('show');
                 console.log('Showed cards header');
             }
-            
+
             setTimeout(() => {
                 if (cards) {
                     cards.classList.add('show');
