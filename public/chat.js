@@ -451,11 +451,11 @@ class ChatApp {
     }
 
     /**
-     * Update navigation buttons based on current step
+     * Update navigation buttons to hide popup when continuing
      */
     updateNavigationButtons() {
         const continueBtn = document.getElementById('nav-continue');
-
+        
         // Always show button unless specifically during animation
         if (this.currentStepIndex === 1 && this.isAnimationPlaying) {
             continueBtn.style.opacity = '0';
@@ -463,7 +463,6 @@ class ChatApp {
             return;
         }
 
-        // Make sure button is visible and enabled
         continueBtn.style.opacity = '1';
         continueBtn.style.visibility = 'visible';
         continueBtn.style.display = 'flex';
@@ -486,6 +485,18 @@ class ChatApp {
             `;
         }
 
+        // Hide popup when continue is clicked from step 1
+        if (this.currentStepIndex === 1) {
+            continueBtn.onclick = () => {
+                // Hide the persistent popup
+                const popup = document.getElementById('assignment-popup');
+                if (popup) {
+                    popup.classList.remove('show', 'persistent');
+                }
+                this.renderWelcomeStep(this.currentStepIndex + 1);
+            };
+        }
+
         // Enable validation for Prolific ID step
         if (this.currentStepIndex === 2) {
             continueBtn.disabled = true;
@@ -505,7 +516,7 @@ class ChatApp {
     }
 
     /**
-     * Populate model comparison table with data
+     * Populate model comparison cards with data
      */
     populateModelComparison(comparisonData) {
         const { models, assignedIndex } = comparisonData;
@@ -519,35 +530,49 @@ class ChatApp {
             if (yearEl) yearEl.textContent = model.year;
         });
 
-        // Populate capability icons in each card
+        // Populate capability icons in each card with 4 total icons each
         document.querySelectorAll('.model-card').forEach((card, modelIndex) => {
             const model = models[modelIndex];
 
-            // Populate reasoning icons
+            // Populate reasoning icons (always 4 total, some lit)
             const reasoningContainer = card.querySelector('[data-capability="reasoning"] .capability-icons-inline');
             reasoningContainer.innerHTML = '';
-            for (let i = 0; i < model.capabilities.reasoning; i++) {
+            for (let i = 0; i < 4; i++) {
                 const icon = document.createElement('span');
                 icon.className = 'capability-icon-item-inline bulb';
+                if (i < model.capabilities.reasoning) {
+                    icon.classList.add('lit');
+                }
                 icon.textContent = '💡';
                 icon.style.animationDelay = `${i * 100}ms`;
                 reasoningContainer.appendChild(icon);
             }
 
-            // Populate speed icons
+            // Populate speed icons (always 4 total, some lit)
             const speedContainer = card.querySelector('[data-capability="speed"] .capability-icons-inline');
             speedContainer.innerHTML = '';
-            for (let i = 0; i < model.capabilities.speed; i++) {
+            for (let i = 0; i < 4; i++) {
                 const icon = document.createElement('span');
                 icon.className = 'capability-icon-item-inline bolt';
+                if (i < model.capabilities.speed) {
+                    icon.classList.add('lit');
+                }
                 icon.textContent = '⚡';
                 icon.style.animationDelay = `${i * 100}ms`;
                 speedContainer.appendChild(icon);
             }
 
+            // Update knowledge label to "Knowledge Cutoff"
+            const knowledgeLabel = card.querySelector('[data-capability="knowledge"] .capability-item-label span:last-child');
+            if (knowledgeLabel) knowledgeLabel.textContent = 'Knowledge Cutoff';
+
             // Populate knowledge date
             const knowledgeEl = card.querySelector('.knowledge-date-inline');
             knowledgeEl.textContent = model.capabilities.knowledge;
+
+            // Update section title to "Global Rankings"
+            const rankingTitle = card.querySelector('.lmarena-title-card');
+            if (rankingTitle) rankingTitle.textContent = 'Global Rankings';
 
             // Populate LMArena rankings
             const rankingItems = card.querySelectorAll('.ranking-item');
@@ -560,22 +585,23 @@ class ChatApp {
 
                 rankText.textContent = this.formatOrdinal(rank);
 
-                // Show crown for best ranks (you can adjust this logic)
-                const shouldShowCrown = (
-                    (rankings[rankIndex] === 'creative' && rank <= 10) ||
-                    (rankings[rankIndex] === 'instruction' && rank <= 5) ||
-                    (rankings[rankIndex] === 'hard' && rank <= 5)
-                );
-
+                // Show crown for top 10 ranks
+                const shouldShowCrown = rank <= 10;
                 crown.style.display = shouldShowCrown ? 'block' : 'none';
             });
         });
 
-        // Populate capability cards
+        // Populate capability cards and header
         const assignedModel = models[assignedIndex];
         document.getElementById('strength-text').textContent = assignedModel.strengths;
         document.getElementById('weakness-text').textContent = assignedModel.weaknesses;
         document.getElementById('usecase-text').textContent = assignedModel.bestFor;
+
+        // Update capability cards header with assigned model name
+        const headerTitle = document.getElementById('capability-cards-title');
+        if (headerTitle) {
+            headerTitle.textContent = `Things to know about ${assignedModel.name}`;
+        }
     }
 
     /**
@@ -670,8 +696,8 @@ class ChatApp {
     }
 
     /**
- * Animate capabilities within each card
- */
+     * Animate capabilities within each card
+     */
     animateCardCapabilities() {
         document.querySelectorAll('.model-card').forEach((card, cardIndex) => {
             const baseDelay = cardIndex * 200; // Stagger between cards
@@ -713,8 +739,8 @@ class ChatApp {
     }
 
     /**
- * Highlight the assigned model
- */
+     * Highlight the assigned model
+     */
     highlightAssignedModel(assignedIndex) {
         const modelCard = document.querySelector(`.model-card[data-model="${assignedIndex}"]`);
         if (modelCard) {
@@ -723,8 +749,8 @@ class ChatApp {
     }
 
     /**
- * Show assignment popup above the assigned model
- */
+     * Show assignment popup above the assigned model (persistent)
+     */
     showAssignmentPopup(assignedIndex) {
         const popup = document.getElementById('assignment-popup');
         const assignedCard = document.querySelector(`.model-card[data-model="${assignedIndex}"]`);
@@ -734,7 +760,7 @@ class ChatApp {
             const containerRect = document.querySelector('.comparison-container').getBoundingClientRect();
 
             popup.style.left = `${rect.left - containerRect.left + (rect.width / 2)}px`;
-            popup.classList.add('show');
+            popup.classList.add('show', 'persistent');
         }
     }
 
@@ -759,12 +785,20 @@ class ChatApp {
     }
 
     /**
- * Show capability cards
- */
+     * Show capability cards and header
+     */
     showCapabilityCards() {
+        const header = document.getElementById('capability-cards-header');
         const cards = document.getElementById('capability-cards');
+        
+        if (header) {
+            header.classList.add('show');
+        }
+        
         if (cards) {
-            cards.classList.add('show');
+            setTimeout(() => {
+                cards.classList.add('show');
+            }, 300);
         }
     }
 

@@ -4165,8 +4165,8 @@ body.light-theme {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start; /* Changed to flex-start */
-    padding: 2rem 2rem 8rem 2rem; /* Added bottom padding for button */
+    justify-content: flex-start;
+    padding: 2rem 2rem 8rem 2rem;
     max-width: 1400px;
     margin: 0 auto;
     box-sizing: border-box;
@@ -4188,7 +4188,7 @@ body.light-theme {
     align-items: center;
     justify-content: center;
     position: relative;
-    overflow: visible; /* Changed to visible */
+    overflow: visible;
     min-height: 0;
     margin: 0;
 }
@@ -4201,7 +4201,7 @@ body.light-theme {
     opacity: 0;
     transform: translateX(100px);
     transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: visible; /* Changed to visible */
+    overflow: visible;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4223,7 +4223,7 @@ body.light-theme {
     width: 100%;
     max-width: 800px;
     margin: 0 auto;
-    max-height: calc(100vh - 200px); /* Proper height constraint */
+    max-height: calc(100vh - 200px);
     overflow-y: auto;
 }
 
@@ -4232,7 +4232,7 @@ body.light-theme {
     width: 100%;
     height: 100%;
     display: flex;
-    align-items: flex-start; /* Changed to flex-start */
+    align-items: flex-start;
     justify-content: center;
     padding: 1rem;
     box-sizing: border-box;
@@ -4251,14 +4251,14 @@ body.light-theme {
 
 .comparison-title {
     text-align: center;
-    margin: 0 0 1.5rem 0; /* Reduced margin */
+    margin: 0 0 1.5rem 0;
     opacity: 0;
     animation: fadeInUp 0.8s ease-out forwards;
     flex-shrink: 0;
 }
 
 .comparison-title h2 {
-    font-size: clamp(1.75rem, 3vw, 2.25rem); /* Reduced size */
+    font-size: clamp(2rem, 3.5vw, 2.5rem); /* Increased size */
     font-weight: 600;
     color: rgba(249, 250, 251, 0.95);
     margin: 0 0 0.5rem 0;
@@ -4266,8 +4266,8 @@ body.light-theme {
 }
 
 .comparison-title p {
-    font-size: clamp(1rem, 2vw, 1.125rem); /* Reduced size */
-    color: rgba(209, 213, 219, 0.8);
+    font-size: clamp(1.125rem, 2.5vw, 1.25rem); /* Increased size */
+    color: rgba(209, 213, 219, 0.9); /* Improved readability */
     margin: 0;
     font-weight: 400;
 }
@@ -4319,7 +4319,7 @@ body.light-theme {
 }
 
 .model-name-card {
-    font-size: 1.5rem;
+    font-size: 1.75rem; /* Increased size */
     font-weight: 700;
     color: rgba(249, 250, 251, 0.95);
     margin: 0 0 0.25rem 0;
@@ -4331,13 +4331,13 @@ body.light-theme {
 }
 
 .model-year-card {
-    font-size: 0.875rem;
-    color: rgba(209, 213, 219, 0.7);
+    font-size: 1rem; /* Increased size */
+    color: rgba(209, 213, 219, 0.8); /* Better readability */
     margin: 0;
 }
 
 .light-theme .model-year-card {
-    color: rgba(75, 85, 99, 0.6);
+    color: rgba(75, 85, 99, 0.7);
 }
 
 /* Capability Items in Cards */
@@ -4360,13 +4360,13 @@ body.light-theme {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.875rem;
+    font-size: 1rem; /* Increased size */
     font-weight: 500;
-    color: rgba(249, 250, 251, 0.8);
+    color: rgba(249, 250, 251, 0.9); /* Better readability */
 }
 
 .light-theme .capability-item-label {
-    color: rgba(17, 24, 39, 0.7);
+    color: rgba(17, 24, 39, 0.8);
 }
 
 .capability-item-value {
@@ -4376,8 +4376,8 @@ body.light-theme {
 }
 
 .capability-icon-small {
-    font-size: 1rem;
-    opacity: 0.6;
+    font-size: 1.125rem; /* Slightly bigger */
+    opacity: 0.8;
 }
 
 .capability-icons-inline {
@@ -4386,9 +4386,9 @@ body.light-theme {
 }
 
 .capability-icon-item-inline {
-    font-size: 1rem;
-    opacity: 0;
-    transform: scale(0.8);
+    font-size: 1.125rem; /* Slightly bigger */
+    opacity: 0.3; /* Dim unlit icons */
+    transform: scale(0.9);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -4399,27 +4399,33 @@ body.light-theme {
 
 .capability-icon-item-inline.bulb {
     color: #ffd700;
+}
+
+.capability-icon-item-inline.bulb.lit {
     filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.6));
 }
 
 .capability-icon-item-inline.bolt {
     color: #60a5fa;
+}
+
+.capability-icon-item-inline.bolt.lit {
     filter: drop-shadow(0 0 4px rgba(96, 165, 250, 0.6));
 }
 
 .knowledge-date-inline {
-    font-size: 0.875rem;
+    font-size: 1rem; /* Increased size */
     font-weight: 600;
-    color: rgba(59, 130, 246, 0.9);
-    background: rgba(59, 130, 246, 0.1);
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    border: 1px solid rgba(59, 130, 246, 0.2);
+    color: #10b981; /* Changed from blue to green */
+    background: rgba(16, 185, 129, 0.1);
+    padding: 0.375rem 0.75rem; /* Increased padding */
+    border-radius: 6px; /* Bigger radius */
+    border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .light-theme .knowledge-date-inline {
-    color: rgba(37, 99, 235, 0.9);
-    background: rgba(37, 99, 235, 0.08);
+    color: #059669;
+    background: rgba(16, 185, 129, 0.08);
 }
 
 /* LMArena Section in Cards */
@@ -4434,9 +4440,9 @@ body.light-theme {
 }
 
 .lmarena-title-card {
-    font-size: 0.75rem;
+    font-size: 0.875rem; /* Increased size */
     font-weight: 600;
-    color: rgba(249, 250, 251, 0.7);
+    color: rgba(249, 250, 251, 0.8); /* Better readability */
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 0.75rem;
@@ -4444,7 +4450,7 @@ body.light-theme {
 }
 
 .light-theme .lmarena-title-card {
-    color: rgba(17, 24, 39, 0.6);
+    color: rgba(17, 24, 39, 0.7);
 }
 
 .ranking-item {
@@ -4463,12 +4469,12 @@ body.light-theme {
 }
 
 .ranking-label-card {
-    font-size: 0.75rem;
-    color: rgba(209, 213, 219, 0.7);
+    font-size: 0.875rem; /* Increased size */
+    color: rgba(209, 213, 219, 0.8); /* Better readability */
 }
 
 .light-theme .ranking-label-card {
-    color: rgba(75, 85, 99, 0.6);
+    color: rgba(75, 85, 99, 0.7);
 }
 
 .ranking-value-card {
@@ -4479,7 +4485,7 @@ body.light-theme {
 }
 
 .rank-crown-card {
-    font-size: 0.875rem;
+    font-size: 1rem; /* Increased size */
     opacity: 0;
     transform: scale(0.8);
     transition: all 0.3s ease;
@@ -4491,13 +4497,38 @@ body.light-theme {
 }
 
 .rank-text-card {
-    font-size: 0.875rem;
+    font-size: 1rem; /* Increased size */
     font-weight: 700;
-    color: rgba(59, 130, 246, 0.9);
+    color: #f59e0b; /* Changed to gold/yellow */
 }
 
 .light-theme .rank-text-card {
-    color: rgba(37, 99, 235, 0.9);
+    color: #d97706;
+}
+
+/* Capability Cards Header */
+.capability-cards-header {
+    text-align: center;
+    margin: 2rem auto 1rem auto;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.capability-cards-header.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.capability-cards-header h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: rgba(249, 250, 251, 0.9);
+    margin: 0;
+}
+
+.light-theme .capability-cards-header h3 {
+    color: rgba(17, 24, 39, 0.8);
 }
 
 /* Capability Cards - Positioned below */
@@ -4507,7 +4538,7 @@ body.light-theme {
     gap: 1.5rem;
     width: 100%;
     max-width: 900px;
-    margin: 2rem auto 0 auto;
+    margin: 0 auto;
     opacity: 0;
     transform: translateY(30px);
     transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
@@ -4573,7 +4604,7 @@ body.light-theme {
 }
 
 .capability-card h4 {
-    font-size: 1rem;
+    font-size: 1.125rem; /* Increased size */
     font-weight: 600;
     color: rgba(249, 250, 251, 0.95);
     margin: 0 0 0.75rem 0;
@@ -4584,17 +4615,17 @@ body.light-theme {
 }
 
 .capability-card p {
-    font-size: 0.875rem;
-    color: rgba(209, 213, 219, 0.8);
+    font-size: 1rem; /* Increased size */
+    color: rgba(209, 213, 219, 0.9); /* Better readability */
     margin: 0;
     line-height: 1.5;
 }
 
 .light-theme .capability-card p {
-    color: rgba(75, 85, 99, 0.7);
+    color: rgba(75, 85, 99, 0.8);
 }
 
-/* Assignment Popup */
+/* Assignment Popup - Persistent */
 .assignment-popup {
     position: absolute;
     top: -50px;
@@ -4606,17 +4637,23 @@ body.light-theme {
 }
 
 .assignment-popup.show {
-    animation: popupBounce 2s ease-out forwards;
+    opacity: 1;
+    pointer-events: auto;
+    animation: none; /* Remove auto-fade animation */
+}
+
+.assignment-popup.persistent {
+    animation: persistentPulse 3s ease-in-out infinite;
 }
 
 .popup-content {
     background: rgba(245, 158, 11, 0.95);
     color: white;
-    padding: 0.75rem 1.5rem;
+    padding: 0.875rem 1.75rem; /* Slightly bigger */
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3);
     position: relative;
-    font-size: 0.875rem;
+    font-size: 1rem; /* Increased size */
     font-weight: 500;
     white-space: nowrap;
     display: flex;
@@ -4703,8 +4740,17 @@ body.light-theme {
         transform: translateX(-50%) translateY(0) scale(1);
     }
     100% {
-        opacity: 0;
-        transform: translateX(-50%) translateY(-10px) scale(0.95);
+        opacity: 1; /* Changed to stay visible */
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+}
+
+@keyframes persistentPulse {
+    0%, 100% {
+        transform: translateX(-50%) scale(1);
+    }
+    50% {
+        transform: translateX(-50%) scale(1.05);
     }
 }
 
