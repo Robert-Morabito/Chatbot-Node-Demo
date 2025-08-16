@@ -536,57 +536,67 @@ class ChatApp {
 
             // Populate reasoning icons (always show 4 total, some lit based on capability)
             const reasoningContainer = card.querySelector('[data-capability="reasoning"] .capability-icons-inline');
-            reasoningContainer.innerHTML = '';
-            for (let i = 0; i < 4; i++) { // Always show 4 bulbs total
-                const icon = document.createElement('span');
-                icon.className = 'capability-icon-item-inline bulb';
-                if (i > (4-model.capabilities.reasoning)) {
-                    // This bulb should be lit
-                    icon.classList.add('lit');
+            if (reasoningContainer) {
+                reasoningContainer.innerHTML = '';
+                for (let i = 0; i < 4; i++) { // Always show 4 bulbs total
+                    const icon = document.createElement('span');
+                    icon.className = 'capability-icon-item-inline bulb';
+                    if (i < model.capabilities.reasoning) {
+                        // This bulb should be lit
+                        icon.classList.add('lit');
+                    }
+                    icon.textContent = '💡';
+                    icon.style.animationDelay = `${i * 100}ms`;
+                    reasoningContainer.appendChild(icon);
                 }
-                icon.textContent = '💡';
-                icon.style.animationDelay = `${i * 100}ms`;
-                reasoningContainer.appendChild(icon);
             }
 
             // Populate speed icons (always show 4 total, some lit based on capability)  
             const speedContainer = card.querySelector('[data-capability="speed"] .capability-icons-inline');
-            speedContainer.innerHTML = '';
-            for (let i = 0; i < 4; i++) { // Always show 4 bolts total
-                const icon = document.createElement('span');
-                icon.className = 'capability-icon-item-inline bolt';
-                if (i > (4-model.capabilities.speed)) {
-                    // This bolt should be lit
-                    icon.classList.add('lit');
+            if (speedContainer) {
+                speedContainer.innerHTML = '';
+                for (let i = 0; i < 4; i++) { // Always show 4 bolts total
+                    const icon = document.createElement('span');
+                    icon.className = 'capability-icon-item-inline bolt';
+                    if (i < model.capabilities.speed) {
+                        // This bolt should be lit
+                        icon.classList.add('lit');
+                    }
+                    icon.textContent = '⚡';
+                    icon.style.animationDelay = `${i * 100}ms`;
+                    speedContainer.appendChild(icon);
                 }
-                icon.textContent = '⚡';
-                icon.style.animationDelay = `${i * 100}ms`;
-                speedContainer.appendChild(icon);
             }
 
             // Populate knowledge date
             const knowledgeEl = card.querySelector('.knowledge-date-inline');
-            knowledgeEl.textContent = model.capabilities.knowledge;
+            if (knowledgeEl) {
+                knowledgeEl.textContent = model.capabilities.knowledge;
+            }
 
-            // Populate LMArena rankings with proper crowns
+            // Populate LMArena rankings (no crowns)
             const rankingItems = card.querySelectorAll('.ranking-item');
             const rankings = ['creative', 'instruction', 'hard'];
 
             rankingItems.forEach((item, rankIndex) => {
                 const rankText = item.querySelector('.rank-text-card');
-                const rank = model.lmarena[rankings[rankIndex]];
 
-                rankText.textContent = this.formatOrdinal(rank);
-                
-                crown.style.display = shouldShowCrown ? 'block' : 'none';
+                if (rankText && rankings[rankIndex]) {
+                    const rank = model.lmarena[rankings[rankIndex]];
+                    rankText.textContent = this.formatOrdinal(rank);
+                }
             });
         });
 
         // Populate capability cards
         const assignedModel = models[assignedIndex];
-        document.getElementById('strength-text').textContent = assignedModel.strengths;
-        document.getElementById('weakness-text').textContent = assignedModel.weaknesses;
-        document.getElementById('usecase-text').textContent = assignedModel.bestFor;
+        const strengthEl = document.getElementById('strength-text');
+        const weaknessEl = document.getElementById('weakness-text');
+        const useCaseEl = document.getElementById('usecase-text');
+
+        if (strengthEl) strengthEl.textContent = assignedModel.strengths;
+        if (weaknessEl) weaknessEl.textContent = assignedModel.weaknesses;
+        if (useCaseEl) useCaseEl.textContent = assignedModel.bestFor;
     }
 
     /**
@@ -681,8 +691,8 @@ class ChatApp {
     }
 
     /**
- * Animate capabilities within each card
- */
+     * Animate capabilities within each card
+     */
     animateCardCapabilities() {
         document.querySelectorAll('.model-card').forEach((card, cardIndex) => {
             const baseDelay = cardIndex * 200; // Stagger between cards
@@ -705,20 +715,12 @@ class ChatApp {
                 }, itemDelay);
             });
 
-            // Animate ranking items
+            // Animate ranking items (no crown animation needed)
             card.querySelectorAll('.ranking-item').forEach((item, itemIndex) => {
                 const itemDelay = baseDelay + 1800 + (itemIndex * 200);
 
                 setTimeout(() => {
                     item.classList.add('show');
-
-                    // Show crown if it should be shown
-                    const crown = item.querySelector('.rank-crown-card');
-                    if (crown.style.display === 'block') {
-                        setTimeout(() => {
-                            crown.classList.add('show');
-                        }, 200);
-                    }
                 }, itemDelay);
             });
         });
