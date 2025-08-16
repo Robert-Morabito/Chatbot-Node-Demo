@@ -251,9 +251,6 @@ class ChatApp {
     /**
      * Get model comparison data based on assigned configuration
      */
-    /**
- * Get model comparison data based on assigned configuration
- */
     getModelComparisonData() {
         const modelFamilies = {
             'openai': [
@@ -454,51 +451,39 @@ class ChatApp {
     }
 
     /**
- * Update navigation buttons based on current step
- */
+     * Update navigation buttons based on current step
+     */
     updateNavigationButtons() {
         const continueBtn = document.getElementById('nav-continue');
 
-        // Always show button but gray it out during animation
-        continueBtn.style.opacity = '1';
-        continueBtn.style.visibility = 'visible';
-        continueBtn.style.display = 'flex';
-
+        // Always show button unless specifically during animation
         if (this.currentStepIndex === 1 && this.isAnimationPlaying) {
+            continueBtn.style.opacity = '0';
             continueBtn.disabled = true;
-            continueBtn.style.background = '#6b7280'; // Gray background
-            continueBtn.style.cursor = 'not-allowed';
-            continueBtn.innerHTML = `
-            Animation in progress...
-            <div class="loading-dots">
-                <div class="loading-dot"></div>
-                <div class="loading-dot"></div>
-                <div class="loading-dot"></div>
-            </div>
-        `;
             return;
         }
 
-        // Enable and style normally
+        // Make sure button is visible and enabled
+        continueBtn.style.opacity = '1';
+        continueBtn.style.visibility = 'visible';
+        continueBtn.style.display = 'flex';
         continueBtn.disabled = false;
-        continueBtn.style.background = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
-        continueBtn.style.cursor = 'pointer';
 
         // Update button text
         if (this.currentStepIndex === 2) {
             continueBtn.innerHTML = `
-            Start Study
-            <svg class="nav-icon" viewBox="0 0 24 24">
-                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-            </svg>
-        `;
+                Start Study
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                </svg>
+            `;
         } else {
             continueBtn.innerHTML = `
-            Continue
-            <svg class="nav-icon" viewBox="0 0 24 24">
-                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-            </svg>
-        `;
+                Continue
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                </svg>
+            `;
         }
 
         // Enable validation for Prolific ID step
@@ -522,6 +507,9 @@ class ChatApp {
     /**
      * Populate model comparison table with data
      */
+    /**
+ * Populate model comparison table with data
+ */
     populateModelComparison(comparisonData) {
         const { models, assignedIndex } = comparisonData;
 
@@ -622,8 +610,8 @@ class ChatApp {
     }
 
     /**
- * Animate capability icons with staggered timing
- */
+     * Animate capability icons with staggered timing
+     */
     animateCapabilityIcons() {
         const capabilityRows = document.querySelectorAll('.capability-row');
 
@@ -659,34 +647,6 @@ class ChatApp {
                 }
             }, delay);
         });
-    }
-
-    /**
-     * Shrink and move comparison table to make room for capability cards
-     */
-    shrinkComparisonTable() {
-        const table = document.querySelector('.model-comparison-table');
-        if (table) {
-            table.classList.add('shrink');
-
-            // Hide detailed sections when shrinking
-            setTimeout(() => {
-                const lmarenaSection = table.querySelector('.lmarena-section');
-                const capabilitySection = table.querySelector('.capability-section');
-
-                if (lmarenaSection) {
-                    lmarenaSection.style.display = 'none';
-                }
-
-                // Keep only reasoning and speed rows, hide knowledge
-                if (capabilitySection) {
-                    const knowledgeRow = capabilitySection.querySelector('[data-capability="knowledge"]');
-                    if (knowledgeRow) {
-                        knowledgeRow.style.display = 'none';
-                    }
-                }
-            }, 500);
-        }
     }
 
     /**
@@ -749,6 +709,16 @@ class ChatApp {
 
             popup.style.left = `${rect.left - tableRect.left + (rect.width / 2)}px`;
             popup.classList.add('show');
+        }
+    }
+
+    /**
+     * Shrink and move comparison table
+     */
+    shrinkComparisonTable() {
+        const table = document.querySelector('.model-comparison-table');
+        if (table) {
+            table.classList.add('shrink');
         }
     }
 
