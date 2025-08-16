@@ -541,7 +541,7 @@ class ChatApp {
                 for (let i = 0; i < 4; i++) { // Always show 4 bulbs total
                     const icon = document.createElement('span');
                     icon.className = 'capability-icon-item-inline bulb';
-                    if (i > (4 - model.capabilities.reasoning)) {
+                    if (i > (3 - model.capabilities.reasoning)) {
                         // This bulb should be lit
                         icon.classList.add('lit');
                     }
@@ -558,7 +558,7 @@ class ChatApp {
                 for (let i = 0; i < 4; i++) { // Always show 4 bolts total
                     const icon = document.createElement('span');
                     icon.className = 'capability-icon-item-inline bolt';
-                    if (i > (4 - model.capabilities.speed)) {
+                    if (i > (3 - model.capabilities.speed)) {
                         // This bolt should be lit
                         icon.classList.add('lit');
                     }
@@ -794,16 +794,28 @@ class ChatApp {
      */
     setupWelcomeEventListeners() {
         const continueBtn = document.getElementById('nav-continue');
-
+        let compactModeShown = false; // Track if we've shown compact mode
+        
         continueBtn.addEventListener('click', () => {
+            console.log('Continue clicked, current step:', this.currentStepIndex, 'compact shown:', compactModeShown);
+            
             if (this.currentStepIndex < this.maxSteps - 1) {
                 // Special handling for step 1 (comparison step)
-                if (this.currentStepIndex === 1) {
+                if (this.currentStepIndex === 1 && !compactModeShown) {
+                    console.log('Showing compact mode and cards');
                     this.showCompactModeAndCards();
-                    // Don't advance to next step yet, wait for second click
+                    compactModeShown = true;
+                    return; // Don't advance step yet
+                }
+                
+                // If we're on step 1 and compact mode was already shown, advance to step 2
+                if (this.currentStepIndex === 1 && compactModeShown) {
+                    console.log('Advancing to next step');
+                    this.renderWelcomeStep(this.currentStepIndex + 1);
                     return;
                 }
-
+                
+                // For other steps, advance normally
                 this.renderWelcomeStep(this.currentStepIndex + 1);
             } else if (this.currentStepIndex === 2) {
                 this.handleProlificSubmission();
@@ -812,51 +824,64 @@ class ChatApp {
     }
 
     /**
- * Show compact mode and capability cards, then enable next step
- */
+     * Show compact mode and capability cards, then enable next step
+     */
     showCompactModeAndCards() {
+        console.log('showCompactModeAndCards called');
+        
         const container = document.getElementById('model-comparison-container');
         const comparisonContainer = document.querySelector('.comparison-container');
         const cardsHeader = document.getElementById('capability-cards-header');
         const cards = document.getElementById('capability-cards');
         const continueBtn = document.getElementById('nav-continue');
-
+        
+        console.log('Elements found:', {
+            container: !!container,
+            comparisonContainer: !!comparisonContainer,
+            cardsHeader: !!cardsHeader,
+            cards: !!cards,
+            continueBtn: !!continueBtn
+        });
+        
         // Hide the popup first
         const popup = document.getElementById('assignment-popup');
         if (popup) {
             popup.classList.remove('show');
         }
-
+        
         // Add compact mode
-        container.classList.add('compact');
-        comparisonContainer.classList.add('showing-cards');
-
+        if (container) {
+            container.classList.add('compact');
+            console.log('Added compact class');
+        }
+        if (comparisonContainer) {
+            comparisonContainer.classList.add('showing-cards');
+            console.log('Added showing-cards class');
+        }
+        
+        // Update button text immediately
+        if (continueBtn) {
+            continueBtn.innerHTML = `
+                Continue to ID Entry
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                </svg>
+            `;
+            console.log('Updated button text');
+        }
+        
         // Show capability cards after a short delay
         setTimeout(() => {
             if (cardsHeader) {
                 cardsHeader.classList.add('show');
+                console.log('Showed cards header');
             }
-
+            
             setTimeout(() => {
                 if (cards) {
                     cards.classList.add('show');
+                    console.log('Showed cards');
                 }
-
-                // Update button text and enable next step after cards are shown
-                setTimeout(() => {
-                    continueBtn.innerHTML = `
-                    Continue to ID Entry
-                    <svg class="nav-icon" viewBox="0 0 24 24">
-                        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-                    </svg>
-                `;
-
-                    // Update click handler for next step
-                    continueBtn.onclick = () => {
-                        this.renderWelcomeStep(this.currentStepIndex + 1);
-                    };
-
-                }, 1000);
             }, 300);
         }, 500);
     }
