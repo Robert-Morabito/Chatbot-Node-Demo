@@ -533,6 +533,7 @@ class ChatApp {
         // Populate capability icons in each card with proper lit/unlit states
         document.querySelectorAll('.model-card').forEach((card, modelIndex) => {
             const model = models[modelIndex];
+            if (!model) return; // Safety check
 
             // Populate reasoning icons (always show 4 total, some lit based on capability)
             const reasoningContainer = card.querySelector('[data-capability="reasoning"] .capability-icons-inline');
@@ -546,9 +547,14 @@ class ChatApp {
                         icon.classList.add('lit');
                     }
                     icon.textContent = '💡';
-                    if (icon && icon.style) {  // Add this check
-                        icon.style.animationDelay = `${i * 100}ms`;
-                    }
+
+                    // Wait for the element to be fully created before setting style
+                    requestAnimationFrame(() => {
+                        if (icon && icon.style && icon.parentNode) {
+                            icon.style.animationDelay = `${i * 100}ms`;
+                        }
+                    });
+
                     reasoningContainer.appendChild(icon);
                 }
             }
@@ -565,9 +571,14 @@ class ChatApp {
                         icon.classList.add('lit');
                     }
                     icon.textContent = '⚡';
-                    if (icon && icon.style) {  // Add this check
-                        icon.style.animationDelay = `${i * 100}ms`;
-                    }
+
+                    // Wait for the element to be fully created before setting style
+                    requestAnimationFrame(() => {
+                        if (icon && icon.style && icon.parentNode) {
+                            icon.style.animationDelay = `${i * 100}ms`;
+                        }
+                    });
+
                     speedContainer.appendChild(icon);
                 }
             }
@@ -585,7 +596,7 @@ class ChatApp {
             rankingItems.forEach((item, rankIndex) => {
                 const rankText = item.querySelector('.rank-text-card');
 
-                if (rankText && rankings[rankIndex]) {
+                if (rankText && rankings[rankIndex] && model.lmarena && model.lmarena[rankings[rankIndex]]) {
                     const rank = model.lmarena[rankings[rankIndex]];
                     rankText.textContent = this.formatOrdinal(rank);
                 }
@@ -593,6 +604,8 @@ class ChatApp {
         });
 
         const assignedModel = models[assignedIndex];
+        if (!assignedModel) return; // Safety check
+
         const strengthEl = document.getElementById('strength-text');
         const weaknessEl = document.getElementById('weakness-text');
         const useCaseEl = document.getElementById('usecase-text');
