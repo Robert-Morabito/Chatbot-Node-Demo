@@ -516,8 +516,8 @@ class ChatApp {
     }
 
     /**
- * Populate model comparison cards with data
- */
+     * Populate model comparison cards with data
+     */
     populateModelComparison(comparisonData) {
         const { models, assignedIndex } = comparisonData;
 
@@ -540,7 +540,7 @@ class ChatApp {
             for (let i = 0; i < 4; i++) { // Always show 4 bulbs total
                 const icon = document.createElement('span');
                 icon.className = 'capability-icon-item-inline bulb';
-                if (i < model.capabilities.reasoning) {
+                if (i > (4-model.capabilities.reasoning)) {
                     // This bulb should be lit
                     icon.classList.add('lit');
                 }
@@ -555,7 +555,7 @@ class ChatApp {
             for (let i = 0; i < 4; i++) { // Always show 4 bolts total
                 const icon = document.createElement('span');
                 icon.className = 'capability-icon-item-inline bolt';
-                if (i < model.capabilities.speed) {
+                if (i > (4-model.capabilities.speed)) {
                     // This bolt should be lit
                     icon.classList.add('lit');
                 }
