@@ -451,8 +451,8 @@ class ChatApp {
     }
 
     /**
- * Update navigation buttons - hide popup only when continuing
- */
+     * Update navigation buttons based on current step
+     */
     updateNavigationButtons() {
         const continueBtn = document.getElementById('nav-continue');
 
@@ -463,6 +463,7 @@ class ChatApp {
             return;
         }
 
+        // Make sure button is visible and enabled
         continueBtn.style.opacity = '1';
         continueBtn.style.visibility = 'visible';
         continueBtn.style.display = 'flex';
@@ -471,18 +472,18 @@ class ChatApp {
         // Update button text
         if (this.currentStepIndex === 2) {
             continueBtn.innerHTML = `
-            Start Study
-            <svg class="nav-icon" viewBox="0 0 24 24">
-                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-            </svg>
-        `;
+                Start Study
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                </svg>
+            `;
         } else {
             continueBtn.innerHTML = `
-            Continue
-            <svg class="nav-icon" viewBox="0 0 24 24">
-                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-            </svg>
-        `;
+                Continue
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                </svg>
+            `;
         }
 
         // Enable validation for Prolific ID step
@@ -504,7 +505,7 @@ class ChatApp {
     }
 
     /**
-     * Populate model comparison cards with data
+     * Populate model comparison table with data
      */
     populateModelComparison(comparisonData) {
         const { models, assignedIndex } = comparisonData;
@@ -518,43 +519,33 @@ class ChatApp {
             if (yearEl) yearEl.textContent = model.year;
         });
 
-        // Populate capability icons in each card with placeholders
+        // Populate capability icons in each card
         document.querySelectorAll('.model-card').forEach((card, modelIndex) => {
             const model = models[modelIndex];
 
-            // Populate reasoning icons (4 total, light up the model's amount)
+            // Populate reasoning icons
             const reasoningContainer = card.querySelector('[data-capability="reasoning"] .capability-icons-inline');
             reasoningContainer.innerHTML = '';
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < model.capabilities.reasoning; i++) {
                 const icon = document.createElement('span');
-                if (i < model.capabilities.reasoning) {
-                    icon.className = 'capability-icon-item-inline bulb';
-                    icon.textContent = '💡';
-                    icon.style.animationDelay = `${i * 100}ms`;
-                } else {
-                    icon.className = 'capability-icon-placeholder';
-                    icon.textContent = '💡';
-                }
+                icon.className = 'capability-icon-item-inline bulb';
+                icon.textContent = '💡';
+                icon.style.animationDelay = `${i * 100}ms`;
                 reasoningContainer.appendChild(icon);
             }
 
-            // Populate speed icons (4 total, light up the model's amount)
+            // Populate speed icons
             const speedContainer = card.querySelector('[data-capability="speed"] .capability-icons-inline');
             speedContainer.innerHTML = '';
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < model.capabilities.speed; i++) {
                 const icon = document.createElement('span');
-                if (i < model.capabilities.speed) {
-                    icon.className = 'capability-icon-item-inline bolt';
-                    icon.textContent = '⚡';
-                    icon.style.animationDelay = `${i * 100}ms`;
-                } else {
-                    icon.className = 'capability-icon-placeholder';
-                    icon.textContent = '⚡';
-                }
+                icon.className = 'capability-icon-item-inline bolt';
+                icon.textContent = '⚡';
+                icon.style.animationDelay = `${i * 100}ms`;
                 speedContainer.appendChild(icon);
             }
 
-            // Populate knowledge cutoff date
+            // Populate knowledge date
             const knowledgeEl = card.querySelector('.knowledge-date-inline');
             knowledgeEl.textContent = model.capabilities.knowledge;
 
@@ -569,10 +560,12 @@ class ChatApp {
 
                 rankText.textContent = this.formatOrdinal(rank);
 
-                // Show crown for top performers across all models in this category
-                const allRanks = models.map(m => m.lmarena[rankings[rankIndex]]);
-                const bestRank = Math.min(...allRanks);
-                const shouldShowCrown = rank === bestRank;
+                // Show crown for best ranks (you can adjust this logic)
+                const shouldShowCrown = (
+                    (rankings[rankIndex] === 'creative' && rank <= 10) ||
+                    (rankings[rankIndex] === 'instruction' && rank <= 5) ||
+                    (rankings[rankIndex] === 'hard' && rank <= 5)
+                );
 
                 crown.style.display = shouldShowCrown ? 'block' : 'none';
             });
@@ -583,12 +576,6 @@ class ChatApp {
         document.getElementById('strength-text').textContent = assignedModel.strengths;
         document.getElementById('weakness-text').textContent = assignedModel.weaknesses;
         document.getElementById('usecase-text').textContent = assignedModel.bestFor;
-
-        // Update the capability cards header with the assigned model name
-        const capabilityTitle = document.getElementById('capability-cards-title');
-        if (capabilityTitle) {
-            capabilityTitle.textContent = `Things to know about ${assignedModel.name}`;
-        }
     }
 
     /**
@@ -683,8 +670,8 @@ class ChatApp {
     }
 
     /**
-     * Animate capabilities within each card
-     */
+ * Animate capabilities within each card
+ */
     animateCardCapabilities() {
         document.querySelectorAll('.model-card').forEach((card, cardIndex) => {
             const baseDelay = cardIndex * 200; // Stagger between cards
@@ -726,8 +713,8 @@ class ChatApp {
     }
 
     /**
-     * Highlight the assigned model
-     */
+ * Highlight the assigned model
+ */
     highlightAssignedModel(assignedIndex) {
         const modelCard = document.querySelector(`.model-card[data-model="${assignedIndex}"]`);
         if (modelCard) {
@@ -736,8 +723,8 @@ class ChatApp {
     }
 
     /**
-     * Show assignment popup above the assigned model (persistent)
-     */
+ * Show assignment popup above the assigned model
+ */
     showAssignmentPopup(assignedIndex) {
         const popup = document.getElementById('assignment-popup');
         const assignedCard = document.querySelector(`.model-card[data-model="${assignedIndex}"]`);
@@ -747,7 +734,7 @@ class ChatApp {
             const containerRect = document.querySelector('.comparison-container').getBoundingClientRect();
 
             popup.style.left = `${rect.left - containerRect.left + (rect.width / 2)}px`;
-            popup.classList.add('show', 'persistent'); // Add persistent class
+            popup.classList.add('show');
         }
     }
 
@@ -772,8 +759,8 @@ class ChatApp {
     }
 
     /**
-     * Show capability cards
-     */
+ * Show capability cards
+ */
     showCapabilityCards() {
         const cards = document.getElementById('capability-cards');
         if (cards) {
@@ -782,20 +769,12 @@ class ChatApp {
     }
 
     /**
-     * Set up welcome event listeners - hide popup on continue
+     * Set up welcome event listeners
      */
     setupWelcomeEventListeners() {
         const continueBtn = document.getElementById('nav-continue');
 
         continueBtn.addEventListener('click', () => {
-            // Hide popup when continuing from comparison step
-            if (this.currentStepIndex === 1) {
-                const popup = document.getElementById('assignment-popup');
-                if (popup) {
-                    popup.classList.remove('show', 'persistent');
-                }
-            }
-
             if (this.currentStepIndex < this.maxSteps - 1) {
                 this.renderWelcomeStep(this.currentStepIndex + 1);
             } else if (this.currentStepIndex === 2) {

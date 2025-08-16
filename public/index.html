@@ -79,17 +79,16 @@
                                     <div class="capability-icons-inline" data-count="2"></div>
                                 </div>
 
-                                <!-- Change "Knowledge" to "Knowledge Cutoff" -->
                                 <div class="capability-item" data-capability="knowledge" data-delay="400">
                                     <div class="capability-item-label">
                                         <span class="capability-icon-small">📅</span>
-                                        <span>Knowledge Cutoff</span>
+                                        <span>Knowledge</span>
                                     </div>
                                     <div class="knowledge-date-inline" data-model="0">Sept 2021</div>
                                 </div>
 
                                 <div class="lmarena-section-card">
-                                    <div class="lmarena-title-card">Global Rankings</div>
+                                    <div class="lmarena-title-card">LMArena Rankings</div>
 
                                     <div class="ranking-item" data-delay="600">
                                         <div class="ranking-label-card">Creative Writing</div>
@@ -248,223 +247,214 @@
 
                         <!-- Capability Cards (appear after cards shrink) -->
                         <div class="capability-cards" id="capability-cards">
-                            <!-- Add header above the cards -->
-                            <div class="capability-cards-header">
-                                <h3 id="capability-cards-title">Things to know about GPT-4</h3>
+                            <div class="capability-card strength-card">
+                                <div class="card-indicator"></div>
+                                <h4>Strengths</h4>
+                                <p id="strength-text">Excellent at complex reasoning and creative problem-solving tasks.
+                                </p>
                             </div>
 
-                            <div class="capability-cards-grid">
-                                <div class="capability-card strength-card">
-                                    <div class="card-indicator"></div>
-                                    <h4>Strengths</h4>
-                                    <p id="strength-text">Excellent at complex reasoning and creative problem-solving
-                                        tasks.</p>
-                                </div>
-
-                                <div class="capability-card weakness-card">
-                                    <div class="card-indicator"></div>
-                                    <h4>Considerations</h4>
-                                    <p id="weakness-text">Takes more time to process complex requests thoroughly.</p>
-                                </div>
-
-                                <div class="capability-card usecase-card">
-                                    <div class="card-indicator"></div>
-                                    <h4>Best For</h4>
-                                    <p id="usecase-text">Creative writing, professional communication, and complex
-                                        analysis.</p>
-                                </div>
+                            <div class="capability-card weakness-card">
+                                <div class="card-indicator"></div>
+                                <h4>Considerations</h4>
+                                <p id="weakness-text">Takes more time to process complex requests thoroughly.</p>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Step 3: Prolific ID Entry -->
-                    <div class="content-panel id-panel">
-                        <div class="content-card">
-                            <h1 class="content-title">Enter Your ID</h1>
-                            <p class="content-subtitle">We'll use this to connect your responses with the study</p>
-                            <div class="id-input-system">
-                                <div class="input-group">
-                                    <input type="text" id="prolific-input" class="input-field"
-                                        placeholder="24-character Prolific ID" maxlength="24" autocomplete="off">
-                                    <div id="input-error" class="input-error"></div>
-                                    <div class="input-hint">Your ID should contain exactly 24 letters and numbers</div>
-                                </div>
+                            <div class="capability-card usecase-card">
+                                <div class="card-indicator"></div>
+                                <h4>Best For</h4>
+                                <p id="usecase-text">Creative writing, professional communication, and complex analysis.
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Navigation System -->
-                <div class="navigation-system">
-                    <button id="nav-continue" class="nav-button nav-primary">
-                        Continue
-                        <svg class="nav-icon" viewBox="0 0 24 24">
-                            <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z" />
-                        </svg>
+                <!-- Step 3: Prolific ID Entry -->
+                <div class="content-panel id-panel">
+                    <div class="content-card">
+                        <h1 class="content-title">Enter Your ID</h1>
+                        <p class="content-subtitle">We'll use this to connect your responses with the study</p>
+                        <div class="id-input-system">
+                            <div class="input-group">
+                                <input type="text" id="prolific-input" class="input-field"
+                                    placeholder="24-character Prolific ID" maxlength="24" autocomplete="off">
+                                <div id="input-error" class="input-error"></div>
+                                <div class="input-hint">Your ID should contain exactly 24 letters and numbers</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation System -->
+            <div class="navigation-system">
+                <button id="nav-continue" class="nav-button nav-primary">
+                    Continue
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Finish Study Button -->
+    <button id="finish-btn" class="finish-btn" aria-label="Finish study and download data">
+        Finish
+    </button>
+
+    <!-- Finish Confirmation Modal (hidden by default) -->
+    <div id="finish-confirmation-modal" class="modal-backdrop" style="display: none;">
+        <div class="finish-confirmation-dialog">
+            <h3>Complete Study</h3>
+            <p>Clicking continue will download your conversation data and close the chat window, completing the study.
+                Please only do this when all the study tasks have been completed.</p>
+            <p class="finish-warning">Do you wish to continue?</p>
+            <div class="finish-buttons">
+                <button id="finish-cancel-btn" class="finish-button finish-cancel">Cancel</button>
+                <button id="finish-confirm-btn" class="finish-button finish-confirm">Complete Study</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Finish Loading Indicator (hidden by default) -->
+    <div id="finish-loading-indicator" class="finish-loading-indicator" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>Preparing your study data...</p>
+    </div>
+
+    <!-- Main Application Container -->
+    <div class="app-container">
+        <!-- Sidebar for conversation history -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <button id="sidebar-toggle" class="sidebar-toggle">☰</button>
+                <div class="task-tabs">
+                    <button class="task-tab active" data-task="image-generation">
+                        <span class="task-icon">🎨</span>
+                    </button>
+                    <button class="task-tab" data-task="social-media">
+                        <span class="task-icon">📱</span>
+                    </button>
+                    <button class="task-tab" data-task="acronym-building">
+                        <span class="task-icon">🔤</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="conversation-section">
+                <div class="task-header" id="task-header">
+                    <span class="task-title">Image Generation</span>
+                </div>
+
+                <div class="new-chat-container">
+                    <button id="new-chat-btn" class="new-chat-btn">
+                        <span class="plus-icon">+</span>
+                        <span class="new-chat-label">New Chat</span>
+                    </button>
+                </div>
+
+                <div class="conversation-list" id="conversation-list">
+                    <!-- Task-specific conversations will be dynamically added here -->
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="theme-toggle">
+                    <input type="checkbox" id="theme-switch" class="theme-checkbox">
+                    <label for="theme-switch" class="theme-label">
+                        <span class="theme-icon-dark">🌙</span>
+                        <span class="theme-icon-light">☀️</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="main-content">
+            <!-- Header Section -->
+            <div class="header">
+                <button id="mobile-sidebar-toggle" class="mobile-sidebar-toggle">☰</button>
+                <h1 id="bot-name" class="bot-name">Connected to GPT-4</h1>
+                <div class="header-actions">
+                    <!-- Add timer element here -->
+                    <div class="session-timer" id="session-timer">
+                        <span class="timer-text" id="timer-display">00:00:00</span>
+                    </div>
+                    <div class="participant-display" id="participant-display">
+                        <span style="font-size: 12px; color: var(--text-secondary-dark); margin-right: 8px;">ID:</span>
+                        <span style="font-family: monospace; font-weight: bold; color: var(white);"
+                            id="header-participant-id">------</span>
+                    </div>
+                    <button id="save-chat-btn" class="save-btn" title="Save Current Chat">💾</button>
+                </div>
+            </div>
+
+            <!-- Chat Container -->
+            <div id="chat-container" class="chat-container">
+                <div id="messages" class="messages">
+                    <!-- Welcome message -->
+                    <div class="welcome-message">
+                        <div class="welcome-content">
+                            <h2>Welcome to ChatBot</h2>
+                            <p>Start a conversation with <strong id="welcome-model-name">GPT-4</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <div class="input-container">
+                    <textarea id="message-input" class="message-input" placeholder="Type your message..."
+                        rows="1"></textarea>
+                    <button id="send-btn" class="send-btn" title="Send message">
+                        <span class="send-icon">➤</span>
                     </button>
                 </div>
             </div>
         </div>
+    </div>
 
+    <!-- Image Modal (for full-size viewing) -->
+    <div id="image-modal" class="image-modal">
+        <img id="modal-image" src="" alt="Full size image">
+        <button class="close-button" id="close-image-modal">×</button>
+    </div>
 
-        <!-- Finish Study Button -->
-        <button id="finish-btn" class="finish-btn" aria-label="Finish study and download data">
-            Finish
-        </button>
-
-        <!-- Finish Confirmation Modal (hidden by default) -->
-        <div id="finish-confirmation-modal" class="modal-backdrop" style="display: none;">
-            <div class="finish-confirmation-dialog">
-                <h3>Complete Study</h3>
-                <p>Clicking continue will download your conversation data and close the chat window, completing the
-                    study.
-                    Please only do this when all the study tasks have been completed.</p>
-                <p class="finish-warning">Do you wish to continue?</p>
-                <div class="finish-buttons">
-                    <button id="finish-cancel-btn" class="finish-button finish-cancel">Cancel</button>
-                    <button id="finish-confirm-btn" class="finish-button finish-confirm">Complete Study</button>
+    <!-- Error Modal -->
+    <div id="error-modal" class="modal-backdrop" style="display: none;">
+        <div class="error-modal-dialog">
+            <div class="error-modal-header">
+                <h3>⚠️ Connection Error</h3>
+                <button class="error-modal-close" id="error-modal-close">×</button>
+            </div>
+            <div class="error-modal-body">
+                <p>We're experiencing technical difficulties connecting to the AI service.</p>
+                <div class="error-details">
+                    <strong>Error Code:</strong> <span id="error-code">UNKNOWN</span>
+                </div>
+                <div class="error-instructions">
+                    <p><strong>What to do:</strong></p>
+                    <ol>
+                        <li>Please take a screenshot of this error</li>
+                        <li>Contact us through Prolific messaging</li>
+                        <li>Include your Participant ID: <strong id="error-participant-id">N/A</strong></li>
+                        <li>Include the error code shown above</li>
+                    </ol>
+                    <p class="error-note">We'll resolve this quickly and ensure you're compensated for your time.</p>
                 </div>
             </div>
-        </div>
-
-        <!-- Finish Loading Indicator (hidden by default) -->
-        <div id="finish-loading-indicator" class="finish-loading-indicator" style="display: none;">
-            <div class="loading-spinner"></div>
-            <p>Preparing your study data...</p>
-        </div>
-
-        <!-- Main Application Container -->
-        <div class="app-container">
-            <!-- Sidebar for conversation history -->
-            <div class="sidebar" id="sidebar">
-                <div class="sidebar-header">
-                    <button id="sidebar-toggle" class="sidebar-toggle">☰</button>
-                    <div class="task-tabs">
-                        <button class="task-tab active" data-task="image-generation">
-                            <span class="task-icon">🎨</span>
-                        </button>
-                        <button class="task-tab" data-task="social-media">
-                            <span class="task-icon">📱</span>
-                        </button>
-                        <button class="task-tab" data-task="acronym-building">
-                            <span class="task-icon">🔤</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="conversation-section">
-                    <div class="task-header" id="task-header">
-                        <span class="task-title">Image Generation</span>
-                    </div>
-
-                    <div class="new-chat-container">
-                        <button id="new-chat-btn" class="new-chat-btn">
-                            <span class="plus-icon">+</span>
-                            <span class="new-chat-label">New Chat</span>
-                        </button>
-                    </div>
-
-                    <div class="conversation-list" id="conversation-list">
-                        <!-- Task-specific conversations will be dynamically added here -->
-                    </div>
-                </div>
-
-                <div class="sidebar-footer">
-                    <div class="theme-toggle">
-                        <input type="checkbox" id="theme-switch" class="theme-checkbox">
-                        <label for="theme-switch" class="theme-label">
-                            <span class="theme-icon-dark">🌙</span>
-                            <span class="theme-icon-light">☀️</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main Chat Area -->
-            <div class="main-content">
-                <!-- Header Section -->
-                <div class="header">
-                    <button id="mobile-sidebar-toggle" class="mobile-sidebar-toggle">☰</button>
-                    <h1 id="bot-name" class="bot-name">Connected to GPT-4</h1>
-                    <div class="header-actions">
-                        <!-- Add timer element here -->
-                        <div class="session-timer" id="session-timer">
-                            <span class="timer-text" id="timer-display">00:00:00</span>
-                        </div>
-                        <div class="participant-display" id="participant-display">
-                            <span
-                                style="font-size: 12px; color: var(--text-secondary-dark); margin-right: 8px;">ID:</span>
-                            <span style="font-family: monospace; font-weight: bold; color: var(white);"
-                                id="header-participant-id">------</span>
-                        </div>
-                        <button id="save-chat-btn" class="save-btn" title="Save Current Chat">💾</button>
-                    </div>
-                </div>
-
-                <!-- Chat Container -->
-                <div id="chat-container" class="chat-container">
-                    <div id="messages" class="messages">
-                        <!-- Welcome message -->
-                        <div class="welcome-message">
-                            <div class="welcome-content">
-                                <h2>Welcome to ChatBot</h2>
-                                <p>Start a conversation with <strong id="welcome-model-name">GPT-4</strong></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Input Area -->
-                <div class="input-area">
-                    <div class="input-container">
-                        <textarea id="message-input" class="message-input" placeholder="Type your message..."
-                            rows="1"></textarea>
-                        <button id="send-btn" class="send-btn" title="Send message">
-                            <span class="send-icon">➤</span>
-                        </button>
-                    </div>
-                </div>
+            <div class="error-modal-footer">
+                <button id="error-try-again" class="error-button error-primary">Try Again</button>
+                <button id="error-close" class="error-button error-secondary">Close</button>
             </div>
         </div>
+    </div>
 
-        <!-- Image Modal (for full-size viewing) -->
-        <div id="image-modal" class="image-modal">
-            <img id="modal-image" src="" alt="Full size image">
-            <button class="close-button" id="close-image-modal">×</button>
-        </div>
-
-        <!-- Error Modal -->
-        <div id="error-modal" class="modal-backdrop" style="display: none;">
-            <div class="error-modal-dialog">
-                <div class="error-modal-header">
-                    <h3>⚠️ Connection Error</h3>
-                    <button class="error-modal-close" id="error-modal-close">×</button>
-                </div>
-                <div class="error-modal-body">
-                    <p>We're experiencing technical difficulties connecting to the AI service.</p>
-                    <div class="error-details">
-                        <strong>Error Code:</strong> <span id="error-code">UNKNOWN</span>
-                    </div>
-                    <div class="error-instructions">
-                        <p><strong>What to do:</strong></p>
-                        <ol>
-                            <li>Please take a screenshot of this error</li>
-                            <li>Contact us through Prolific messaging</li>
-                            <li>Include your Participant ID: <strong id="error-participant-id">N/A</strong></li>
-                            <li>Include the error code shown above</li>
-                        </ol>
-                        <p class="error-note">We'll resolve this quickly and ensure you're compensated for your time.
-                        </p>
-                    </div>
-                </div>
-                <div class="error-modal-footer">
-                    <button id="error-try-again" class="error-button error-primary">Try Again</button>
-                    <button id="error-close" class="error-button error-secondary">Close</button>
-                </div>
-            </div>
-        </div>
-
-        <script src="chat.js"></script>
+    <script src="chat.js"></script>
 </body>
 
 </html>
