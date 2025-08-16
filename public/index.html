@@ -54,147 +54,198 @@
                             <p>Here's how today's models compare across key capabilities</p>
                         </div>
 
-                        <!-- Model Comparison Table -->
-                        <div class="model-comparison-table" id="comparison-table">
-                            <!-- Headers -->
-                            <div class="model-headers" id="model-headers">
-                                <div class="model-header" data-model="0">
-                                    <h3 class="model-name" id="model-name-0">GPT-3.5</h3>
-                                    <p class="model-year" id="model-year-0">2022</p>
-                                </div>
-                                <div class="model-header" data-model="1">
-                                    <h3 class="model-name" id="model-name-1">GPT-4</h3>
-                                    <p class="model-year" id="model-year-1">2023</p>
-                                </div>
-                                <div class="model-header" data-model="2">
-                                    <h3 class="model-name" id="model-name-2">GPT-5</h3>
-                                    <p class="model-year" id="model-year-2">2024</p>
-                                </div>
-                            </div>
-
-                            <!-- Capability Rows -->
-                            <div class="capability-section" id="capability-section">
-                                <div class="capability-row" data-capability="reasoning">
-                                    <div class="capability-label">
-                                        <span class="capability-icon">💡</span>
-                                        <span>Reasoning Power</span>
-                                    </div>
-                                    <div class="capability-icons">
-                                        <div class="icon-container" data-model="0">
-                                            <div class="capability-icons-group" data-count="1"></div>
-                                        </div>
-                                        <div class="icon-container" data-model="1">
-                                            <div class="capability-icons-group" data-count="2"></div>
-                                        </div>
-                                        <div class="icon-container" data-model="2">
-                                            <div class="capability-icons-group" data-count="4"></div>
-                                        </div>
-                                    </div>
+                        <!-- Model Cards Container -->
+                        <div class="model-comparison-container" id="model-comparison-container">
+                            <!-- Model Card 1 -->
+                            <div class="model-card" data-model="0">
+                                <div class="model-header-card">
+                                    <h3 class="model-name-card" id="model-name-card-0">GPT-3.5</h3>
+                                    <p class="model-year-card" id="model-year-card-0">2022</p>
                                 </div>
 
-                                <div class="capability-row" data-capability="speed">
-                                    <div class="capability-label">
-                                        <span class="capability-icon">⚡</span>
-                                        <span>Response Speed</span>
+                                <div class="capability-item" data-capability="reasoning" data-delay="0">
+                                    <div class="capability-item-label">
+                                        <span class="capability-icon-small">💡</span>
+                                        <span>Reasoning</span>
                                     </div>
-                                    <div class="capability-icons">
-                                        <div class="icon-container" data-model="0">
-                                            <div class="capability-icons-group" data-count="2"></div>
-                                        </div>
-                                        <div class="icon-container" data-model="1">
-                                            <div class="capability-icons-group" data-count="3"></div>
-                                        </div>
-                                        <div class="icon-container" data-model="2">
-                                            <div class="capability-icons-group" data-count="3"></div>
-                                        </div>
-                                    </div>
+                                    <div class="capability-icons-inline" data-count="1"></div>
                                 </div>
 
-                                <div class="capability-row" data-capability="knowledge">
-                                    <div class="capability-label">
-                                        <span class="capability-icon">📅</span>
-                                        <span>Knowledge Cutoff</span>
+                                <div class="capability-item" data-capability="speed" data-delay="200">
+                                    <div class="capability-item-label">
+                                        <span class="capability-icon-small">⚡</span>
+                                        <span>Speed</span>
                                     </div>
-                                    <div class="capability-knowledge">
-                                        <div class="knowledge-date" data-model="0">Sept 2021</div>
-                                        <div class="knowledge-date" data-model="1">Dec 2023</div>
-                                        <div class="knowledge-date" data-model="2">Sept 2024</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- LMArena Rankings -->
-                            <div class="lmarena-section" id="lmarena-section">
-                                <div class="lmarena-title">
-                                    <span class="lmarena-icon">🏆</span>
-                                    LMArena Global Rankings
+                                    <div class="capability-icons-inline" data-count="2"></div>
                                 </div>
 
-                                <div class="ranking-row">
-                                    <div class="ranking-label">Creative Writing</div>
-                                    <div class="ranking-values">
-                                        <div class="ranking-value" data-model="0" data-rank="139">
-                                            <div class="rank-crown" style="display: none;">👑</div>
-                                            <div class="rank-text">139th</div>
-                                        </div>
-                                        <div class="ranking-value" data-model="1" data-rank="88">
-                                            <div class="rank-crown" style="display: none;">👑</div>
-                                            <div class="rank-text">88th</div>
-                                        </div>
-                                        <div class="ranking-value" data-model="2" data-rank="3">
-                                            <div class="rank-crown">👑</div>
-                                            <div class="rank-text">3rd</div>
-                                        </div>
+                                <div class="capability-item" data-capability="knowledge" data-delay="400">
+                                    <div class="capability-item-label">
+                                        <span class="capability-icon-small">📅</span>
+                                        <span>Knowledge</span>
                                     </div>
+                                    <div class="knowledge-date-inline" data-model="0">Sept 2021</div>
                                 </div>
 
-                                <div class="ranking-row">
-                                    <div class="ranking-label">Instruction Following</div>
-                                    <div class="ranking-values">
-                                        <div class="ranking-value" data-model="0" data-rank="139">
-                                            <div class="rank-crown" style="display: none;">👑</div>
-                                            <div class="rank-text">139th</div>
-                                        </div>
-                                        <div class="ranking-value" data-model="1" data-rank="102">
-                                            <div class="rank-crown" style="display: none;">👑</div>
-                                            <div class="rank-text">102nd</div>
-                                        </div>
-                                        <div class="ranking-value" data-model="2" data-rank="1">
-                                            <div class="rank-crown">👑</div>
-                                            <div class="rank-text">1st</div>
+                                <div class="lmarena-section-card">
+                                    <div class="lmarena-title-card">LMArena Rankings</div>
+
+                                    <div class="ranking-item" data-delay="600">
+                                        <div class="ranking-label-card">Creative Writing</div>
+                                        <div class="ranking-value-card">
+                                            <div class="rank-crown-card">👑</div>
+                                            <div class="rank-text-card">139th</div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="ranking-row">
-                                    <div class="ranking-label">Hard Prompts</div>
-                                    <div class="ranking-values">
-                                        <div class="ranking-value" data-model="0" data-rank="144">
-                                            <div class="rank-crown" style="display: none;">👑</div>
-                                            <div class="rank-text">144th</div>
+                                    <div class="ranking-item" data-delay="700">
+                                        <div class="ranking-label-card">Instruction Following</div>
+                                        <div class="ranking-value-card">
+                                            <div class="rank-crown-card">👑</div>
+                                            <div class="rank-text-card">139th</div>
                                         </div>
-                                        <div class="ranking-value" data-model="1" data-rank="110">
-                                            <div class="rank-crown" style="display: none;">👑</div>
-                                            <div class="rank-text">110th</div>
-                                        </div>
-                                        <div class="ranking-value" data-model="2" data-rank="1">
-                                            <div class="rank-crown">👑</div>
-                                            <div class="rank-text">1st</div>
+                                    </div>
+
+                                    <div class="ranking-item" data-delay="800">
+                                        <div class="ranking-label-card">Hard Prompts</div>
+                                        <div class="ranking-value-card">
+                                            <div class="rank-crown-card">👑</div>
+                                            <div class="rank-text-card">144th</div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Assignment Popup -->
-                            <div class="assignment-popup" id="assignment-popup">
-                                <div class="popup-content">
-                                    <div class="popup-icon">✨</div>
-                                    <div class="popup-text">This is your AI assistant for today</div>
+                            <!-- Model Card 2 -->
+                            <div class="model-card" data-model="1">
+                                <div class="model-header-card">
+                                    <h3 class="model-name-card" id="model-name-card-1">GPT-4</h3>
+                                    <p class="model-year-card" id="model-year-card-1">2023</p>
+                                </div>
+
+                                <div class="capability-item" data-capability="reasoning" data-delay="0">
+                                    <div class="capability-item-label">
+                                        <span class="capability-icon-small">💡</span>
+                                        <span>Reasoning</span>
+                                    </div>
+                                    <div class="capability-icons-inline" data-count="2"></div>
+                                </div>
+
+                                <div class="capability-item" data-capability="speed" data-delay="200">
+                                    <div class="capability-item-label">
+                                        <span class="capability-icon-small">⚡</span>
+                                        <span>Speed</span>
+                                    </div>
+                                    <div class="capability-icons-inline" data-count="3"></div>
+                                </div>
+
+                                <div class="capability-item" data-capability="knowledge" data-delay="400">
+                                    <div class="capability-item-label">
+                                        <span class="capability-icon-small">📅</span>
+                                        <span>Knowledge</span>
+                                    </div>
+                                    <div class="knowledge-date-inline" data-model="1">Dec 2023</div>
+                                </div>
+
+                                <div class="lmarena-section-card">
+                                    <div class="lmarena-title-card">LMArena Rankings</div>
+
+                                    <div class="ranking-item" data-delay="600">
+                                        <div class="ranking-label-card">Creative Writing</div>
+                                        <div class="ranking-value-card">
+                                            <div class="rank-crown-card">👑</div>
+                                            <div class="rank-text-card">88th</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="ranking-item" data-delay="700">
+                                        <div class="ranking-label-card">Instruction Following</div>
+                                        <div class="ranking-value-card">
+                                            <div class="rank-crown-card">👑</div>
+                                            <div class="rank-text-card">102nd</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="ranking-item" data-delay="800">
+                                        <div class="ranking-label-card">Hard Prompts</div>
+                                        <div class="ranking-value-card">
+                                            <div class="rank-crown-card">👑</div>
+                                            <div class="rank-text-card">110th</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Model Card 3 -->
+                            <div class="model-card" data-model="2">
+                                <div class="model-header-card">
+                                    <h3 class="model-name-card" id="model-name-card-2">GPT-5</h3>
+                                    <p class="model-year-card" id="model-year-card-2">2024</p>
+                                </div>
+
+                                <div class="capability-item" data-capability="reasoning" data-delay="0">
+                                    <div class="capability-item-label">
+                                        <span class="capability-icon-small">💡</span>
+                                        <span>Reasoning</span>
+                                    </div>
+                                    <div class="capability-icons-inline" data-count="4"></div>
+                                </div>
+
+                                <div class="capability-item" data-capability="speed" data-delay="200">
+                                    <div class="capability-item-label">
+                                        <span class="capability-icon-small">⚡</span>
+                                        <span>Speed</span>
+                                    </div>
+                                    <div class="capability-icons-inline" data-count="3"></div>
+                                </div>
+
+                                <div class="capability-item" data-capability="knowledge" data-delay="400">
+                                    <div class="capability-item-label">
+                                        <span class="capability-icon-small">📅</span>
+                                        <span>Knowledge</span>
+                                    </div>
+                                    <div class="knowledge-date-inline" data-model="2">Sept 2024</div>
+                                </div>
+
+                                <div class="lmarena-section-card">
+                                    <div class="lmarena-title-card">LMArena Rankings</div>
+
+                                    <div class="ranking-item" data-delay="600">
+                                        <div class="ranking-label-card">Creative Writing</div>
+                                        <div class="ranking-value-card">
+                                            <div class="rank-crown-card">👑</div>
+                                            <div class="rank-text-card">3rd</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="ranking-item" data-delay="700">
+                                        <div class="ranking-label-card">Instruction Following</div>
+                                        <div class="ranking-value-card">
+                                            <div class="rank-crown-card">👑</div>
+                                            <div class="rank-text-card">1st</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="ranking-item" data-delay="800">
+                                        <div class="ranking-label-card">Hard Prompts</div>
+                                        <div class="ranking-value-card">
+                                            <div class="rank-crown-card">👑</div>
+                                            <div class="rank-text-card">1st</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Capability Cards (appear after table shrinks) -->
+                        <!-- Assignment Popup -->
+                        <div class="assignment-popup" id="assignment-popup">
+                            <div class="popup-content">
+                                <div class="popup-icon">✨</div>
+                                <div class="popup-text">This is your AI assistant for today</div>
+                            </div>
+                        </div>
+
+                        <!-- Capability Cards (appear after cards shrink) -->
                         <div class="capability-cards" id="capability-cards">
                             <div class="capability-card strength-card">
                                 <div class="card-indicator"></div>

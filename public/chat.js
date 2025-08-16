@@ -507,89 +507,67 @@ class ChatApp {
     /**
      * Populate model comparison table with data
      */
-    /**
- * Populate model comparison table with data
- */
     populateModelComparison(comparisonData) {
         const { models, assignedIndex } = comparisonData;
 
         // Populate headers
         models.forEach((model, index) => {
-            const nameEl = document.getElementById(`model-name-${index}`);
-            const yearEl = document.getElementById(`model-year-${index}`);
+            const nameEl = document.getElementById(`model-name-card-${index}`);
+            const yearEl = document.getElementById(`model-year-card-${index}`);
 
             if (nameEl) nameEl.textContent = model.name;
             if (yearEl) yearEl.textContent = model.year;
         });
 
-        // Populate capability icons
-        document.querySelectorAll('.capability-icons-group').forEach(group => {
-            const container = group.closest('.icon-container');
-            const modelIndex = parseInt(container.dataset.model);
-            const capabilityRow = group.closest('.capability-row');
-            const capability = capabilityRow.dataset.capability;
+        // Populate capability icons in each card
+        document.querySelectorAll('.model-card').forEach((card, modelIndex) => {
+            const model = models[modelIndex];
 
-            let count, iconType;
-            switch (capability) {
-                case 'reasoning':
-                    count = models[modelIndex].capabilities.reasoning;
-                    iconType = 'bulb';
-                    break;
-                case 'speed':
-                    count = models[modelIndex].capabilities.speed;
-                    iconType = 'bolt';
-                    break;
-            }
-
-            group.innerHTML = '';
-            for (let i = 0; i < count; i++) {
+            // Populate reasoning icons
+            const reasoningContainer = card.querySelector('[data-capability="reasoning"] .capability-icons-inline');
+            reasoningContainer.innerHTML = '';
+            for (let i = 0; i < model.capabilities.reasoning; i++) {
                 const icon = document.createElement('span');
-                icon.className = `capability-icon-item ${iconType}`;
-                icon.textContent = iconType === 'bulb' ? '💡' : '⚡';
+                icon.className = 'capability-icon-item-inline bulb';
+                icon.textContent = '💡';
                 icon.style.animationDelay = `${i * 100}ms`;
-                group.appendChild(icon);
+                reasoningContainer.appendChild(icon);
             }
-        });
 
-        // Populate knowledge dates
-        document.querySelectorAll('.knowledge-date').forEach(dateEl => {
-            const modelIndex = parseInt(dateEl.dataset.model);
-            dateEl.textContent = models[modelIndex].capabilities.knowledge;
-        });
+            // Populate speed icons
+            const speedContainer = card.querySelector('[data-capability="speed"] .capability-icons-inline');
+            speedContainer.innerHTML = '';
+            for (let i = 0; i < model.capabilities.speed; i++) {
+                const icon = document.createElement('span');
+                icon.className = 'capability-icon-item-inline bolt';
+                icon.textContent = '⚡';
+                icon.style.animationDelay = `${i * 100}ms`;
+                speedContainer.appendChild(icon);
+            }
 
-        // Populate LMArena rankings with proper ordinals and crowns
-        const rankingRows = document.querySelectorAll('.ranking-row');
-        rankingRows.forEach((row, rowIndex) => {
-            if (rowIndex === 0) return; // Skip title row
+            // Populate knowledge date
+            const knowledgeEl = card.querySelector('.knowledge-date-inline');
+            knowledgeEl.textContent = model.capabilities.knowledge;
 
-            const values = row.querySelectorAll('.ranking-value');
-            const rankType = ['creative', 'instruction', 'hard'][rowIndex - 1];
+            // Populate LMArena rankings
+            const rankingItems = card.querySelectorAll('.ranking-item');
+            const rankings = ['creative', 'instruction', 'hard'];
 
-            // Find the best rank (lowest number) for crown placement
-            let bestRank = Infinity;
-            let bestModelIndex = -1;
-
-            values.forEach((valueEl, modelIndex) => {
-                const rank = models[modelIndex].lmarena[rankType];
-                if (rank < bestRank) {
-                    bestRank = rank;
-                    bestModelIndex = modelIndex;
-                }
-            });
-
-            values.forEach((valueEl, modelIndex) => {
-                const rank = models[modelIndex].lmarena[rankType];
-                const rankText = valueEl.querySelector('.rank-text');
-                const crown = valueEl.querySelector('.rank-crown');
+            rankingItems.forEach((item, rankIndex) => {
+                const rankText = item.querySelector('.rank-text-card');
+                const crown = item.querySelector('.rank-crown-card');
+                const rank = model.lmarena[rankings[rankIndex]];
 
                 rankText.textContent = this.formatOrdinal(rank);
 
-                // Show crown only for the best rank
-                if (modelIndex === bestModelIndex) {
-                    crown.style.display = 'block';
-                } else {
-                    crown.style.display = 'none';
-                }
+                // Show crown for best ranks (you can adjust this logic)
+                const shouldShowCrown = (
+                    (rankings[rankIndex] === 'creative' && rank <= 10) ||
+                    (rankings[rankIndex] === 'instruction' && rank <= 5) ||
+                    (rankings[rankIndex] === 'hard' && rank <= 5)
+                );
+
+                crown.style.display = shouldShowCrown ? 'block' : 'none';
             });
         });
 
@@ -656,19 +634,35 @@ class ChatApp {
         const { assignedIndex } = comparisonData;
 
         const timeline = [
-            () => document.querySelector('.model-headers').style.animation = 'fadeInStagger 1s ease-out forwards',
-            () => this.animateCapabilityIcons(), // Updated method name
+            // 0-1s: Cards appear
+            () => {
+                const container = document.getElementById('model-comparison-container');
+                container.style.animation = 'fadeInUp 1s ease-out forwards';
+            },
+
+            // 1-8s: Animate capabilities in each card
+            () => this.animateCardCapabilities(),
+
+            // 9-10s: Highlight assigned model
             () => this.highlightAssignedModel(assignedIndex),
-            () => this.showAssignmentPopup(),
-            () => this.shrinkComparisonTable(),
+
+            // 10-12s: Show popup
+            () => this.showAssignmentPopup(assignedIndex),
+
+            // 12-13s: Shrink cards
+            () => this.shrinkModelCards(),
+
+            // 13-15s: Show capability cards
             () => this.showCapabilityCards(),
+
+            // 15s: Enable continue button
             () => {
                 this.isAnimationPlaying = false;
                 this.updateNavigationButtons();
             }
         ];
 
-        const delays = [0, 1500, 11000, 12000, 15000, 16500, 18000];
+        const delays = [0, 1000, 9000, 10000, 12000, 13000, 15000];
 
         timeline.forEach((action, index) => {
             setTimeout(action, delays[index]);
@@ -676,39 +670,81 @@ class ChatApp {
     }
 
     /**
-     * Highlight the assigned model
-     */
-    highlightAssignedModel(assignedIndex) {
-        const modelHeader = document.querySelector(`.model-header[data-model="${assignedIndex}"]`);
-        if (modelHeader) {
-            modelHeader.classList.add('highlighted');
+ * Animate capabilities within each card
+ */
+    animateCardCapabilities() {
+        document.querySelectorAll('.model-card').forEach((card, cardIndex) => {
+            const baseDelay = cardIndex * 200; // Stagger between cards
 
-            document.querySelectorAll(`[data-model="${assignedIndex}"]`).forEach(el => {
-                if (el.classList.contains('capability-bubble')) {
-                    el.style.borderColor = '#f59e0b';
-                    el.style.boxShadow = '0 0 15px rgba(245, 158, 11, 0.4)';
-                }
-                if (el.classList.contains('ranking-value')) {
-                    el.style.borderColor = '#f59e0b';
-                    el.style.boxShadow = '0 0 10px rgba(245, 158, 11, 0.3)';
-                }
+            // Animate capability items
+            card.querySelectorAll('.capability-item').forEach((item, itemIndex) => {
+                const itemDelay = baseDelay + (itemIndex * 300);
+
+                setTimeout(() => {
+                    item.classList.add('show');
+
+                    // Animate icons within the item
+                    const icons = item.querySelectorAll('.capability-icon-item-inline');
+                    icons.forEach((icon, iconIndex) => {
+                        setTimeout(() => {
+                            icon.classList.add('lit');
+                        }, iconIndex * 100);
+                    });
+                }, itemDelay);
             });
+
+            // Animate ranking items
+            card.querySelectorAll('.ranking-item').forEach((item, itemIndex) => {
+                const itemDelay = baseDelay + 1800 + (itemIndex * 200);
+
+                setTimeout(() => {
+                    item.classList.add('show');
+
+                    // Show crown if it should be shown
+                    const crown = item.querySelector('.rank-crown-card');
+                    if (crown.style.display === 'block') {
+                        setTimeout(() => {
+                            crown.classList.add('show');
+                        }, 200);
+                    }
+                }, itemDelay);
+            });
+        });
+    }
+
+    /**
+ * Highlight the assigned model
+ */
+    highlightAssignedModel(assignedIndex) {
+        const modelCard = document.querySelector(`.model-card[data-model="${assignedIndex}"]`);
+        if (modelCard) {
+            modelCard.classList.add('highlighted');
         }
     }
 
     /**
-     * Show assignment popup bubble
-     */
-    showAssignmentPopup() {
+ * Show assignment popup above the assigned model
+ */
+    showAssignmentPopup(assignedIndex) {
         const popup = document.getElementById('assignment-popup');
-        const assignedModelHeader = document.querySelector('.model-header.highlighted');
+        const assignedCard = document.querySelector(`.model-card[data-model="${assignedIndex}"]`);
 
-        if (popup && assignedModelHeader) {
-            const rect = assignedModelHeader.getBoundingClientRect();
-            const tableRect = document.querySelector('.model-comparison-table').getBoundingClientRect();
+        if (popup && assignedCard) {
+            const rect = assignedCard.getBoundingClientRect();
+            const containerRect = document.querySelector('.comparison-container').getBoundingClientRect();
 
-            popup.style.left = `${rect.left - tableRect.left + (rect.width / 2)}px`;
+            popup.style.left = `${rect.left - containerRect.left + (rect.width / 2)}px`;
             popup.classList.add('show');
+        }
+    }
+
+    /**
+     * Shrink model cards to make room for capability cards
+     */
+    shrinkModelCards() {
+        const container = document.getElementById('model-comparison-container');
+        if (container) {
+            container.classList.add('shrink');
         }
     }
 
@@ -723,12 +759,12 @@ class ChatApp {
     }
 
     /**
-     * Show capability cards
-     */
+ * Show capability cards
+ */
     showCapabilityCards() {
         const cards = document.getElementById('capability-cards');
         if (cards) {
-            cards.style.animation = 'slideUpStagger 1s ease-out forwards';
+            cards.classList.add('show');
         }
     }
 
