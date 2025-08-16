@@ -630,7 +630,7 @@ class ChatApp {
                     setTimeout(() => {
                         const icons = group.querySelectorAll('.capability-icon-item');
                         icons.forEach((icon, iconIndex) => {
-                            const iconDelay = iconIndex * 150;
+                            const iconDelay = iconIndex * 300;
 
                             setTimeout(() => {
                                 icon.classList.add('lit');
@@ -663,7 +663,7 @@ class ChatApp {
             // 0-1s: Cards appear
             () => {
                 const container = document.getElementById('model-comparison-container');
-                container.style.animation = 'fadeInUp 1s ease-out forwards';
+                container.style.animation = 'fadeInUp 2s ease-out forwards';
             },
 
             // 1-8s: Animate capabilities in each card
@@ -682,7 +682,7 @@ class ChatApp {
             }
         ];
 
-        const delays = [0, 1000, 4000, 4500, 12000];
+        const delays = [0, 1000, 3500, 4500, 12000];
 
         timeline.forEach((action, index) => {
             setTimeout(action, delays[index]);
@@ -794,7 +794,7 @@ class ChatApp {
      */
     setupWelcomeEventListeners() {
         const continueBtn = document.getElementById('nav-continue');
-        let compactModeShown = false; // Track if we've shown compact mode
+        let compactModeShown = true; // Track if we've shown compact mode
         
         continueBtn.addEventListener('click', () => {
             console.log('Continue clicked, current step:', this.currentStepIndex, 'compact shown:', compactModeShown);
