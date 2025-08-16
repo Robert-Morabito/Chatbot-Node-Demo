@@ -455,7 +455,7 @@ class ChatApp {
      */
     updateNavigationButtons() {
         const continueBtn = document.getElementById('nav-continue');
-
+        
         // Always show button unless specifically during animation
         if (this.currentStepIndex === 1 && this.isAnimationPlaying) {
             continueBtn.style.opacity = '0';
@@ -516,8 +516,8 @@ class ChatApp {
     }
 
     /**
-    * Populate model comparison cards with data
-    */
+     * Populate model comparison cards with data
+     */
     populateModelComparison(comparisonData) {
         const { models, assignedIndex } = comparisonData;
 
@@ -530,67 +530,77 @@ class ChatApp {
             if (yearEl) yearEl.textContent = model.year;
         });
 
-        // Populate capability icons in each card with proper lit/unlit states
+        // Populate capability icons in each card with 4 total icons each
         document.querySelectorAll('.model-card').forEach((card, modelIndex) => {
             const model = models[modelIndex];
 
-            // Populate reasoning icons (always show 4, some lit, some unlit)
+            // Populate reasoning icons (always 4 total, some lit)
             const reasoningContainer = card.querySelector('[data-capability="reasoning"] .capability-icons-inline');
             reasoningContainer.innerHTML = '';
-            for (let i = 0; i < 4; i++) { // Always show 4 icons
+            for (let i = 0; i < 4; i++) {
                 const icon = document.createElement('span');
                 icon.className = 'capability-icon-item-inline bulb';
                 if (i < model.capabilities.reasoning) {
-                    icon.classList.add('lit'); // Only add 'lit' class for the count we have
+                    icon.classList.add('lit');
                 }
                 icon.textContent = '💡';
                 icon.style.animationDelay = `${i * 100}ms`;
                 reasoningContainer.appendChild(icon);
             }
 
-            // Populate speed icons (always show 4, some lit, some unlit)
+            // Populate speed icons (always 4 total, some lit)
             const speedContainer = card.querySelector('[data-capability="speed"] .capability-icons-inline');
             speedContainer.innerHTML = '';
-            for (let i = 0; i < 4; i++) { // Always show 4 icons
+            for (let i = 0; i < 4; i++) {
                 const icon = document.createElement('span');
                 icon.className = 'capability-icon-item-inline bolt';
                 if (i < model.capabilities.speed) {
-                    icon.classList.add('lit'); // Only add 'lit' class for the count we have
+                    icon.classList.add('lit');
                 }
                 icon.textContent = '⚡';
                 icon.style.animationDelay = `${i * 100}ms`;
                 speedContainer.appendChild(icon);
             }
 
+            // Update knowledge label to "Knowledge Cutoff"
+            const knowledgeLabel = card.querySelector('[data-capability="knowledge"] .capability-item-label span:last-child');
+            if (knowledgeLabel) knowledgeLabel.textContent = 'Knowledge Cutoff';
+
             // Populate knowledge date
             const knowledgeEl = card.querySelector('.knowledge-date-inline');
-            if (knowledgeEl) {
-                knowledgeEl.textContent = model.capabilities.knowledge;
-            }
+            knowledgeEl.textContent = model.capabilities.knowledge;
 
-            // Populate LMArena rankings (without crowns)
+            // Update section title to "Global Rankings"
+            const rankingTitle = card.querySelector('.lmarena-title-card');
+            if (rankingTitle) rankingTitle.textContent = 'Global Rankings';
+
+            // Populate LMArena rankings
             const rankingItems = card.querySelectorAll('.ranking-item');
             const rankings = ['creative', 'instruction', 'hard'];
 
             rankingItems.forEach((item, rankIndex) => {
                 const rankText = item.querySelector('.rank-text-card');
-                if (rankText && rankings[rankIndex]) {
-                    const rank = model.lmarena[rankings[rankIndex]];
-                    rankText.textContent = this.formatOrdinal(rank);
-                }
+                const crown = item.querySelector('.rank-crown-card');
+                const rank = model.lmarena[rankings[rankIndex]];
+
+                rankText.textContent = this.formatOrdinal(rank);
+
+                // Show crown for top 10 ranks
+                const shouldShowCrown = rank <= 10;
+                crown.style.display = shouldShowCrown ? 'block' : 'none';
             });
         });
 
-        // Populate capability cards with the assigned model's info
+        // Populate capability cards and header
         const assignedModel = models[assignedIndex];
         document.getElementById('strength-text').textContent = assignedModel.strengths;
         document.getElementById('weakness-text').textContent = assignedModel.weaknesses;
         document.getElementById('usecase-text').textContent = assignedModel.bestFor;
 
-        // Update the capability cards header with the correct model name
-        const capabilityHeader = document.querySelector('.capability-cards-header h3');
-        if (capabilityHeader) {
-            capabilityHeader.textContent = `Things to know about ${assignedModel.name}`;
+        // Update capability cards header with assigned model name
+        const headerTitle = document.getElementById('capability-cards-title');
+        if (headerTitle) {
+            headerTitle.textContent = `Things to know about ${assignedModel.name}`;
         }
     }
 
@@ -690,7 +700,7 @@ class ChatApp {
      */
     animateCardCapabilities() {
         document.querySelectorAll('.model-card').forEach((card, cardIndex) => {
-            const baseDelay = cardIndex * 200;
+            const baseDelay = cardIndex * 200; // Stagger between cards
 
             // Animate capability items
             card.querySelectorAll('.capability-item').forEach((item, itemIndex) => {
@@ -699,17 +709,12 @@ class ChatApp {
                 setTimeout(() => {
                     item.classList.add('show');
 
-                    // Don't re-add lit class during animation - it's already set properly
-                    // Just trigger the animation
+                    // Animate icons within the item
                     const icons = item.querySelectorAll('.capability-icon-item-inline');
                     icons.forEach((icon, iconIndex) => {
-                        if (icon.classList.contains('lit')) {
-                            setTimeout(() => {
-                                // Trigger animation for lit icons
-                                icon.style.transform = 'scale(1)';
-                                icon.style.opacity = '1';
-                            }, iconIndex * 100);
-                        }
+                        setTimeout(() => {
+                            icon.classList.add('lit');
+                        }, iconIndex * 100);
                     });
                 }, itemDelay);
             });
@@ -720,6 +725,14 @@ class ChatApp {
 
                 setTimeout(() => {
                     item.classList.add('show');
+
+                    // Show crown if it should be shown
+                    const crown = item.querySelector('.rank-crown-card');
+                    if (crown.style.display === 'block') {
+                        setTimeout(() => {
+                            crown.classList.add('show');
+                        }, 200);
+                    }
                 }, itemDelay);
             });
         });
@@ -772,21 +785,20 @@ class ChatApp {
     }
 
     /**
-     * Show capability cards with proper header
+     * Show capability cards and header
      */
     showCapabilityCards() {
-        // First show the header if it exists
-        const header = document.querySelector('.capability-cards-header');
+        const header = document.getElementById('capability-cards-header');
+        const cards = document.getElementById('capability-cards');
+        
         if (header) {
             header.classList.add('show');
         }
-
-        // Then show the cards
-        const cards = document.getElementById('capability-cards');
+        
         if (cards) {
             setTimeout(() => {
                 cards.classList.add('show');
-            }, 300); // Small delay after header
+            }, 300);
         }
     }
 
