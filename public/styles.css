@@ -4255,6 +4255,9 @@ body.light-theme {
     opacity: 0;
     animation: fadeInUp 0.8s ease-out forwards;
     flex-shrink: 0;
+    padding-bottom: 40px;
+    position: relative;
+    top: -20px;
 }
 
 .comparison-title h2 {
@@ -4547,6 +4550,8 @@ body.light-theme {
     max-width: 900px;
     margin: 0 auto;
     opacity: 0;
+    position: relative;
+    top: -30;
     transform: translateY(30px);
     transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -4637,7 +4642,7 @@ body.light-theme {
 
 .assignment-popup {
     position: absolute;
-    top: 50px;
+    top: 75px;
     left: 50%;
     transform: translateX(-50%);
     opacity: 0;
