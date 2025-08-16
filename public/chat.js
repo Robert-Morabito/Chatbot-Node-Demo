@@ -574,13 +574,10 @@ class ChatApp {
 
             rankingItems.forEach((item, rankIndex) => {
                 const rankText = item.querySelector('.rank-text-card');
-                const crown = item.querySelector('.rank-crown-card');
                 const rank = model.lmarena[rankings[rankIndex]];
 
                 rankText.textContent = this.formatOrdinal(rank);
-
-                // Show crown for top 10 ranks
-                const shouldShowCrown = rank <= 10;
+                
                 crown.style.display = shouldShowCrown ? 'block' : 'none';
             });
         });
