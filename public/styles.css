@@ -4258,7 +4258,8 @@ body.light-theme {
 }
 
 .comparison-title h2 {
-    font-size: clamp(2rem, 3.5vw, 2.5rem); /* Increased size */
+    font-size: clamp(2rem, 3.5vw, 2.5rem);
+    /* Increased size */
     font-weight: 600;
     color: rgba(249, 250, 251, 0.95);
     margin: 0 0 0.5rem 0;
@@ -4266,8 +4267,10 @@ body.light-theme {
 }
 
 .comparison-title p {
-    font-size: clamp(1.125rem, 2.5vw, 1.25rem); /* Increased size */
-    color: rgba(209, 213, 219, 0.9); /* Improved readability */
+    font-size: clamp(1.125rem, 2.5vw, 1.25rem);
+    /* Increased size */
+    color: rgba(209, 213, 219, 0.9);
+    /* Improved readability */
     margin: 0;
     font-weight: 400;
 }
@@ -4319,7 +4322,8 @@ body.light-theme {
 }
 
 .model-name-card {
-    font-size: 1.75rem; /* Increased size */
+    font-size: 1.75rem;
+    /* Increased size */
     font-weight: 700;
     color: rgba(249, 250, 251, 0.95);
     margin: 0 0 0.25rem 0;
@@ -4331,8 +4335,10 @@ body.light-theme {
 }
 
 .model-year-card {
-    font-size: 1rem; /* Increased size */
-    color: rgba(209, 213, 219, 0.8); /* Better readability */
+    font-size: 1rem;
+    /* Increased size */
+    color: rgba(209, 213, 219, 0.8);
+    /* Better readability */
     margin: 0;
 }
 
@@ -4360,9 +4366,11 @@ body.light-theme {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 1rem; /* Increased size */
+    font-size: 1rem;
+    /* Increased size */
     font-weight: 500;
-    color: rgba(249, 250, 251, 0.9); /* Better readability */
+    color: rgba(249, 250, 251, 0.9);
+    /* Better readability */
 }
 
 .light-theme .capability-item-label {
@@ -4376,7 +4384,8 @@ body.light-theme {
 }
 
 .capability-icon-small {
-    font-size: 1.125rem; /* Slightly bigger */
+    font-size: 1.125rem;
+    /* Slightly bigger */
     opacity: 0.8;
 }
 
@@ -4386,15 +4395,20 @@ body.light-theme {
 }
 
 .capability-icon-item-inline {
-    font-size: 1.125rem; /* Slightly bigger */
-    opacity: 0.3; /* Dim unlit icons */
+    font-size: 1rem;
+    opacity: 0.2;
+    /* Grayed out by default */
     transform: scale(0.9);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: grayscale(0.8);
+    /* Make unlit icons gray */
 }
 
 .capability-icon-item-inline.lit {
     opacity: 1;
     transform: scale(1);
+    filter: none;
+    /* Remove grayscale for lit icons */
 }
 
 .capability-icon-item-inline.bulb {
@@ -4403,6 +4417,7 @@ body.light-theme {
 
 .capability-icon-item-inline.bulb.lit {
     filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.6));
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
 }
 
 .capability-icon-item-inline.bolt {
@@ -4411,15 +4426,30 @@ body.light-theme {
 
 .capability-icon-item-inline.bolt.lit {
     filter: drop-shadow(0 0 4px rgba(96, 165, 250, 0.6));
+    text-shadow: 0 0 8px rgba(96, 165, 250, 0.5);
+}
+
+.capability-icon-item-inline.bulb:not(.lit) {
+    color: #666666;
+    filter: grayscale(1) brightness(0.6);
+}
+
+.capability-icon-item-inline.bolt:not(.lit) {
+    color: #666666;
+    filter: grayscale(1) brightness(0.6);
 }
 
 .knowledge-date-inline {
-    font-size: 1rem; /* Increased size */
+    font-size: 1rem;
+    /* Increased size */
     font-weight: 600;
-    color: #10b981; /* Changed from blue to green */
+    color: #10b981;
+    /* Changed from blue to green */
     background: rgba(16, 185, 129, 0.1);
-    padding: 0.375rem 0.75rem; /* Increased padding */
-    border-radius: 6px; /* Bigger radius */
+    padding: 0.375rem 0.75rem;
+    /* Increased padding */
+    border-radius: 6px;
+    /* Bigger radius */
     border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
@@ -4440,9 +4470,11 @@ body.light-theme {
 }
 
 .lmarena-title-card {
-    font-size: 0.875rem; /* Increased size */
+    font-size: 0.875rem;
+    /* Increased size */
     font-weight: 600;
-    color: rgba(249, 250, 251, 0.8); /* Better readability */
+    color: rgba(249, 250, 251, 0.8);
+    /* Better readability */
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 0.75rem;
@@ -4469,8 +4501,10 @@ body.light-theme {
 }
 
 .ranking-label-card {
-    font-size: 0.875rem; /* Increased size */
-    color: rgba(209, 213, 219, 0.8); /* Better readability */
+    font-size: 0.875rem;
+    /* Increased size */
+    color: rgba(209, 213, 219, 0.8);
+    /* Better readability */
 }
 
 .light-theme .ranking-label-card {
@@ -4485,7 +4519,8 @@ body.light-theme {
 }
 
 .rank-crown-card {
-    font-size: 1rem; /* Increased size */
+    font-size: 1rem;
+    /* Increased size */
     opacity: 0;
     transform: scale(0.8);
     transition: all 0.3s ease;
@@ -4497,9 +4532,11 @@ body.light-theme {
 }
 
 .rank-text-card {
-    font-size: 1rem; /* Increased size */
+    font-size: 1rem;
+    /* Increased size */
     font-weight: 700;
-    color: #f59e0b; /* Changed to gold/yellow */
+    color: #f59e0b;
+    /* Changed to gold/yellow */
 }
 
 .light-theme .rank-text-card {
@@ -4604,7 +4641,8 @@ body.light-theme {
 }
 
 .capability-card h4 {
-    font-size: 1.125rem; /* Increased size */
+    font-size: 1.125rem;
+    /* Increased size */
     font-weight: 600;
     color: rgba(249, 250, 251, 0.95);
     margin: 0 0 0.75rem 0;
@@ -4615,8 +4653,10 @@ body.light-theme {
 }
 
 .capability-card p {
-    font-size: 1rem; /* Increased size */
-    color: rgba(209, 213, 219, 0.9); /* Better readability */
+    font-size: 1rem;
+    /* Increased size */
+    color: rgba(209, 213, 219, 0.9);
+    /* Better readability */
     margin: 0;
     line-height: 1.5;
 }
@@ -4639,7 +4679,8 @@ body.light-theme {
 .assignment-popup.show {
     opacity: 1;
     pointer-events: auto;
-    animation: none; /* Remove auto-fade animation */
+    animation: none;
+    /* Remove auto-fade animation */
 }
 
 .assignment-popup.persistent {
@@ -4649,11 +4690,13 @@ body.light-theme {
 .popup-content {
     background: rgba(245, 158, 11, 0.95);
     color: white;
-    padding: 0.875rem 1.75rem; /* Slightly bigger */
+    padding: 0.875rem 1.75rem;
+    /* Slightly bigger */
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3);
     position: relative;
-    font-size: 1rem; /* Increased size */
+    font-size: 1rem;
+    /* Increased size */
     font-weight: 500;
     white-space: nowrap;
     display: flex;
@@ -4732,23 +4775,30 @@ body.light-theme {
         opacity: 0;
         transform: translateX(-50%) translateY(10px) scale(0.8);
     }
+
     60% {
         opacity: 1;
         transform: translateX(-50%) translateY(-5px) scale(1.05);
     }
+
     80% {
         transform: translateX(-50%) translateY(0) scale(1);
     }
+
     100% {
-        opacity: 1; /* Changed to stay visible */
+        opacity: 1;
+        /* Changed to stay visible */
         transform: translateX(-50%) translateY(0) scale(1);
     }
 }
 
 @keyframes persistentPulse {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateX(-50%) scale(1);
     }
+
     50% {
         transform: translateX(-50%) scale(1.05);
     }
@@ -4759,6 +4809,7 @@ body.light-theme {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -4770,7 +4821,7 @@ body.light-theme {
     .model-comparison-container {
         gap: 1rem;
     }
-    
+
     .model-card {
         padding: 1.25rem;
     }
@@ -4780,22 +4831,22 @@ body.light-theme {
     .welcome-container {
         padding: 1rem 1rem 6rem 1rem;
     }
-    
+
     .model-comparison-container {
         flex-direction: column;
         gap: 1rem;
         max-width: 400px;
     }
-    
+
     .capability-cards {
         grid-template-columns: 1fr;
         gap: 1rem;
     }
-    
+
     .comparison-title h2 {
         font-size: 1.75rem;
     }
-    
+
     .nav-button {
         padding: 0.875rem 1.5rem;
         font-size: 0.875rem;
@@ -4806,8 +4857,27 @@ body.light-theme {
     .model-card {
         padding: 1rem;
     }
-    
+
     .capability-card {
         padding: 1rem;
+    }
+}
+
+/* Animation for lit icons */
+.capability-icon-item-inline.animate-in {
+    animation: iconLightUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes iconLightUp {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.2;
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
     }
 }

@@ -455,7 +455,7 @@ class ChatApp {
      */
     updateNavigationButtons() {
         const continueBtn = document.getElementById('nav-continue');
-        
+
         // Always show button unless specifically during animation
         if (this.currentStepIndex === 1 && this.isAnimationPlaying) {
             continueBtn.style.opacity = '0';
@@ -516,8 +516,8 @@ class ChatApp {
     }
 
     /**
-     * Populate model comparison cards with data
-     */
+ * Populate model comparison cards with data
+ */
     populateModelComparison(comparisonData) {
         const { models, assignedIndex } = comparisonData;
 
@@ -530,17 +530,18 @@ class ChatApp {
             if (yearEl) yearEl.textContent = model.year;
         });
 
-        // Populate capability icons in each card with 4 total icons each
+        // Populate capability icons in each card with proper lit/unlit states
         document.querySelectorAll('.model-card').forEach((card, modelIndex) => {
             const model = models[modelIndex];
 
-            // Populate reasoning icons (always 4 total, some lit)
+            // Populate reasoning icons (always show 4 total, some lit based on capability)
             const reasoningContainer = card.querySelector('[data-capability="reasoning"] .capability-icons-inline');
             reasoningContainer.innerHTML = '';
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < 4; i++) { // Always show 4 bulbs total
                 const icon = document.createElement('span');
                 icon.className = 'capability-icon-item-inline bulb';
                 if (i < model.capabilities.reasoning) {
+                    // This bulb should be lit
                     icon.classList.add('lit');
                 }
                 icon.textContent = '💡';
@@ -548,13 +549,14 @@ class ChatApp {
                 reasoningContainer.appendChild(icon);
             }
 
-            // Populate speed icons (always 4 total, some lit)
+            // Populate speed icons (always show 4 total, some lit based on capability)  
             const speedContainer = card.querySelector('[data-capability="speed"] .capability-icons-inline');
             speedContainer.innerHTML = '';
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < 4; i++) { // Always show 4 bolts total
                 const icon = document.createElement('span');
                 icon.className = 'capability-icon-item-inline bolt';
                 if (i < model.capabilities.speed) {
+                    // This bolt should be lit
                     icon.classList.add('lit');
                 }
                 icon.textContent = '⚡';
@@ -562,19 +564,11 @@ class ChatApp {
                 speedContainer.appendChild(icon);
             }
 
-            // Update knowledge label to "Knowledge Cutoff"
-            const knowledgeLabel = card.querySelector('[data-capability="knowledge"] .capability-item-label span:last-child');
-            if (knowledgeLabel) knowledgeLabel.textContent = 'Knowledge Cutoff';
-
             // Populate knowledge date
             const knowledgeEl = card.querySelector('.knowledge-date-inline');
             knowledgeEl.textContent = model.capabilities.knowledge;
 
-            // Update section title to "Global Rankings"
-            const rankingTitle = card.querySelector('.lmarena-title-card');
-            if (rankingTitle) rankingTitle.textContent = 'Global Rankings';
-
-            // Populate LMArena rankings
+            // Populate LMArena rankings with proper crowns
             const rankingItems = card.querySelectorAll('.ranking-item');
             const rankings = ['creative', 'instruction', 'hard'];
 
@@ -591,17 +585,11 @@ class ChatApp {
             });
         });
 
-        // Populate capability cards and header
+        // Populate capability cards
         const assignedModel = models[assignedIndex];
         document.getElementById('strength-text').textContent = assignedModel.strengths;
         document.getElementById('weakness-text').textContent = assignedModel.weaknesses;
         document.getElementById('usecase-text').textContent = assignedModel.bestFor;
-
-        // Update capability cards header with assigned model name
-        const headerTitle = document.getElementById('capability-cards-title');
-        if (headerTitle) {
-            headerTitle.textContent = `Things to know about ${assignedModel.name}`;
-        }
     }
 
     /**
@@ -696,8 +684,8 @@ class ChatApp {
     }
 
     /**
-     * Animate capabilities within each card
-     */
+ * Animate capabilities within each card
+ */
     animateCardCapabilities() {
         document.querySelectorAll('.model-card').forEach((card, cardIndex) => {
             const baseDelay = cardIndex * 200; // Stagger between cards
@@ -709,12 +697,13 @@ class ChatApp {
                 setTimeout(() => {
                     item.classList.add('show');
 
-                    // Animate icons within the item
-                    const icons = item.querySelectorAll('.capability-icon-item-inline');
-                    icons.forEach((icon, iconIndex) => {
+                    // Animate only the lit icons within the item
+                    const litIcons = item.querySelectorAll('.capability-icon-item-inline.lit');
+                    litIcons.forEach((icon, iconIndex) => {
                         setTimeout(() => {
-                            icon.classList.add('lit');
-                        }, iconIndex * 100);
+                            // Add a special animation class for the lit icons
+                            icon.classList.add('animate-in');
+                        }, iconIndex * 150);
                     });
                 }, itemDelay);
             });
@@ -790,11 +779,11 @@ class ChatApp {
     showCapabilityCards() {
         const header = document.getElementById('capability-cards-header');
         const cards = document.getElementById('capability-cards');
-        
+
         if (header) {
             header.classList.add('show');
         }
-        
+
         if (cards) {
             setTimeout(() => {
                 cards.classList.add('show');
