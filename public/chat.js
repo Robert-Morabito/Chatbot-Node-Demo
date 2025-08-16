@@ -516,11 +516,43 @@ class ChatApp {
     }
 
     /**
-     * Populate model comparison cards with data
+     * Populate model comparison cards with data (with DOM readiness checks)
      */
     populateModelComparison(comparisonData) {
         const { models, assignedIndex } = comparisonData;
 
+        // Wait for DOM to be ready before proceeding
+        const waitForDOM = () => {
+            return new Promise((resolve) => {
+                if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                    resolve();
+                } else {
+                    document.addEventListener('DOMContentLoaded', resolve, { once: true });
+                }
+            });
+        };
+
+        waitForDOM().then(() => {
+            try {
+                this.doPopulateModelComparison(models, assignedIndex);
+            } catch (error) {
+                console.error('Error in populateModelComparison:', error);
+                // Retry once after a delay
+                setTimeout(() => {
+                    try {
+                        this.doPopulateModelComparison(models, assignedIndex);
+                    } catch (retryError) {
+                        console.error('Retry failed for populateModelComparison:', retryError);
+                    }
+                }, 100);
+            }
+        });
+    }
+
+    /**
+     * Internal method to actually populate the model comparison
+     */
+    doPopulateModelComparison(models, assignedIndex) {
         // Populate headers
         models.forEach((model, index) => {
             const nameEl = document.getElementById(`model-name-card-${index}`);
@@ -531,61 +563,86 @@ class ChatApp {
         });
 
         // Populate capability icons in each card with proper lit/unlit states
-        document.querySelectorAll('.model-card').forEach((card, modelIndex) => {
+        const modelCards = document.querySelectorAll('.model-card');
+        if (modelCards.length === 0) {
+            console.warn('No model cards found in DOM');
+            return;
+        }
+
+        modelCards.forEach((card, modelIndex) => {
             const model = models[modelIndex];
-            if (!model) return; // Safety check
+            if (!model) {
+                console.warn('No model data for index:', modelIndex);
+                return;
+            }
 
             // Populate reasoning icons (always show 4 total, some lit based on capability)
             const reasoningContainer = card.querySelector('[data-capability="reasoning"] .capability-icons-inline');
             if (reasoningContainer) {
                 reasoningContainer.innerHTML = '';
-                for (let i = 0; i < 4; i++) { // Always show 4 bulbs total
-                    const icon = document.createElement('span');
-                    icon.className = 'capability-icon-item-inline bulb';
-                    if (i > (3 - model.capabilities.reasoning)) {
-                        // This bulb should be lit
-                        icon.classList.add('lit');
-                    }
-                    icon.textContent = '💡';
+                for (let i = 0; i < 4; i++) {
+                    try {
+                        const icon = document.createElement('span');
+                        if (!icon) {
+                            console.error('Failed to create reasoning icon element at index:', i);
+                            continue;
+                        }
 
-                    // Wait for the element to be fully created before setting style
-                    requestAnimationFrame(() => {
-                        if (icon && icon.style && icon.parentNode) {
+                        icon.className = 'capability-icon-item-inline bulb';
+                        if (i > (3 - model.capabilities.reasoning)) {
+                            icon.classList.add('lit');
+                        }
+                        icon.textContent = '💡';
+
+                        // Set style immediately after creation
+                        if (icon.style) {
                             icon.style.animationDelay = `${i * 100}ms`;
                         }
-                    });
 
-                    reasoningContainer.appendChild(icon);
+                        reasoningContainer.appendChild(icon);
+                    } catch (error) {
+                        console.error('Error creating reasoning icon:', error, 'at index:', i);
+                    }
                 }
+            } else {
+                console.warn('Reasoning container not found for card:', modelIndex);
             }
 
             // Populate speed icons (always show 4 total, some lit based on capability)  
             const speedContainer = card.querySelector('[data-capability="speed"] .capability-icons-inline');
             if (speedContainer) {
                 speedContainer.innerHTML = '';
-                for (let i = 0; i < 4; i++) { // Always show 4 bolts total
-                    const icon = document.createElement('span');
-                    icon.className = 'capability-icon-item-inline bolt';
-                    if (i > (3 - model.capabilities.speed)) {
-                        // This bolt should be lit
-                        icon.classList.add('lit');
-                    }
-                    icon.textContent = '⚡';
+                for (let i = 0; i < 4; i++) {
+                    try {
+                        const icon = document.createElement('span');
+                        if (!icon) {
+                            console.error('Failed to create speed icon element at index:', i);
+                            continue;
+                        }
 
-                    // Wait for the element to be fully created before setting style
-                    requestAnimationFrame(() => {
-                        if (icon && icon.style && icon.parentNode) {
+                        icon.className = 'capability-icon-item-inline bolt';
+                        if (i > (3 - model.capabilities.speed)) {
+                            icon.classList.add('lit');
+                        }
+                        icon.textContent = '⚡';
+
+                        // Set style immediately after creation
+                        if (icon.style) {
                             icon.style.animationDelay = `${i * 100}ms`;
                         }
-                    });
 
-                    speedContainer.appendChild(icon);
+                        speedContainer.appendChild(icon);
+                    } catch (error) {
+                        console.error('Error creating speed icon:', error, 'at index:', i);
+                    }
                 }
+            } else {
+                console.warn('Speed container not found for card:', modelIndex);
             }
 
             // Populate knowledge date
             const knowledgeEl = card.querySelector('.knowledge-date-inline');
-            if (knowledgeEl) {
+            if (knowledgeEl && model.capabilities && model.capabilities.knowledge) {
                 knowledgeEl.textContent = model.capabilities.knowledge;
             }
 
@@ -604,20 +661,23 @@ class ChatApp {
         });
 
         const assignedModel = models[assignedIndex];
-        if (!assignedModel) return; // Safety check
+        if (!assignedModel) {
+            console.error('No assigned model found at index:', assignedIndex);
+            return;
+        }
 
         const strengthEl = document.getElementById('strength-text');
         const weaknessEl = document.getElementById('weakness-text');
         const useCaseEl = document.getElementById('usecase-text');
 
-        if (strengthEl) strengthEl.textContent = assignedModel.strengths;
-        if (weaknessEl) weaknessEl.textContent = assignedModel.weaknesses;
-        if (useCaseEl) useCaseEl.textContent = assignedModel.bestFor;
+        if (strengthEl) strengthEl.textContent = assignedModel.strengths || '';
+        if (weaknessEl) weaknessEl.textContent = assignedModel.weaknesses || '';
+        if (useCaseEl) useCaseEl.textContent = assignedModel.bestFor || '';
 
         // Update the capability cards header with the assigned model name
         const modelNameEl = document.getElementById('capability-model-name');
         if (modelNameEl) {
-            modelNameEl.textContent = assignedModel.name;
+            modelNameEl.textContent = assignedModel.name || '';
         }
     }
 
