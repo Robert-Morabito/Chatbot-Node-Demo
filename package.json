@@ -3,7 +3,7 @@
   "version": "2",
   "type": "module",
   "scripts": {
-    "build": "echo 'No build needed for Vercel'",
+    "build": "node -e \"console.log('Build completed')\"",
     "dev": "vercel dev",
     "start": "vercel dev"
   },
@@ -17,5 +17,8 @@
     "marked": "^9.1.2",
     "openai": "^4.20.1",
     "uuid": "^9.0.1"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
