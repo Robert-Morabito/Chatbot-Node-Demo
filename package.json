@@ -2,8 +2,11 @@
   "name": "chatbot-webapp",
   "version": "2",
   "type": "module",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
-    "build": "node -e \"console.log('Build completed')\"",
+    "build": "cp -r public/* .",
     "dev": "vercel dev",
     "start": "vercel dev"
   },
@@ -17,8 +20,5 @@
     "marked": "^9.1.2",
     "openai": "^4.20.1",
     "uuid": "^9.0.1"
-  },
-  "engines": {
-    "node": "20.15.0"
   }
 }
