@@ -541,7 +541,7 @@ class ChatApp {
                 for (let i = 0; i < 4; i++) { // Always show 4 bulbs total
                     const icon = document.createElement('span');
                     icon.className = 'capability-icon-item-inline bulb';
-                    if (i < model.capabilities.reasoning) {
+                    if (i > (4 - model.capabilities.reasoning)) {
                         // This bulb should be lit
                         icon.classList.add('lit');
                     }
@@ -558,7 +558,7 @@ class ChatApp {
                 for (let i = 0; i < 4; i++) { // Always show 4 bolts total
                     const icon = document.createElement('span');
                     icon.className = 'capability-icon-item-inline bolt';
-                    if (i < model.capabilities.speed) {
+                    if (i > (4 - model.capabilities.speed)) {
                         // This bolt should be lit
                         icon.classList.add('lit');
                     }
@@ -588,7 +588,6 @@ class ChatApp {
             });
         });
 
-        // Populate capability cards
         const assignedModel = models[assignedIndex];
         const strengthEl = document.getElementById('strength-text');
         const weaknessEl = document.getElementById('weakness-text');
@@ -597,6 +596,12 @@ class ChatApp {
         if (strengthEl) strengthEl.textContent = assignedModel.strengths;
         if (weaknessEl) weaknessEl.textContent = assignedModel.weaknesses;
         if (useCaseEl) useCaseEl.textContent = assignedModel.bestFor;
+
+        // Update the capability cards header with the assigned model name
+        const modelNameEl = document.getElementById('capability-model-name');
+        if (modelNameEl) {
+            modelNameEl.textContent = assignedModel.name;
+        }
     }
 
     /**
@@ -670,20 +675,14 @@ class ChatApp {
             // 10-12s: Show popup
             () => this.showAssignmentPopup(assignedIndex),
 
-            // 12-13s: Shrink cards
-            () => this.shrinkModelCards(),
-
-            // 13-15s: Show capability cards
-            () => this.showCapabilityCards(),
-
-            // 15s: Enable continue button
+            // 12s: Enable continue button (don't auto-shrink anymore)
             () => {
                 this.isAnimationPlaying = false;
                 this.updateNavigationButtons();
             }
         ];
 
-        const delays = [0, 1000, 9000, 10000, 12000, 13000, 15000];
+        const delays = [0, 1000, 4000, 10000, 12000];
 
         timeline.forEach((action, index) => {
             setTimeout(action, delays[index]);
@@ -798,11 +797,68 @@ class ChatApp {
 
         continueBtn.addEventListener('click', () => {
             if (this.currentStepIndex < this.maxSteps - 1) {
+                // Special handling for step 1 (comparison step)
+                if (this.currentStepIndex === 1) {
+                    this.showCompactModeAndCards();
+                    // Don't advance to next step yet, wait for second click
+                    return;
+                }
+
                 this.renderWelcomeStep(this.currentStepIndex + 1);
             } else if (this.currentStepIndex === 2) {
                 this.handleProlificSubmission();
             }
         });
+    }
+
+    /**
+ * Show compact mode and capability cards, then enable next step
+ */
+    showCompactModeAndCards() {
+        const container = document.getElementById('model-comparison-container');
+        const comparisonContainer = document.querySelector('.comparison-container');
+        const cardsHeader = document.getElementById('capability-cards-header');
+        const cards = document.getElementById('capability-cards');
+        const continueBtn = document.getElementById('nav-continue');
+
+        // Hide the popup first
+        const popup = document.getElementById('assignment-popup');
+        if (popup) {
+            popup.classList.remove('show');
+        }
+
+        // Add compact mode
+        container.classList.add('compact');
+        comparisonContainer.classList.add('showing-cards');
+
+        // Show capability cards after a short delay
+        setTimeout(() => {
+            if (cardsHeader) {
+                cardsHeader.classList.add('show');
+            }
+
+            setTimeout(() => {
+                if (cards) {
+                    cards.classList.add('show');
+                }
+
+                // Update button text and enable next step after cards are shown
+                setTimeout(() => {
+                    continueBtn.innerHTML = `
+                    Continue to ID Entry
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                    </svg>
+                `;
+
+                    // Update click handler for next step
+                    continueBtn.onclick = () => {
+                        this.renderWelcomeStep(this.currentStepIndex + 1);
+                    };
+
+                }, 1000);
+            }, 300);
+        }, 500);
     }
 
     /**
