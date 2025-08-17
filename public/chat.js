@@ -687,7 +687,7 @@ class ChatApp {
             }
         ];
 
-        const delays = [0, 1000, 3000, 3000, 9000];
+        const delays = [0, 1000, 3500, 3500, 9000];
 
         timeline.forEach((action, index) => {
             setTimeout(action, delays[index]);
