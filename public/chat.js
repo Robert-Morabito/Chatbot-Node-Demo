@@ -835,47 +835,38 @@ class ChatApp {
     }
 
     /**
-     * Show compact mode and capability cards, then enable next step
+     * Show compact mode and capability cards
      */
     showCompactModeAndCards() {
-        console.log('showCompactModeAndCards called');
-
+        // Get the elements
         const container = document.getElementById('model-comparison-container');
-        const comparisonContainer = document.querySelector('.comparison-container');
-        const cardsHeader = document.getElementById('capability-cards-header');
         const cards = document.getElementById('capability-cards');
-        const continueBtn = document.getElementById('nav-continue');
+        const cardsHeader = document.getElementById('capability-cards-header');
 
-        console.log('Elements found:', {
-            container: !!container,
-            comparisonContainer: !!comparisonContainer,
-            cardsHeader: !!cardsHeader,
-            cards: !!cards,
-            continueBtn: !!continueBtn
-        });
-
-        // Hide the popup first
-        const popup = document.getElementById('assignment-popup');
-        if (popup) {
-            popup.classList.remove('show');
-        }
-
-        // Add compact mode with forced styling
+        // Make the model cards smaller and move them up - DIRECT STYLE MANIPULATION
         if (container) {
-            container.classList.add('compact');
-            // Force the transform with JavaScript if CSS isn't working
-            container.style.transform = 'scale(0.65) translateY(-120px)';
-            container.style.marginBottom = '0.5rem';
-            console.log('Added compact class and forced transform');
+            container.style.transform = 'scale(0.6) translateY(-150px)';
+            container.style.transition = 'all 0.5s ease';
+            container.style.marginBottom = '-100px'; // Pull everything up
         }
 
-        if (comparisonContainer) {
-            comparisonContainer.classList.add('showing-cards');
-            comparisonContainer.style.paddingBottom = '8rem';
-            console.log('Added showing-cards class and padding');
+        // Show the capability cards
+        if (cardsHeader) {
+            cardsHeader.style.opacity = '1';
+            cardsHeader.style.visibility = 'visible';
+            cardsHeader.style.transform = 'translateY(0)';
         }
 
-        // Update button text immediately
+        if (cards) {
+            cards.style.opacity = '1';
+            cards.style.visibility = 'visible';
+            cards.style.transform = 'translateY(0)';
+            cards.style.position = 'relative';
+            cards.style.marginTop = '20px';
+        }
+
+        // Update button text
+        const continueBtn = document.getElementById('nav-continue');
         if (continueBtn) {
             continueBtn.innerHTML = `
             Continue to ID Entry
@@ -883,25 +874,7 @@ class ChatApp {
                 <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
             </svg>
         `;
-            console.log('Updated button text');
         }
-
-        // Show capability cards after a short delay
-        setTimeout(() => {
-            if (cardsHeader) {
-                cardsHeader.classList.add('show');
-                console.log('Showed cards header');
-            }
-
-            setTimeout(() => {
-                if (cards) {
-                    cards.classList.add('show');
-                    console.log('Showed cards');
-                }
-
-                console.log('All animations complete - ready for next click');
-            }, 300);
-        }, 500);
     }
 
     /**
