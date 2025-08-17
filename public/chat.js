@@ -524,11 +524,6 @@ class ChatApp {
         const continueBtn = document.getElementById('nav-continue');
         const popup = document.getElementById('assignment-popup');
 
-        // Hide popup first
-        if (popup) {
-            popup.classList.remove('show', 'persistent');
-        }
-
         // Add showing-cards class and shrink models
         comparisonContainer.classList.add('showing-cards');
         modelContainer.classList.add('compact');
