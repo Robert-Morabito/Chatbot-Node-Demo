@@ -398,7 +398,6 @@ class ChatApp {
         this.currentStepIndex = 0;
         this.maxSteps = 3;
         this.isAnimationPlaying = false;
-        this.setupWelcomeEventListeners();
     }
 
     /**
@@ -429,6 +428,13 @@ class ChatApp {
                 // Special handling for step 2 (comparison animation)
                 if (stepIndex === 1) {
                     this.startComparisonAnimation();
+                }
+
+                // Special handling for step 3 (prolific ID validation)
+                if (stepIndex === 2) {
+                    setTimeout(() => {
+                        this.setupProlificValidation();
+                    }, 100);
                 }
             } else {
                 panel.classList.remove('active');
@@ -817,27 +823,6 @@ class ChatApp {
                 cards.classList.add('show');
             }, 300);
         }
-    }
-
-    /**
-     * Set up welcome event listeners
-     */
-    setupWelcomeEventListeners() {
-        const continueBtn = document.getElementById('nav-continue');
-        continueBtn.addEventListener('click', () => {
-            if (this.currentStepIndex < this.maxSteps - 1) {
-                // Special handling for step 1 (comparison step)
-                if (this.currentStepIndex === 1) {
-                    this.showCompactModeAndCards();
-                    // Don't advance to next step yet, wait for second click
-                    return;
-                }
-
-                this.renderWelcomeStep(this.currentStepIndex + 1);
-            } else if (this.currentStepIndex === 2) {
-                this.handleProlificSubmission();
-            }
-        });
     }
 
     /**
