@@ -923,24 +923,29 @@ class ChatApp {
             popup.classList.remove('show');
         }
 
-        // Add compact mode
+        // Add compact mode with forced styling
         if (container) {
             container.classList.add('compact');
-            console.log('Added compact class');
+            // Force the transform with JavaScript if CSS isn't working
+            container.style.transform = 'scale(0.65) translateY(-120px)';
+            container.style.marginBottom = '0.5rem';
+            console.log('Added compact class and forced transform');
         }
+
         if (comparisonContainer) {
             comparisonContainer.classList.add('showing-cards');
-            console.log('Added showing-cards class');
+            comparisonContainer.style.paddingBottom = '8rem';
+            console.log('Added showing-cards class and padding');
         }
 
         // Update button text immediately
         if (continueBtn) {
             continueBtn.innerHTML = `
-                Continue to ID Entry
-                <svg class="nav-icon" viewBox="0 0 24 24">
-                    <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-                </svg>
-            `;
+            Continue to ID Entry
+            <svg class="nav-icon" viewBox="0 0 24 24">
+                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+            </svg>
+        `;
             console.log('Updated button text');
         }
 
@@ -956,6 +961,8 @@ class ChatApp {
                     cards.classList.add('show');
                     console.log('Showed cards');
                 }
+
+                console.log('All animations complete - ready for next click');
             }, 300);
         }, 500);
     }
