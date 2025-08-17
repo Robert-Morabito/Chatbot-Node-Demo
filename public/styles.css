@@ -2710,15 +2710,14 @@ body.light-theme {
 .content-stage {
     flex: 1;
     width: 100%;
-    max-width: 1200px;
+    max-width: 700px;
     display: flex;
-    align-items: flex-start; /* Changed to flex-start */
+    align-items: center;
     justify-content: center;
     position: relative;
-    overflow: visible;
+    overflow: hidden;
     min-height: 0;
-    margin: 0;
-    padding-top: 2rem; /* Add some top padding */
+    margin: 1rem 0;
 }
 
 .content-panel {
@@ -3446,9 +3445,8 @@ body.light-theme {
     justify-content: center;
 }
 
-.navigation-system.show {
+.navigation-system.visible {
     opacity: 1;
-    visibility: visible;
 }
 
 .nav-button {
@@ -4251,8 +4249,9 @@ body.light-theme {
     height: 100%;
 }
 
-.comparison-container.showing-capability-cards {
-    padding-bottom: 8rem; /* Space for the continue button */
+.comparison-container.showing-cards {
+    padding-bottom: 8rem;
+    /* Space for the continue button */
 }
 
 .comparison-title {
@@ -4558,33 +4557,35 @@ body.light-theme {
 }
 
 .model-comparison-container.compact {
-    transform: scale(0.75) translateY(-100px);
-    transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-    margin-bottom: -2rem;
-    /* Negative margin to pull content up */
+    transform: scale(0.65) translateY(-120px);
+    /* More compact and higher up */
+    margin-bottom: 0.5rem;
 }
 
-/* Capability Cards - Better Positioning */
+/* Capability Cards - Positioned below */
 .capability-cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
     width: 100%;
     max-width: 900px;
-    margin: 1rem auto 0 auto;
-    /* Reduced top margin */
+    margin: 2rem auto 0 auto;
     opacity: 0;
-    transform: translateY(40px);
-    transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    /* Ensure proper stacking */
-    z-index: 5;
-    /* Above other elements */
+    visibility: hidden;
+    /* Hide initially */
+    transform: translateY(50px);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    position: absolute;
+    /* Position them outside viewport initially */
+    top: 100%;
 }
 
 .capability-cards.show {
     opacity: 1;
+    visibility: visible;
     transform: translateY(0);
+    position: relative;
+    top: auto;
 }
 
 .capability-card {
@@ -4725,12 +4726,10 @@ body.light-theme {
     transform: translateX(-50%);
     display: flex;
     gap: 1rem;
-    opacity: 0; /* Start hidden */
-    visibility: hidden;
-    z-index: 20; /* Highest z-index */
-    transition: all 0.4s ease;
+    opacity: 1;
+    z-index: 20;
+    /* Higher z-index to stay above cards */
 }
-
 
 .nav-button {
     display: flex;
