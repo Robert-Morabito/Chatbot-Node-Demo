@@ -4250,7 +4250,8 @@ body.light-theme {
 }
 
 .comparison-container.showing-cards {
-    padding-bottom: 8rem; /* Space for the continue button */
+    padding-bottom: 8rem;
+    /* Space for the continue button */
 }
 
 .comparison-title {
@@ -4396,11 +4397,19 @@ body.light-theme {
 
 .capability-icons-inline {
     display: flex;
-    gap: 0.25rem;
+    align-items: center;
 }
 
 .capability-icon-item-inline {
-    font-size: 1rem;
+    gap: 0.25rem;
+}
+
+.capability-item[data-capability="reasoning"] .capability-icon-item-inline {
+    gap: 0.5rem;
+}
+
+.capability-icon-item-inline {
+    font-size: 1.3rem;
     opacity: 0.2;
     /* Grayed out by default */
     transform: scale(0.9);
@@ -4548,7 +4557,8 @@ body.light-theme {
 }
 
 .model-comparison-container.compact {
-    transform: scale(0.65) translateY(-120px); /* More compact and higher up */
+    transform: scale(0.65) translateY(-120px);
+    /* More compact and higher up */
     margin-bottom: 0.5rem;
 }
 
@@ -4561,10 +4571,12 @@ body.light-theme {
     max-width: 900px;
     margin: 2rem auto 0 auto;
     opacity: 0;
-    visibility: hidden; /* Hide initially */
+    visibility: hidden;
+    /* Hide initially */
     transform: translateY(50px);
     transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    position: absolute; /* Position them outside viewport initially */
+    position: absolute;
+    /* Position them outside viewport initially */
     top: 100%;
 }
 
@@ -4715,7 +4727,8 @@ body.light-theme {
     display: flex;
     gap: 1rem;
     opacity: 1;
-    z-index: 20; /* Higher z-index to stay above cards */
+    z-index: 20;
+    /* Higher z-index to stay above cards */
 }
 
 .nav-button {
@@ -4861,9 +4874,11 @@ body.light-theme {
         transform: scale(0.8);
         opacity: 0.2;
     }
+
     50% {
         transform: scale(1.2);
     }
+
     100% {
         transform: scale(1);
         opacity: 1;
