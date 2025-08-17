@@ -4250,9 +4250,10 @@ body.light-theme {
 }
 
 .comparison-container.showing-cards {
-    padding-bottom: 8rem;
-    /* Space for the continue button */
+    padding-bottom: 2rem;
+    /* Space for continue button */
 }
+
 
 .comparison-title {
     text-align: center;
@@ -4557,12 +4558,11 @@ body.light-theme {
 }
 
 .model-comparison-container.compact {
-    transform: scale(0.65) translateY(-120px);
-    /* More compact and higher up */
-    margin-bottom: 0.5rem;
+    transform: scale(0.7) translateY(-60px);
+    margin-bottom: 1rem;
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Capability Cards - Positioned below */
 .capability-cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -4572,12 +4572,12 @@ body.light-theme {
     margin: 2rem auto 0 auto;
     opacity: 0;
     visibility: hidden;
-    /* Hide initially */
-    transform: translateY(50px);
+    transform: translateY(30px);
     transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    position: absolute;
-    /* Position them outside viewport initially */
-    top: 100%;
+    position: relative;
+    /* Change from absolute */
+    top: auto;
+    /* Remove the top: 100% */
 }
 
 .capability-cards.show {

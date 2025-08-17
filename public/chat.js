@@ -456,7 +456,6 @@ class ChatApp {
     updateNavigationButtons() {
         const continueBtn = document.getElementById('nav-continue');
 
-        // Always show button unless specifically during animation
         if (this.currentStepIndex === 1 && this.isAnimationPlaying) {
             continueBtn.style.opacity = '0';
             continueBtn.disabled = true;
@@ -468,40 +467,91 @@ class ChatApp {
         continueBtn.style.display = 'flex';
         continueBtn.disabled = false;
 
-        // Update button text
+        // Special handler for step 1 (comparison step)
+        if (this.currentStepIndex === 1) {
+            continueBtn.innerHTML = `
+            See Details
+            <svg class="nav-icon" viewBox="0 0 24 24">
+                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+            </svg>
+        `;
+
+            continueBtn.onclick = () => {
+                this.showCapabilityCardsSequence();
+            };
+            return;
+        }
+
+        // Regular continue button for other steps
         if (this.currentStepIndex === 2) {
             continueBtn.innerHTML = `
-                Start Study
-                <svg class="nav-icon" viewBox="0 0 24 24">
-                    <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-                </svg>
-            `;
+            Start Study
+            <svg class="nav-icon" viewBox="0 0 24 24">
+                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+            </svg>
+        `;
         } else {
             continueBtn.innerHTML = `
-                Continue
-                <svg class="nav-icon" viewBox="0 0 24 24">
-                    <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-                </svg>
-            `;
+            Continue
+            <svg class="nav-icon" viewBox="0 0 24 24">
+                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+            </svg>
+        `;
         }
 
-        // Hide popup when continue is clicked from step 1
-        if (this.currentStepIndex === 1) {
-            continueBtn.onclick = () => {
-                // Hide the persistent popup
-                const popup = document.getElementById('assignment-popup');
-                if (popup) {
-                    popup.classList.remove('show', 'persistent');
-                }
+        // Enable regular progression for other steps
+        continueBtn.onclick = () => {
+            if (this.currentStepIndex < this.maxSteps - 1) {
                 this.renderWelcomeStep(this.currentStepIndex + 1);
-            };
+            } else if (this.currentStepIndex === 2) {
+                this.handleProlificSubmission();
+            }
+        };
+    }
+
+    showCapabilityCardsSequence() {
+        const comparisonContainer = document.querySelector('.comparison-container');
+        const modelContainer = document.getElementById('model-comparison-container');
+        const cardsHeader = document.getElementById('capability-cards-header');
+        const cards = document.getElementById('capability-cards');
+        const continueBtn = document.getElementById('nav-continue');
+        const popup = document.getElementById('assignment-popup');
+
+        // Hide popup first
+        if (popup) {
+            popup.classList.remove('show', 'persistent');
         }
 
-        // Enable validation for Prolific ID step
-        if (this.currentStepIndex === 2) {
-            continueBtn.disabled = true;
-            this.setupProlificValidation();
-        }
+        // Add showing-cards class and shrink models
+        comparisonContainer.classList.add('showing-cards');
+        modelContainer.classList.add('compact');
+
+        // Show capability cards after animation
+        setTimeout(() => {
+            if (cardsHeader) {
+                cardsHeader.classList.add('show');
+            }
+
+            setTimeout(() => {
+                if (cards) {
+                    cards.classList.add('show');
+                }
+
+                // Update button to continue to next step
+                setTimeout(() => {
+                    continueBtn.innerHTML = `
+                    Continue to ID Entry
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                    </svg>
+                `;
+
+                    continueBtn.onclick = () => {
+                        this.renderWelcomeStep(this.currentStepIndex + 1);
+                    };
+                }, 500);
+            }, 300);
+        }, 500);
     }
 
     /**
@@ -657,6 +707,7 @@ class ChatApp {
      * Run the complete animation sequence
      */
     runAnimationSequence(comparisonData) {
+        this.isAnimationPlaying = true;
         const { assignedIndex } = comparisonData;
 
         const timeline = [
@@ -666,23 +717,21 @@ class ChatApp {
                 container.style.animation = 'fadeInUp 2s ease-out forwards';
             },
 
-            // 1-8s: Animate capabilities in each card
+            // 1-4s: Animate capabilities in each card
             () => this.animateCardCapabilities(),
 
-            // 9-10s: Highlight assigned model
+            // 4.5s: Highlight assigned model
             () => this.highlightAssignedModel(assignedIndex),
 
-            // 10-12s: Show popup
-            () => this.showAssignmentPopup(assignedIndex),
-
-            // 12s: Enable continue button (don't auto-shrink anymore)
+            // 5s: Show popup and enable continue button
             () => {
+                this.showAssignmentPopup(assignedIndex);
                 this.isAnimationPlaying = false;
                 this.updateNavigationButtons();
             }
         ];
 
-        const delays = [0, 1000, 3500, 3500, 9000];
+        const delays = [0, 1000, 4500, 5000];
 
         timeline.forEach((action, index) => {
             setTimeout(action, delays[index]);
@@ -752,26 +801,6 @@ class ChatApp {
     }
 
     /**
-     * Shrink model cards to make room for capability cards
-     */
-    shrinkModelCards() {
-        const container = document.getElementById('model-comparison-container');
-        if (container) {
-            container.classList.add('shrink');
-        }
-    }
-
-    /**
-     * Shrink and move comparison table
-     */
-    shrinkComparisonTable() {
-        const table = document.querySelector('.model-comparison-table');
-        if (table) {
-            table.classList.add('shrink');
-        }
-    }
-
-    /**
      * Show capability cards and header
      */
     showCapabilityCards() {
@@ -809,57 +838,7 @@ class ChatApp {
             }
         });
     }
-
-    /**
- * Show compact mode and capability cards, then enable next step
- */
-    showCompactModeAndCards() {
-        const container = document.getElementById('model-comparison-container');
-        const comparisonContainer = document.querySelector('.comparison-container');
-        const cardsHeader = document.getElementById('capability-cards-header');
-        const cards = document.getElementById('capability-cards');
-        const continueBtn = document.getElementById('nav-continue');
-
-        // Hide the popup first
-        const popup = document.getElementById('assignment-popup');
-        if (popup) {
-            popup.classList.remove('show');
-        }
-
-        // Add compact mode
-        container.classList.add('compact');
-        comparisonContainer.classList.add('showing-cards');
-
-        // Show capability cards after a short delay
-        setTimeout(() => {
-            if (cardsHeader) {
-                cardsHeader.classList.add('show');
-            }
-
-            setTimeout(() => {
-                if (cards) {
-                    cards.classList.add('show');
-                }
-
-                // Update button text and enable next step after cards are shown
-                setTimeout(() => {
-                    continueBtn.innerHTML = `
-                    Continue to ID Entry
-                    <svg class="nav-icon" viewBox="0 0 24 24">
-                        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-                    </svg>
-                `;
-
-                    // Update click handler for next step
-                    continueBtn.onclick = () => {
-                        this.renderWelcomeStep(this.currentStepIndex + 1);
-                    };
-
-                }, 1000);
-            }, 300);
-        }, 500);
-    }
-
+    
     /**
      * Set up Prolific ID validation
      */
