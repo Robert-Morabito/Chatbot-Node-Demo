@@ -451,50 +451,34 @@ class ChatApp {
     }
 
     /**
-     * Update navigation buttons to hide popup when continuing
-     */
+ * Updated navigation button handling
+ */
     updateNavigationButtons() {
         const continueBtn = document.getElementById('nav-continue');
 
-        // Always show button unless specifically during animation
-        if (this.currentStepIndex === 1 && this.isAnimationPlaying) {
-            continueBtn.style.opacity = '0';
-            continueBtn.disabled = true;
-            return;
+        // Don't force visibility during animation
+        if (this.isAnimationPlaying) {
+            return; // Let the animation control visibility
         }
 
-        continueBtn.style.opacity = '1';
-        continueBtn.style.visibility = 'visible';
-        continueBtn.style.display = 'flex';
+        // Make sure button is enabled after animation
         continueBtn.disabled = false;
 
-        // Update button text
+        // Update button text based on step
         if (this.currentStepIndex === 2) {
             continueBtn.innerHTML = `
-                Start Study
-                <svg class="nav-icon" viewBox="0 0 24 24">
-                    <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-                </svg>
-            `;
+            Start Study
+            <svg class="nav-icon" viewBox="0 0 24 24">
+                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+            </svg>
+        `;
         } else {
             continueBtn.innerHTML = `
-                Continue
-                <svg class="nav-icon" viewBox="0 0 24 24">
-                    <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-                </svg>
-            `;
-        }
-
-        // Hide popup when continue is clicked from step 1
-        if (this.currentStepIndex === 1) {
-            continueBtn.onclick = () => {
-                // Hide the persistent popup
-                const popup = document.getElementById('assignment-popup');
-                if (popup) {
-                    popup.classList.remove('show', 'persistent');
-                }
-                this.renderWelcomeStep(this.currentStepIndex + 1);
-            };
+            Continue
+            <svg class="nav-icon" viewBox="0 0 24 24">
+                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+            </svg>
+        `;
         }
 
         // Enable validation for Prolific ID step
@@ -541,7 +525,7 @@ class ChatApp {
                 for (let i = 0; i < 4; i++) { // Always show 4 bulbs total
                     const icon = document.createElement('span');
                     icon.className = 'capability-icon-item-inline bulb';
-                    if (i > (4 - model.capabilities.reasoning)) {
+                    if (i > (3 - model.capabilities.reasoning)) {
                         // This bulb should be lit
                         icon.classList.add('lit');
                     }
@@ -558,7 +542,7 @@ class ChatApp {
                 for (let i = 0; i < 4; i++) { // Always show 4 bolts total
                     const icon = document.createElement('span');
                     icon.className = 'capability-icon-item-inline bolt';
-                    if (i > (4 - model.capabilities.speed)) {
+                    if (i > (3 - model.capabilities.speed)) {
                         // This bolt should be lit
                         icon.classList.add('lit');
                     }
@@ -654,35 +638,59 @@ class ChatApp {
     }
 
     /**
-     * Run the complete animation sequence
-     */
+ * Run the complete animation sequence with proper timing
+ */
     runAnimationSequence(comparisonData) {
         const { assignedIndex } = comparisonData;
 
         const timeline = [
-            // 0-1s: Cards appear
+            // 0-2s: Model cards appear and populate
             () => {
+                console.log('🎬 Step 1: Cards appearing...');
                 const container = document.getElementById('model-comparison-container');
-                container.style.animation = 'fadeInUp 2s ease-out forwards';
+                container.style.animation = 'fadeInUp 1.5s ease-out forwards';
             },
 
-            // 1-8s: Animate capabilities in each card
-            () => this.animateCardCapabilities(),
-
-            // 9-10s: Highlight assigned model
-            () => this.highlightAssignedModel(assignedIndex),
-
-            // 10-12s: Show popup
-            () => this.showAssignmentPopup(assignedIndex),
-
-            // 12s: Enable continue button (don't auto-shrink anymore)
+            // 2-6s: Animate capabilities within each card
             () => {
+                console.log('🎬 Step 2: Animating capabilities...');
+                this.animateCardCapabilities();
+            },
+
+            // 7s: Highlight assigned model (1 second after capabilities finish)
+            () => {
+                console.log('🎬 Step 3: Highlighting assigned model...');
+                this.highlightAssignedModel(assignedIndex);
+            },
+
+            // 7.5s: Show popup (0.5 seconds after highlight)
+            () => {
+                console.log('🎬 Step 4: Showing assignment popup...');
+                this.showAssignmentPopup(assignedIndex);
+            },
+
+            // 15.5s: Start shrinking cards (8 seconds after popup starts)
+            () => {
+                console.log('🎬 Step 5: Shrinking model cards...');
+                this.shrinkAndMoveCards();
+            },
+
+            // 16.5s: Show capability cards (1 second after shrinking starts)
+            () => {
+                console.log('🎬 Step 6: Showing capability cards...');
+                this.showCapabilityCards();
+            },
+
+            // 18.5s: Show continue button (2 seconds after capability cards)
+            () => {
+                console.log('🎬 Step 7: Showing continue button...');
+                this.showContinueButton();
                 this.isAnimationPlaying = false;
-                this.updateNavigationButtons();
             }
         ];
 
-        const delays = [0, 1000, 3500, 3500, 9000];
+        // Updated timing delays (in milliseconds)
+        const delays = [0, 2000, 7000, 7500, 15500, 16500, 18500];
 
         timeline.forEach((action, index) => {
             setTimeout(action, delays[index]);
@@ -690,53 +698,66 @@ class ChatApp {
     }
 
     /**
-     * Animate capabilities within each card
+     * Animate capabilities within each card (improved timing)
      */
     animateCardCapabilities() {
         document.querySelectorAll('.model-card').forEach((card, cardIndex) => {
-            const baseDelay = cardIndex * 200; // Stagger between cards
+            const baseDelay = cardIndex * 150; // Reduced stagger time
 
             // Animate capability items
             card.querySelectorAll('.capability-item').forEach((item, itemIndex) => {
-                const itemDelay = baseDelay + (itemIndex * 300);
+                const itemDelay = baseDelay + (itemIndex * 250); // Slightly faster
 
                 setTimeout(() => {
                     item.classList.add('show');
 
-                    // Animate only the lit icons within the item
-                    const litIcons = item.querySelectorAll('.capability-icon-item-inline.lit');
-                    litIcons.forEach((icon, iconIndex) => {
+                    // Animate icons within the item
+                    const icons = item.querySelectorAll('.capability-icon-item-inline');
+                    icons.forEach((icon, iconIndex) => {
                         setTimeout(() => {
-                            // Add a special animation class for the lit icons
-                            icon.classList.add('animate-in');
-                        }, iconIndex * 150);
+                            icon.classList.add('lit');
+                        }, iconIndex * 80); // Faster icon animation
                     });
                 }, itemDelay);
             });
 
-            // Animate ranking items (no crown animation needed)
+            // Animate ranking items
             card.querySelectorAll('.ranking-item').forEach((item, itemIndex) => {
-                const itemDelay = baseDelay + 1800 + (itemIndex * 200);
+                const itemDelay = baseDelay + 1500 + (itemIndex * 150); // Faster ranking animation
 
                 setTimeout(() => {
                     item.classList.add('show');
+
+                    // Show crown if it should be shown
+                    const crown = item.querySelector('.rank-crown-card');
+                    if (crown && crown.style.display === 'block') {
+                        setTimeout(() => {
+                            crown.classList.add('show');
+                        }, 150);
+                    }
                 }, itemDelay);
             });
         });
     }
 
     /**
-     * Highlight the assigned model
+     * Highlight the assigned model with better visual feedback
      */
     highlightAssignedModel(assignedIndex) {
         const modelCard = document.querySelector(`.model-card[data-model="${assignedIndex}"]`);
         if (modelCard) {
             modelCard.classList.add('highlighted');
+
+            // Add a subtle shake animation to draw attention
+            modelCard.style.animation = 'highlightPulse 0.6s ease-out';
+            setTimeout(() => {
+                modelCard.style.animation = '';
+            }, 600);
         }
     }
 
     /**
-     * Show assignment popup above the assigned model (persistent)
+     * Show assignment popup with better positioning
      */
     showAssignmentPopup(assignedIndex) {
         const popup = document.getElementById('assignment-popup');
@@ -746,48 +767,51 @@ class ChatApp {
             const rect = assignedCard.getBoundingClientRect();
             const containerRect = document.querySelector('.comparison-container').getBoundingClientRect();
 
+            // Better positioning calculation
             popup.style.left = `${rect.left - containerRect.left + (rect.width / 2)}px`;
-            popup.classList.add('show', 'persistent');
+            popup.classList.add('show');
         }
     }
 
     /**
-     * Shrink model cards to make room for capability cards
+     * Shrink and move cards up to make room
      */
-    shrinkModelCards() {
+    shrinkAndMoveCards() {
         const container = document.getElementById('model-comparison-container');
+        const comparisonContainer = document.querySelector('.comparison-container');
+
         if (container) {
-            container.classList.add('shrink');
+            container.classList.add('compact');
+        }
+
+        if (comparisonContainer) {
+            comparisonContainer.classList.add('showing-capability-cards');
         }
     }
 
     /**
-     * Shrink and move comparison table
-     */
-    shrinkComparisonTable() {
-        const table = document.querySelector('.model-comparison-table');
-        if (table) {
-            table.classList.add('shrink');
-        }
-    }
-
-    /**
-     * Show capability cards and header
+     * Show capability cards with smooth entrance
      */
     showCapabilityCards() {
-        const header = document.getElementById('capability-cards-header');
         const cards = document.getElementById('capability-cards');
-
-        if (header) {
-            header.classList.add('show');
-        }
-
         if (cards) {
-            setTimeout(() => {
-                cards.classList.add('show');
-            }, 300);
+            cards.classList.add('show');
         }
     }
+
+    /**
+ * Show continue button
+ */
+    showContinueButton() {
+        const navSystem = document.querySelector('.navigation-system');
+        if (navSystem) {
+            navSystem.classList.add('show');
+        }
+
+        // Update button state
+        this.updateNavigationButtons();
+    }
+
 
     /**
      * Set up welcome event listeners
