@@ -593,7 +593,7 @@ class ChatApp {
                 for (let i = 0; i < 4; i++) { // Always show 4 bulbs total
                     const icon = document.createElement('span');
                     icon.className = 'capability-icon-item-inline bulb';
-                    if (i > (3 - model.capabilities.reasoning)) {
+                    if (i < model.capabilities.reasoning) {
                         // This bulb should be lit
                         icon.classList.add('lit');
                     }
@@ -610,7 +610,7 @@ class ChatApp {
                 for (let i = 0; i < 4; i++) { // Always show 4 bolts total
                     const icon = document.createElement('span');
                     icon.className = 'capability-icon-item-inline bolt';
-                    if (i > (3 - model.capabilities.speed)) {
+                    if (i < model.capabilities.speed) {
                         // This bolt should be lit
                         icon.classList.add('lit');
                     }
