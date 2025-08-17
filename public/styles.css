@@ -4303,7 +4303,7 @@ body.light-theme {
 
 .model-card {
     flex: 1;
-    background: rgba(249, 250, 251, 0.04);
+    background: rgba(20, 20, 20, 0.4);
     border: 2px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     padding: 1.5rem;
@@ -4319,7 +4319,7 @@ body.light-theme {
 
 .model-card.highlighted {
     border-color: #f59e0b;
-    box-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
+    box-shadow: 0 0 30px rgba(31, 20, 1, 0.4);
     background: rgba(245, 158, 11, 0.08);
     transform: scale(1.02);
 }
