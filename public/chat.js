@@ -756,7 +756,7 @@ class ChatApp {
             }
         ];
 
-        const delays = [0, 4000, 5000, 5000, 12000];
+        const delays = [0, 1000, 3000, 3000, 9000];
 
         timeline.forEach((action, index) => {
             setTimeout(action, delays[index]);
@@ -868,7 +868,6 @@ class ChatApp {
      */
     setupWelcomeEventListeners() {
         const continueBtn = document.getElementById('nav-continue');
-        let compactModeShown = false; // Track if we've shown compact mode
 
         continueBtn.addEventListener('click', () => {
             console.log('Continue clicked, current step:', this.currentStepIndex, 'compact shown:', compactModeShown);
