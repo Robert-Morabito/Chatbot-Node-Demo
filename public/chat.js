@@ -399,10 +399,6 @@ class ChatApp {
         this.currentStepIndex = 0;
         this.maxSteps = 3;
         this.isAnimationPlaying = false;
-        // DON'T reset compactModeShown here if it already exists
-        if (this.compactModeShown === undefined) {
-            this.compactModeShown = false;
-        }
         this.setupWelcomeEventListeners();
     }
 
