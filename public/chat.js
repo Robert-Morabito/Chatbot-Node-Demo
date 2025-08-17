@@ -43,6 +43,7 @@ class ChatApp {
         this.currentStepIndex = 0;
         this.maxSteps = 3;
         this.isAnimationPlaying = false;
+        this.compactModeShown = false;
 
         // ===================================================================
         // CONFIGURATION
@@ -451,7 +452,7 @@ class ChatApp {
     }
 
     /**
-     * Update navigation buttons to hide popup when continuing
+     * Update navigation buttons based on current step
      */
     updateNavigationButtons() {
         const continueBtn = document.getElementById('nav-continue');
@@ -463,6 +464,7 @@ class ChatApp {
             return;
         }
 
+        // Make sure button is visible and enabled
         continueBtn.style.opacity = '1';
         continueBtn.style.visibility = 'visible';
         continueBtn.style.display = 'flex';
@@ -476,6 +478,13 @@ class ChatApp {
                     <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
                 </svg>
             `;
+        } else if (this.currentStepIndex === 1 && this.compactModeShown) {
+            continueBtn.innerHTML = `
+                Continue to ID Entry
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                </svg>
+            `;
         } else {
             continueBtn.innerHTML = `
                 Continue
@@ -483,18 +492,6 @@ class ChatApp {
                     <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
                 </svg>
             `;
-        }
-
-        // Hide popup when continue is clicked from step 1
-        if (this.currentStepIndex === 1) {
-            continueBtn.onclick = () => {
-                // Hide the persistent popup
-                const popup = document.getElementById('assignment-popup');
-                if (popup) {
-                    popup.classList.remove('show', 'persistent');
-                }
-                this.renderWelcomeStep(this.currentStepIndex + 1);
-            };
         }
 
         // Enable validation for Prolific ID step
