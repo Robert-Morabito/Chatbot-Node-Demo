@@ -456,6 +456,7 @@ class ChatApp {
     updateNavigationButtons() {
         const continueBtn = document.getElementById('nav-continue');
 
+        // Check if we're on step 2 (index 1) and animation is playing
         if (this.currentStepIndex === 1 && this.isAnimationPlaying) {
             continueBtn.style.opacity = '0';
             continueBtn.disabled = true;
@@ -467,7 +468,7 @@ class ChatApp {
         continueBtn.style.display = 'flex';
         continueBtn.disabled = false;
 
-        // Special handler for step 1 (comparison step)
+        // Special handler for step 2 (comparison step) - currentStepIndex === 1
         if (this.currentStepIndex === 1) {
             continueBtn.innerHTML = `
             See Details
@@ -838,7 +839,7 @@ class ChatApp {
             }
         });
     }
-    
+
     /**
      * Set up Prolific ID validation
      */
