@@ -256,7 +256,7 @@ class ChatApp {
             'openai': [
                 {
                     name: 'GPT-3.5',
-                    year: '2022',
+                    year: 'released 2022',
                     capabilities: {
                         reasoning: 1, // number of lightbulbs
                         speed: 2, // number of lightning bolts
@@ -273,7 +273,7 @@ class ChatApp {
                 },
                 {
                     name: 'GPT-4',
-                    year: '2023',
+                    year: 'released 2023',
                     capabilities: {
                         reasoning: 2,
                         speed: 3,
@@ -290,7 +290,7 @@ class ChatApp {
                 },
                 {
                     name: 'GPT-5',
-                    year: '2024',
+                    year: 'released 2024',
                     capabilities: {
                         reasoning: 4,
                         speed: 3,
@@ -309,7 +309,7 @@ class ChatApp {
             'claude': [
                 {
                     name: 'Claude 3',
-                    year: '2024',
+                    year: 'released 2024',
                     capabilities: {
                         reasoning: 1,
                         speed: 3,
@@ -326,7 +326,7 @@ class ChatApp {
                 },
                 {
                     name: 'Claude 3.5',
-                    year: '2024',
+                    year: 'released 2024',
                     capabilities: {
                         reasoning: 2,
                         speed: 3,
@@ -343,7 +343,7 @@ class ChatApp {
                 },
                 {
                     name: 'Claude 4',
-                    year: '2025',
+                    year: 'released 2025',
                     capabilities: {
                         reasoning: 4,
                         speed: 2,

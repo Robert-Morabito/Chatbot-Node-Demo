@@ -4722,7 +4722,7 @@ body.light-theme {
 .navigation-system {
     position: fixed;
     bottom: 2rem;
-    left: 85%;
+    left: 80%;
     transform: translateX(-50%);
     display: flex;
     gap: 1rem;
