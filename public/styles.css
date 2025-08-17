@@ -4407,7 +4407,7 @@ body.light-theme {
 }
 
 .capability-item[data-capability="reasoning"] .capability-icon-item-inline {
-    gap: 0.5rem;
+    gap: 0.65rem;
 }
 
 .capability-icon-item-inline {
