@@ -524,19 +524,10 @@ class ChatApp {
         const continueBtn = document.getElementById('nav-continue');
         const popup = document.getElementById('assignment-popup');
 
-        // DON'T hide popup - keep it visible
-        // Instead, modify it to be less prominent
+        // Hide popup first
         if (popup) {
-            popup.style.transform = 'translateX(-50%) scale(0.9)';
-            popup.style.opacity = '0.8';
+            popup.classList.remove('show', 'persistent');
         }
-
-        // CLEAR any existing animations that might conflict
-        modelContainer.style.animation = 'none';
-        modelContainer.style.animationFillMode = 'none';
-
-        // Force a reflow to ensure animation is cleared
-        modelContainer.offsetHeight;
 
         // Add showing-cards class and shrink models
         comparisonContainer.classList.add('showing-cards');
