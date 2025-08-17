@@ -795,6 +795,7 @@ class ChatApp {
      */
     setupWelcomeEventListeners() {
         const continueBtn = document.getElementById('nav-continue');
+        let compactModeShown = false; // Track if we've shown compact mode
 
         continueBtn.addEventListener('click', () => {
             console.log('Continue clicked, current step:', this.currentStepIndex, 'compact shown:', compactModeShown);
