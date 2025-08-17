@@ -872,30 +872,37 @@ class ChatApp {
      */
     setupWelcomeEventListeners() {
         const continueBtn = document.getElementById('nav-continue');
+        // DON'T set this.compactModeShown here - it should already exist from constructor
 
-        continueBtn.addEventListener('click', () => {
-            console.log('Continue clicked, current step:', this.currentStepIndex, 'compact shown:', compactModeShown);
+        continueBtn.addEventListener('click', (e) => {
+            console.log('Continue clicked, current step:', this.currentStepIndex, 'compact shown:', this.compactModeShown);
 
-            if (this.currentStepIndex < this.maxSteps - 1) {
-                // Special handling for step 1 (comparison step)
-                if (this.currentStepIndex === 1 && !compactModeShown) {
+            // Step 0 -> Step 1 (intro to comparison)
+            if (this.currentStepIndex === 0) {
+                this.renderWelcomeStep(1);
+                return;
+            }
+
+            // Step 1 -> Show compact mode first, then advance
+            if (this.currentStepIndex === 1) {
+                if (!this.compactModeShown) {
                     console.log('Showing compact mode and cards');
+                    e.preventDefault();
                     this.showCompactModeAndCards();
-                    compactModeShown = true;
-                    return; // Don't advance step yet
-                }
-
-                // If we're on step 1 and compact mode was already shown, advance to step 2
-                if (this.currentStepIndex === 1 && compactModeShown) {
-                    console.log('Advancing to next step');
-                    this.renderWelcomeStep(this.currentStepIndex + 1);
+                    this.compactModeShown = true; // This sets it to true
+                    console.log('Compact mode shown set to:', this.compactModeShown); // Debug log
+                    return;
+                } else {
+                    console.log('Compact mode already shown, advancing to ID step');
+                    this.renderWelcomeStep(2);
                     return;
                 }
+            }
 
-                // For other steps, advance normally
-                this.renderWelcomeStep(this.currentStepIndex + 1);
-            } else if (this.currentStepIndex === 2) {
+            // Step 2 -> Handle Prolific submission  
+            if (this.currentStepIndex === 2) {
                 this.handleProlificSubmission();
+                return;
             }
         });
     }
