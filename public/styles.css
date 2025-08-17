@@ -2645,7 +2645,7 @@ body.light-theme {
 /* Progress System - Made Responsive */
 .progress-system {
     position: relative;
-    top: 0;
+    top: -20px;
     left: 0;
     transform: none;
     display: flex;
@@ -4237,6 +4237,7 @@ body.light-theme {
     padding: 1rem;
     box-sizing: border-box;
     overflow: visible;
+    top: -50px;
 }
 
 .comparison-container {
@@ -4263,7 +4264,7 @@ body.light-theme {
     flex-shrink: 0;
     padding-bottom: 40px;
     position: relative;
-    top: -20px;
+    top: -2px;
 }
 
 .comparison-title h2 {
@@ -4537,7 +4538,6 @@ body.light-theme {
     transform: translateY(30px);
     transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     text-align: center;
-    margin: 2rem auto 1rem auto;
 }
 
 .capability-cards-header.show {
@@ -4569,7 +4569,7 @@ body.light-theme {
     gap: 1.5rem;
     width: 100%;
     max-width: 900px;
-    margin: 2rem auto 0 auto;
+    margin: 1rem auto 0 auto;
     opacity: 0;
     visibility: hidden;
     transform: translateY(30px);
@@ -4669,7 +4669,7 @@ body.light-theme {
 
 .assignment-popup {
     position: absolute;
-    top: 75px;
+    top: 60px;
     left: 50%;
     transform: translateX(-50%);
     opacity: 0;
@@ -4722,7 +4722,7 @@ body.light-theme {
 .navigation-system {
     position: fixed;
     bottom: 2rem;
-    left: 50%;
+    left: 85%;
     transform: translateX(-50%);
     display: flex;
     gap: 1rem;
