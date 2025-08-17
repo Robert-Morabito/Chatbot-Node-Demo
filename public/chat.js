@@ -759,7 +759,7 @@ class ChatApp {
             }
         ];
 
-        const delays = [0, 1000, 4000, 4000, 12000];
+        const delays = [0, 4000, 5000, 5000, 12000];
 
         timeline.forEach((action, index) => {
             setTimeout(action, delays[index]);
@@ -871,36 +871,31 @@ class ChatApp {
      */
     setupWelcomeEventListeners() {
         const continueBtn = document.getElementById('nav-continue');
-        this.compactModeShown = false; // Make it a class property so it persists
+        let compactModeShown = false; // Track if we've shown compact mode
 
-        continueBtn.addEventListener('click', (e) => {
-            console.log('Continue clicked, current step:', this.currentStepIndex, 'compact shown:', this.compactModeShown);
+        continueBtn.addEventListener('click', () => {
+            console.log('Continue clicked, current step:', this.currentStepIndex, 'compact shown:', compactModeShown);
 
-            // Step 0 -> Step 1 (intro to comparison)
-            if (this.currentStepIndex === 0) {
-                this.renderWelcomeStep(1);
-                return;
-            }
-
-            // Step 1 -> Show compact mode first, then advance
-            if (this.currentStepIndex === 1) {
-                if (!this.compactModeShown) {
+            if (this.currentStepIndex < this.maxSteps - 1) {
+                // Special handling for step 1 (comparison step)
+                if (this.currentStepIndex === 1 && !compactModeShown) {
                     console.log('Showing compact mode and cards');
-                    e.preventDefault(); // Prevent any default behavior
                     this.showCompactModeAndCards();
-                    this.compactModeShown = true;
-                    return; // STOP HERE - don't advance step
-                } else {
-                    console.log('Advancing to ID step');
-                    this.renderWelcomeStep(2);
+                    compactModeShown = true;
+                    return; // Don't advance step yet
+                }
+
+                // If we're on step 1 and compact mode was already shown, advance to step 2
+                if (this.currentStepIndex === 1 && compactModeShown) {
+                    console.log('Advancing to next step');
+                    this.renderWelcomeStep(this.currentStepIndex + 1);
                     return;
                 }
-            }
 
-            // Step 2 -> Handle Prolific submission  
-            if (this.currentStepIndex === 2) {
+                // For other steps, advance normally
+                this.renderWelcomeStep(this.currentStepIndex + 1);
+            } else if (this.currentStepIndex === 2) {
                 this.handleProlificSubmission();
-                return;
             }
         });
     }
@@ -944,11 +939,11 @@ class ChatApp {
         // Update button text immediately
         if (continueBtn) {
             continueBtn.innerHTML = `
-            Continue to ID Entry
-            <svg class="nav-icon" viewBox="0 0 24 24">
-                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-            </svg>
-        `;
+                Continue to ID Entry
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                </svg>
+            `;
             console.log('Updated button text');
         }
 
@@ -964,8 +959,6 @@ class ChatApp {
                     cards.classList.add('show');
                     console.log('Showed cards');
                 }
-
-                console.log('All animations complete - ready for next click');
             }, 300);
         }, 500);
     }
