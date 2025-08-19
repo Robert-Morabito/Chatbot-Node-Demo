@@ -125,12 +125,12 @@ body.light-theme {
     margin: 0 auto;
 }
 
-/* Sidebar Header */
 .sidebar-header {
     padding: 1rem;
     display: flex;
     gap: 0.5rem;
     align-items: center;
+    justify-content: center;
     min-height: calc(var(--header-height) * 0.8);
 }
 
@@ -2500,9 +2500,9 @@ body.light-theme {
     width: 100%;
     height: 100%;
     background:
-        radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 20% 80%, rgba(51, 112, 211, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(109, 72, 194, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(11, 122, 85, 0.05) 0%, transparent 50%),
         linear-gradient(135deg, 
             #272731 0%, 
             #26262e 25%, 
@@ -2533,12 +2533,6 @@ body.light-theme {
     width: 200%;
     height: 200%;
     background-image:
-        /* Large orbs (3x size) */
-        radial-gradient(6px 6px at 20px 30px, rgba(255,255,255,0.06), transparent),
-        radial-gradient(5px 5px at 160px 90px, rgba(255,255,255,0.04), transparent),
-        radial-gradient(6px 6px at 300px 150px, rgba(255,255,255,0.05), transparent),
-        radial-gradient(4px 4px at 80px 200px, rgba(255,255,255,0.045), transparent),
-        
         /* Medium orbs (2x size) */
         radial-gradient(4px 4px at 40px 70px, rgba(255,255,255,0.035), transparent),
         radial-gradient(3px 3px at 220px 40px, rgba(255,255,255,0.04), transparent),
@@ -2569,12 +2563,6 @@ body.light-theme {
 
 .light-theme .welcome-backdrop::before {
     background-image:
-        /* Large orbs (3x size) */
-        radial-gradient(6px 6px at 20px 30px, rgba(0,0,0,0.025), transparent),
-        radial-gradient(5px 5px at 160px 90px, rgba(0,0,0,0.018), transparent),
-        radial-gradient(6px 6px at 300px 150px, rgba(0,0,0,0.022), transparent),
-        radial-gradient(4px 4px at 80px 200px, rgba(0,0,0,0.02), transparent),
-        
         /* Medium orbs (2x size) */
         radial-gradient(4px 4px at 40px 70px, rgba(0,0,0,0.016), transparent),
         radial-gradient(3px 3px at 220px 40px, rgba(0,0,0,0.019), transparent),
@@ -3805,71 +3793,6 @@ body.light-theme {
     border-bottom-color: var(--border-light);
 }
 
-/* Task Tabs */
-.task-tabs {
-    display: flex;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 8px;
-    padding: 3px;
-    border: none;
-}
-
-.light-theme .task-tabs {
-    background: rgba(0, 0, 0, 0.03);
-}
-
-.task-tab {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.75rem 0.5rem;
-    background: transparent;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    color: var(--text-secondary-dark);
-    position: relative;
-    overflow: hidden;
-}
-
-.light-theme .task-tab {
-    color: var(--text-secondary-light);
-}
-
-.task-tab:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--text-dark);
-    transform: translateY(-1px);
-}
-
-.light-theme .task-tab:hover {
-    background: rgba(0, 0, 0, 0.08);
-    color: var(--text-light);
-}
-
-.task-tab.active {
-    background: var(--user-msg-bg-dark);
-    color: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    transform: translateY(-1px);
-}
-
-.light-theme .task-tab.active {
-    background: var(--user-msg-bg-light);
-}
-
-.task-icon {
-    font-size: 1.25rem;
-    line-height: 1;
-    transition: all 0.3s ease;
-}
-
-.task-tab.active .task-icon {
-    transform: scale(1.15);
-}
-
 /* Sidebar Toggle - Remove border */
 .sidebar-toggle {
     background: none;
@@ -4016,10 +3939,6 @@ body.light-theme {
 .sidebar.collapsed .sidebar-header {
     padding: 1rem 0.5rem;
     align-items: center;
-}
-
-.sidebar.collapsed .task-tabs {
-    display: none;
 }
 
 .sidebar.collapsed .conversation-section {

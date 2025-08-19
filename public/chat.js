@@ -26,8 +26,11 @@ class ChatApp {
             'social-media': new Map(),
             'acronym-building': new Map()
         };
+        this.taskSequence = ['image-generation', 'social-media', 'acronym-building'];
+        this.currentTaskIndex = 0;
+        this.currentTask = this.taskSequence[0];
+        this.completedTasks = [];
 
-        this.currentTask = 'image-generation';
         this.currentConversationId = null;
         this.currentChatlog = [];
         this.msgWidgets = {};
@@ -131,8 +134,8 @@ class ChatApp {
     // ===================================================================
 
     /**
- * Initialize the complete application
- */
+     * Initialize the complete application
+     */
     async initializeApp() {
         // Show welcome experience immediately, load config in background
         this.initializeWelcomeExperience();
@@ -236,6 +239,7 @@ class ChatApp {
         this.setupEventListeners();
         this.updateBotName();
         this.updateTaskHeader();
+        this.updateFinishButton();
         this.createNewConversation();
         this.setupTextareaAutoResize();
         this.setupAdvancedAnimations();
@@ -918,65 +922,158 @@ class ChatApp {
     // ===================================================================
 
     /**
-     * Switch to a different task tab
+     * Get current task configuration
      */
-    switchToTask(taskId) {
-        console.log('🔄 Switching to task:', taskId);
+    getCurrentTaskConfig() {
+        return this.taskConfig[this.currentTask];
+    }
 
-        const oldTask = this.currentTask;
-        if (oldTask !== taskId) {
-            const now = Date.now();
-            this.behaviorMetrics.taskMetrics[oldTask].timeSpent += now - this.sessionStartTime;
+    /**
+     * Check if this is the final task
+     */
+    isFinalTask() {
+        return this.currentTaskIndex >= this.taskSequence.length - 1;
+    }
+
+    /**
+     * Get next task in sequence
+     */
+    getNextTask() {
+        const nextIndex = this.currentTaskIndex + 1;
+        return nextIndex < this.taskSequence.length ? this.taskSequence[nextIndex] : null;
+    }
+
+    /**
+     * Progress to next task
+     */
+    async progressToNextTask() {
+        console.log('📋 Progressing to next task...');
+
+        // Mark current task as completed
+        this.completedTasks.push(this.currentTask);
+
+        // Move to next task
+        this.currentTaskIndex++;
+        if (this.currentTaskIndex < this.taskSequence.length) {
+            this.currentTask = this.taskSequence[this.currentTaskIndex];
+
+            // Reset conversation state for new task
+            this.currentConversationId = null;
+            this.currentChatlog = [];
+
+            // Update UI for new task
+            this.updateTaskHeader();
+            this.updateConversationList();
+            this.updateFinishButton();
+            this.showWelcomeMessage();
+
+            console.log('✅ Progressed to task:', this.currentTask);
         }
+    }
 
+    /**
+     * Handle task completion
+     */
+    async handleTaskCompletion() {
+        console.log('🏁 Task completion requested for:', this.currentTask);
+
+        const taskConfig = this.getCurrentTaskConfig();
+        const isLastTask = this.isFinalTask();
+
+        // Show confirmation dialog
+        const confirmed = await this.showTaskCompletionDialog(taskConfig.name, isLastTask);
+        if (!confirmed) return;
+
+        try {
+            // Save current task's conversations
+            await this.saveCurrentTaskData();
+
+            if (isLastTask) {
+                // This is the final task - complete the study
+                await this.completeEntireStudy();
+            } else {
+                // Progress to next task
+                await this.progressToNextTask();
+            }
+
+        } catch (error) {
+            console.error('❌ Task completion error:', error);
+            alert('Error completing task. Please try again.');
+        }
+    }
+
+    /**
+     * Show task completion confirmation dialog
+     */
+    showTaskCompletionDialog(taskName, isLastTask) {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('finish-confirmation-modal');
+            const titleEl = modal.querySelector('h3');
+            const bodyEl = modal.querySelector('p');
+
+            if (isLastTask) {
+                titleEl.textContent = 'Complete Study';
+                bodyEl.textContent = `You are about to complete the final task (${taskName}) and finish the entire study. This will download your data and close the interface.`;
+            } else {
+                titleEl.textContent = `Complete ${taskName} Task`;
+                bodyEl.textContent = `You are about to finish the ${taskName} task and move to the next task. You won't be able to return to this task once you continue.`;
+            }
+
+            modal.style.display = 'flex';
+            this.taskCompletionResolve = resolve;
+        });
+    }
+
+    /**
+     * Hide task completion dialog
+     */
+    hideTaskCompletionDialog(confirmed) {
+        const modal = document.getElementById('finish-confirmation-modal');
+        modal.style.display = 'none';
+
+        if (this.taskCompletionResolve) {
+            this.taskCompletionResolve(confirmed);
+            this.taskCompletionResolve = null;
+        }
+    }
+
+    /**
+     * Save current task's conversation data
+     */
+    async saveCurrentTaskData() {
         // Save current conversation if any
         if (this.currentConversationId) {
-            const currentTaskConversations = this.taskConversations[this.currentTask];
-            const currentConv = currentTaskConversations.get(this.currentConversationId);
+            const taskConversations = this.taskConversations[this.currentTask];
+            const currentConv = taskConversations.get(this.currentConversationId);
             if (currentConv) {
                 currentConv.messages = [...this.currentChatlog];
                 currentConv.lastMessageAt = new Date();
             }
         }
 
-        this.currentTask = taskId;
-        this.updateTaskTabs();
-        this.updateTaskHeader();
-
-        // Check if task has conversations
-        const taskConversations = this.taskConversations[this.currentTask];
-        if (taskConversations.size === 0) {
-            this.createNewConversation();
-        } else {
-            const sortedConversations = Array.from(taskConversations.values())
-                .sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
-
-            if (sortedConversations.length > 0) {
-                this.switchToConversation(sortedConversations[0].id);
-            } else {
-                this.currentConversationId = null;
-                this.currentChatlog = [];
-                this.showWelcomeMessage();
-            }
-        }
-
-        this.updateConversationList();
-        console.log('✅ Switched to task:', taskId);
+        console.log(`💾 Saved ${this.currentTask} task data`);
     }
 
     /**
-     * Update task tabs UI
+     * Update finish button based on current task
      */
-    updateTaskTabs() {
-        const tabs = document.querySelectorAll('.task-tab');
-        tabs.forEach(tab => {
-            const taskId = tab.dataset.task;
-            if (taskId === this.currentTask) {
-                tab.classList.add('active');
-            } else {
-                tab.classList.remove('active');
-            }
-        });
+    updateFinishButton() {
+        const finishBtn = document.getElementById('finish-btn');
+        if (!finishBtn) return;
+
+        const isLastTask = this.isFinalTask();
+
+        if (isLastTask) {
+            finishBtn.innerHTML = '🏁 Finish Study';
+            finishBtn.title = 'Complete study and download data';
+        } else {
+            const nextTask = this.getNextTask();
+            const nextTaskConfig = nextTask ? this.taskConfig[nextTask] : null;
+            finishBtn.innerHTML = `Complete Task & Continue`;
+            finishBtn.title = nextTaskConfig ?
+                `Finish current task and move to ${nextTaskConfig.name}` :
+                'Complete current task';
+        }
     }
 
     /**
@@ -985,9 +1082,10 @@ class ChatApp {
     updateTaskHeader() {
         const taskHeader = document.getElementById('task-header');
         const taskTitle = taskHeader.querySelector('.task-title');
-        const config = this.taskConfig[this.currentTask];
+        const config = this.getCurrentTaskConfig();
         taskTitle.textContent = config.name;
     }
+
 
     /**
      * Create new conversation for current task
@@ -2225,7 +2323,9 @@ class ChatApp {
                     configurationId: this.configurationId
                 },
                 behaviorMetrics: behaviorMetrics,
-                taskMetrics: this.behaviorMetrics.taskMetrics
+                taskMetrics: this.behaviorMetrics.taskMetrics,
+                completedTasks: this.completedTasks, // ADD this line
+                currentTaskIndex: this.currentTaskIndex // ADD this line
             };
 
             const response = await fetch('/api/save', {
@@ -2294,30 +2394,32 @@ class ChatApp {
     /**
      * Handle finish study
      */
-    async handleFinishStudy() {
-        console.log('🏁 Finish button clicked');
+    async completeEntireStudy() {
+        console.log('🏁 Completing entire study...');
 
         const finishBtn = document.getElementById('finish-btn');
         if (finishBtn.disabled) return;
         finishBtn.disabled = true;
 
-        const confirmed = await this.showFinishConfirmationDialog();
-        if (!confirmed) {
-            finishBtn.disabled = false;
-            return;
-        }
-
         try {
             this.showFinishLoadingIndicator();
 
+            // Save any remaining conversation data  
             if (this.currentConversationId && this.currentChatlog.length > 0) {
-                const conversation = this.conversations.get(this.currentConversationId);
+                const taskConversations = this.taskConversations[this.currentTask]; // CHANGE: use current task
+                const conversation = taskConversations.get(this.currentConversationId);
                 if (conversation) {
                     conversation.messages = [...this.currentChatlog];
                 }
             }
 
             const behaviorMetrics = this.calculateFinalMetrics();
+
+            // CHANGE: Organize conversations by task (instead of single conversations map)
+            const organizedConversations = {};
+            for (const [taskId, conversations] of Object.entries(this.taskConversations)) {
+                organizedConversations[taskId] = Object.fromEntries(conversations);
+            }
 
             const exportData = {
                 participantId: this.participantId,
@@ -2328,9 +2430,10 @@ class ChatApp {
                     actualModel: this.config.trueModel,
                     configurationId: this.configurationId
                 },
-                conversations: Object.fromEntries(this.conversations),
+                conversations: organizedConversations, // CHANGE: use organized conversations
                 behaviorMetrics: behaviorMetrics,
-                studyVersion: "1.0"
+                completedTasks: this.completedTasks, // ADD: track completed tasks
+                studyVersion: "2.0" // CHANGE: update version
             };
 
             console.log('📦 Export data prepared:', exportData);
@@ -2346,6 +2449,37 @@ class ChatApp {
             alert('There was an error completing the study. Please try again or contact support.');
             this.hideFinishLoadingIndicator();
             finishBtn.disabled = false;
+        }
+    }
+
+    /**
+     * Handle task completion - this is the NEW method that the finish button calls
+     */
+    async handleTaskCompletion() {
+        console.log('🏁 Task completion requested for:', this.currentTask);
+
+        const taskConfig = this.getCurrentTaskConfig();
+        const isLastTask = this.isFinalTask();
+
+        // Show confirmation dialog
+        const confirmed = await this.showTaskCompletionDialog(taskConfig.name, isLastTask);
+        if (!confirmed) return;
+
+        try {
+            // Save current task's conversations
+            await this.saveCurrentTaskData();
+
+            if (isLastTask) {
+                // This is the final task - complete the entire study
+                await this.completeEntireStudy();
+            } else {
+                // Progress to next task
+                await this.progressToNextTask();
+            }
+
+        } catch (error) {
+            console.error('❌ Task completion error:', error);
+            alert('Error completing task. Please try again.');
         }
     }
 
@@ -2536,14 +2670,18 @@ class ChatApp {
                 const behaviorMetrics = this.calculateFinalMetrics();
                 const saveData = {
                     participantId: this.participantId,
+                    conversations: organizedConversations,
                     sessionId: this.sessionId,
-                    conversations: Object.fromEntries(this.conversations),
+                    completedAt: new Date().toISOString(),
                     modelConfig: {
                         displayedModel: this.config.givenModel,
                         actualModel: this.config.trueModel,
                         configurationId: this.configurationId
                     },
-                    behaviorMetrics: behaviorMetrics
+                    behaviorMetrics: behaviorMetrics,
+                    taskMetrics: this.behaviorMetrics.taskMetrics,
+                    completedTasks: this.completedTasks, // ADD this line
+                    currentTaskIndex: this.currentTaskIndex // ADD this line
                 };
 
                 const blob = new Blob([JSON.stringify(saveData)], { type: 'application/json' });
@@ -2657,23 +2795,15 @@ class ChatApp {
         document.getElementById('theme-switch').addEventListener('change', () => this.toggleTheme());
         document.getElementById('new-chat-btn').addEventListener('click', () => this.createNewConversation());
         document.getElementById('save-chat-btn').addEventListener('click', () => this.manualSave());
-        document.getElementById('finish-btn').addEventListener('click', () => this.handleFinishStudy());
+        document.getElementById('finish-btn').addEventListener('click', () => this.handleTaskCompletion());
 
-        document.getElementById('finish-cancel-btn').addEventListener('click', () => this.hideFinishConfirmationDialog(false));
-        document.getElementById('finish-confirm-btn').addEventListener('click', () => this.hideFinishConfirmationDialog(true));
+        document.getElementById('finish-cancel-btn').addEventListener('click', () => this.hideTaskCompletionDialog(false));
+        document.getElementById('finish-confirm-btn').addEventListener('click', () => this.hideTaskCompletionDialog(true));
 
         document.getElementById('sidebar-toggle').addEventListener('click', () => this.toggleSidebar());
         document.getElementById('mobile-sidebar-toggle').addEventListener('click', () => this.toggleMobileSidebar());
 
         document.addEventListener('click', (e) => this.handleOutsideClick(e));
-
-        // Task tab listeners
-        document.querySelectorAll('.task-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                const taskId = tab.dataset.task;
-                this.switchToTask(taskId);
-            });
-        });
     }
 }
 
