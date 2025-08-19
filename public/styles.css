@@ -4431,9 +4431,9 @@ body.light-theme {
 }
 
 .rank-text-card {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #f59e0b;
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #f3ce1b;
 }
 
 .light-theme .rank-text-card {
@@ -4484,9 +4484,7 @@ body.light-theme {
     transform: translateY(30px);
     transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
-    /* Change from absolute */
     top: auto;
-    /* Remove the top: 100% */
 }
 
 .capability-cards.show {
@@ -4498,7 +4496,7 @@ body.light-theme {
 }
 
 .capability-card {
-    background: rgba(249, 250, 251, 0.06);
+    background: rgb(0 0 0 / 28%);
     border: 1px solid rgba(229, 231, 235, 0.12);
     border-radius: 12px;
     padding: 1.5rem;
@@ -4565,9 +4563,7 @@ body.light-theme {
 
 .capability-card p {
     font-size: 1.05rem;
-    /* Increased size */
-    color: rgba(233, 236, 240, 0.9);
-    /* Better readability */
+    color: rgba(245, 246, 248, 0.938);
     margin: 0;
     line-height: 1.5;
 }
