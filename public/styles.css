@@ -618,7 +618,7 @@ body.light-theme {
 
 /* Welcome Content Components */
 .welcome-instructions {
-    text-align: center;
+    text-align: left;
     padding: 1.25rem;
     border-radius: 0.5rem;
     background: rgba(255, 255, 255, 0.03);
@@ -4400,24 +4400,19 @@ body.light-theme {
 .capability-icons-inline {
     display: flex;
     align-items: center;
-}
-
-.capability-icon-item-inline {
     gap: 0.25rem;
 }
 
-.capability-item[data-capability="reasoning"] .capability-icon-item-inline {
-    gap: 0.8rem;
+.capability-item[data-capability="reasoning"] .capability-icons-inline {
+    gap: 0.65rem;
 }
 
 .capability-icon-item-inline {
     font-size: 1.25rem;
     opacity: 0.2;
-    /* Grayed out by default */
     transform: scale(0.9);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     filter: grayscale(0.8);
-    /* Make unlit icons gray */
 }
 
 .capability-icon-item-inline.lit {
