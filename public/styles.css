@@ -4432,8 +4432,8 @@ body.light-theme {
 }
 
 .capability-icon-item-inline.bulb.lit {
-    filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.6));
-    text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+    filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.6));
+    text-shadow: 0 0 4px rgba(255, 215, 0, 0.5);
 }
 
 .capability-icon-item-inline.bolt {
@@ -4441,8 +4441,8 @@ body.light-theme {
 }
 
 .capability-icon-item-inline.bolt.lit {
-    filter: drop-shadow(0 0 4px rgba(96, 165, 250, 0.6));
-    text-shadow: 0 0 8px rgba(96, 165, 250, 0.5);
+    filter: drop-shadow(0 0 2px rgba(96, 165, 250, 0.6));
+    text-shadow: 0 0 4px rgba(96, 165, 250, 0.5);
 }
 
 .capability-icon-item-inline.bulb:not(.lit) {
