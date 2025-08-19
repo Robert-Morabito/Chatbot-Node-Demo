@@ -617,7 +617,8 @@ body.light-theme {
 }
 
 .welcome-instructions {
-    text-align: left;  /* Your desired alignment */
+    text-align: left;
+    /* Your desired alignment */
     padding: 2rem 1.5rem;
     border-radius: 8px;
     background: rgba(59, 130, 246, 0.08);
@@ -1590,13 +1591,14 @@ body.light-theme {
    9. UTILITY COMPONENTS
    ================================================================= */
 
-/* Finish Button - Updated with responsive positioning */
+/* Finish Button - Updated with lower positioning */
 .finish-btn {
     position: fixed;
-    bottom: calc(var(--input-area-height, 80px) + 1.5rem);
-    /* Stay above input area */
+    bottom: calc(var(--input-area-height, 80px) + 0.75rem);
+    /* CHANGE: reduced from 1.5rem to 0.75rem */
     right: 1.25rem;
-    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    /* CHANGE: blue by default */
     color: white;
     border: none;
     padding: 0.75rem 1.25rem;
@@ -1604,79 +1606,95 @@ body.light-theme {
     cursor: pointer;
     font-size: 0.875rem;
     font-weight: 600;
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    /* CHANGE: blue shadow */
     transition: all 0.3s ease;
     z-index: 100;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    /* Ensure minimum distance from input area */
     margin-bottom: env(safe-area-inset-bottom, 0);
 }
 
 .finish-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+    /* CHANGE: blue shadow */
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    /* CHANGE: blue hover */
+}
+
+/* ADD: Final task styling (red) */
+.finish-btn.final-task {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.finish-btn.final-task:hover {
     background: linear-gradient(135deg, #b91c1c, #991b1b);
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
 }
 
 .finish-btn::before {
-    content: '🏁';
+    content: '📋';
+    /* CHANGE: task icon by default */
     font-size: 1rem;
 }
 
-/* Responsive adjustments for finish button */
+/* ADD: Final task icon */
+.finish-btn.final-task::before {
+    content: '🏁';
+}
+
+/* Responsive adjustments - ADD safety margin for smaller screens */
 @media (max-width: 1024px) {
     .finish-btn {
-        bottom: calc(var(--input-area-height, 90px) + 1.25rem);
+        bottom: calc(var(--input-area-height, 90px) + 1rem);
+        /* More space on tablets */
         right: 1rem;
     }
 }
 
 @media (max-width: 768px) {
     .finish-btn {
-        bottom: calc(var(--input-area-height, 100px) + 1rem);
+        bottom: calc(var(--input-area-height, 100px) + 1.25rem);
+        /* Even more space on mobile */
         right: 1rem;
         padding: 0.625rem 1rem;
         font-size: 0.8125rem;
-    }
-
-    .finish-btn::before {
-        font-size: 0.875rem;
     }
 }
 
 @media (max-width: 480px) {
     .finish-btn {
-        bottom: calc(var(--input-area-height, 110px) + 0.75rem);
+        bottom: calc(var(--input-area-height, 110px) + 1.5rem);
+        /* Maximum space on small screens */
         right: 0.75rem;
         padding: 0.5rem 0.875rem;
         font-size: 0.75rem;
     }
-
-    .finish-btn::before {
-        font-size: 0.8125rem;
-    }
 }
 
-/* Very small screens - move finish button to top area if needed */
+/* Extra safety for very small screens */
 @media (max-width: 380px) {
     .finish-btn {
-        top: 1rem;
-        bottom: auto;
-        right: 1rem;
-        padding: 0.5rem 0.875rem;
-        font-size: 0.75rem;
+        bottom: calc(var(--input-area-height, 120px) + 1.75rem);
+        right: 0.75rem;
     }
 }
 
-/* Landscape mobile - adjust positioning */
+/* Landscape mobile - be extra careful */
 @media (max-height: 500px) and (orientation: landscape) {
     .finish-btn {
-        bottom: calc(var(--input-area-height, 80px) + 0.5rem);
+        bottom: calc(var(--input-area-height, 80px) + 1rem);
         right: 0.75rem;
         padding: 0.5rem 0.875rem;
     }
+}
+
+/* Remove the default ::before content when we set innerHTML */
+.finish-btn.has-custom-content::before {
+    display: none;
 }
 
 /* Auto-save Indicator */
@@ -2335,18 +2353,6 @@ body.light-theme {
         font-size: 1rem;
     }
 
-    /* Finish Button */
-    .finish-btn {
-        bottom: 0.9375rem;
-        right: 0.9375rem;
-        padding: 0.625rem 1rem;
-        font-size: 0.8125rem;
-    }
-
-    .finish-btn::before {
-        font-size: 0.875rem;
-    }
-
     /* Welcome Modal */
     .welcome-modal-content {
         width: 95vw;
@@ -2503,11 +2509,11 @@ body.light-theme {
         radial-gradient(circle at 20% 80%, rgba(51, 112, 211, 0.15) 0%, transparent 50%),
         radial-gradient(circle at 80% 20%, rgba(109, 72, 194, 0.1) 0%, transparent 50%),
         radial-gradient(circle at 40% 40%, rgba(11, 122, 85, 0.05) 0%, transparent 50%),
-        linear-gradient(135deg, 
-            #272731 0%, 
-            #26262e 25%, 
-            #313542 50%, 
-            #3b4d64 75%, 
+        linear-gradient(135deg,
+            #272731 0%,
+            #26262e 25%,
+            #313542 50%,
+            #3b4d64 75%,
             #3b617c 100%);
     overflow: hidden;
 }
@@ -2517,11 +2523,11 @@ body.light-theme {
         radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
         radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
         radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.03) 0%, transparent 50%),
-        linear-gradient(135deg, 
-            #fafbfc 0%, 
-            #f5f7fa 25%, 
-            #e8eef5 50%, 
-            #d6e3f0 75%, 
+        linear-gradient(135deg,
+            #fafbfc 0%,
+            #f5f7fa 25%,
+            #e8eef5 50%,
+            #d6e3f0 75%,
             #c2d9eb 100%);
 }
 
@@ -2534,64 +2540,77 @@ body.light-theme {
     height: 200%;
     background-image:
         /* Medium orbs (2x size) */
-        radial-gradient(4px 4px at 40px 70px, rgba(255,255,255,0.035), transparent),
-        radial-gradient(3px 3px at 220px 40px, rgba(255,255,255,0.04), transparent),
-        radial-gradient(4px 4px at 120px 180px, rgba(255,255,255,0.038), transparent),
-        radial-gradient(3px 3px at 280px 110px, rgba(255,255,255,0.042), transparent),
-        
+        radial-gradient(4px 4px at 40px 70px, rgba(255, 255, 255, 0.035), transparent),
+        radial-gradient(3px 3px at 220px 40px, rgba(255, 255, 255, 0.04), transparent),
+        radial-gradient(4px 4px at 120px 180px, rgba(255, 255, 255, 0.038), transparent),
+        radial-gradient(3px 3px at 280px 110px, rgba(255, 255, 255, 0.042), transparent),
+
         /* Small orbs (1.5x size) */
-        radial-gradient(3px 3px at 90px 40px, rgba(255,255,255,0.04), transparent),
-        radial-gradient(2px 2px at 180px 120px, rgba(255,255,255,0.035), transparent),
-        radial-gradient(3px 3px at 50px 160px, rgba(255,255,255,0.045), transparent),
-        radial-gradient(2px 2px at 260px 70px, rgba(255,255,255,0.038), transparent),
-        
+        radial-gradient(3px 3px at 90px 40px, rgba(255, 255, 255, 0.04), transparent),
+        radial-gradient(2px 2px at 180px 120px, rgba(255, 255, 255, 0.035), transparent),
+        radial-gradient(3px 3px at 50px 160px, rgba(255, 255, 255, 0.045), transparent),
+        radial-gradient(2px 2px at 260px 70px, rgba(255, 255, 255, 0.038), transparent),
+
         /* Original size orbs */
-        radial-gradient(2px 2px at 130px 80px, rgba(255,255,255,0.03), transparent),
-        radial-gradient(1px 1px at 200px 160px, rgba(255,255,255,0.025), transparent),
-        radial-gradient(2px 2px at 60px 120px, rgba(255,255,255,0.032), transparent),
-        radial-gradient(1px 1px at 240px 180px, rgba(255,255,255,0.028), transparent);
-    
+        radial-gradient(2px 2px at 130px 80px, rgba(255, 255, 255, 0.03), transparent),
+        radial-gradient(1px 1px at 200px 160px, rgba(255, 255, 255, 0.025), transparent),
+        radial-gradient(2px 2px at 60px 120px, rgba(255, 255, 255, 0.032), transparent),
+        radial-gradient(1px 1px at 240px 180px, rgba(255, 255, 255, 0.028), transparent);
+
     background-repeat: repeat;
-    background-size: 
-        350px 250px, 320px 280px, 380px 300px, 310px 260px,  /* Large orbs */
-        280px 220px, 300px 240px, 320px 270px, 290px 230px,  /* Medium orbs */
-        250px 200px, 270px 210px, 260px 190px, 280px 220px,  /* Small orbs */
-        240px 180px, 220px 160px, 230px 170px, 210px 150px;  /* Original orbs */
-    
+    background-size:
+        350px 250px, 320px 280px, 380px 300px, 310px 260px,
+        /* Large orbs */
+        280px 220px, 300px 240px, 320px 270px, 290px 230px,
+        /* Medium orbs */
+        250px 200px, 270px 210px, 260px 190px, 280px 220px,
+        /* Small orbs */
+        240px 180px, 220px 160px, 230px 170px, 210px 150px;
+    /* Original orbs */
+
     animation: floatingOrbs 25s linear infinite;
 }
 
 .light-theme .welcome-backdrop::before {
     background-image:
         /* Medium orbs (2x size) */
-        radial-gradient(4px 4px at 40px 70px, rgba(0,0,0,0.016), transparent),
-        radial-gradient(3px 3px at 220px 40px, rgba(0,0,0,0.019), transparent),
-        radial-gradient(4px 4px at 120px 180px, rgba(0,0,0,0.017), transparent),
-        radial-gradient(3px 3px at 280px 110px, rgba(0,0,0,0.021), transparent),
-        
+        radial-gradient(4px 4px at 40px 70px, rgba(0, 0, 0, 0.016), transparent),
+        radial-gradient(3px 3px at 220px 40px, rgba(0, 0, 0, 0.019), transparent),
+        radial-gradient(4px 4px at 120px 180px, rgba(0, 0, 0, 0.017), transparent),
+        radial-gradient(3px 3px at 280px 110px, rgba(0, 0, 0, 0.021), transparent),
+
         /* Small orbs (1.5x size) */
-        radial-gradient(3px 3px at 90px 40px, rgba(0,0,0,0.018), transparent),
-        radial-gradient(2px 2px at 180px 120px, rgba(0,0,0,0.015), transparent),
-        radial-gradient(3px 3px at 50px 160px, rgba(0,0,0,0.02), transparent),
-        radial-gradient(2px 2px at 260px 70px, rgba(0,0,0,0.017), transparent),
-        
+        radial-gradient(3px 3px at 90px 40px, rgba(0, 0, 0, 0.018), transparent),
+        radial-gradient(2px 2px at 180px 120px, rgba(0, 0, 0, 0.015), transparent),
+        radial-gradient(3px 3px at 50px 160px, rgba(0, 0, 0, 0.02), transparent),
+        radial-gradient(2px 2px at 260px 70px, rgba(0, 0, 0, 0.017), transparent),
+
         /* Original size orbs */
-        radial-gradient(2px 2px at 130px 80px, rgba(0,0,0,0.014), transparent),
-        radial-gradient(1px 1px at 200px 160px, rgba(0,0,0,0.012), transparent),
-        radial-gradient(2px 2px at 60px 120px, rgba(0,0,0,0.015), transparent),
-        radial-gradient(1px 1px at 240px 180px, rgba(0,0,0,0.013), transparent);
-    
+        radial-gradient(2px 2px at 130px 80px, rgba(0, 0, 0, 0.014), transparent),
+        radial-gradient(1px 1px at 200px 160px, rgba(0, 0, 0, 0.012), transparent),
+        radial-gradient(2px 2px at 60px 120px, rgba(0, 0, 0, 0.015), transparent),
+        radial-gradient(1px 1px at 240px 180px, rgba(0, 0, 0, 0.013), transparent);
+
     background-repeat: repeat;
-    background-size: 
-        350px 250px, 320px 280px, 380px 300px, 310px 260px,  /* Large orbs */
-        280px 220px, 300px 240px, 320px 270px, 290px 230px,  /* Medium orbs */
-        250px 200px, 270px 210px, 260px 190px, 280px 220px,  /* Small orbs */
-        240px 180px, 220px 160px, 230px 170px, 210px 150px;  /* Original orbs */
+    background-size:
+        350px 250px, 320px 280px, 380px 300px, 310px 260px,
+        /* Large orbs */
+        280px 220px, 300px 240px, 320px 270px, 290px 230px,
+        /* Medium orbs */
+        250px 200px, 270px 210px, 260px 190px, 280px 220px,
+        /* Small orbs */
+        240px 180px, 220px 160px, 230px 170px, 210px 150px;
+    /* Original orbs */
 }
 
 @keyframes floatingOrbs {
-    0% { transform: translate(0, 0); }
-    100% { transform: translate(-200px, -200px); }
+    0% {
+        transform: translate(0, 0);
+    }
+
+    100% {
+        transform: translate(-200px, -200px);
+    }
 }
 
 @keyframes slowScroll {
@@ -2611,15 +2630,22 @@ body.light-theme {
     left: 0;
     width: 100%;
     height: 100%;
-    background: 
+    background:
         radial-gradient(ellipse at 25% 25%, rgba(59, 130, 246, 0.08) 0%, transparent 70%),
         radial-gradient(ellipse at 75% 75%, rgba(139, 92, 246, 0.06) 0%, transparent 70%);
     animation: gentleGlow 15s ease-in-out infinite;
 }
 
 @keyframes gentleGlow {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 0.8; }
+
+    0%,
+    100% {
+        opacity: 0.4;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
 }
 
 .welcome-container {

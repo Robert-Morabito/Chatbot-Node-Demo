@@ -963,9 +963,10 @@ class ChatApp {
 
             // Update UI for new task
             this.updateTaskHeader();
-            this.updateConversationList();
             this.updateFinishButton();
-            this.showWelcomeMessage();
+
+            // AUTO-CREATE new chat for the new task (ADD this line)
+            this.createNewConversation();
 
             console.log('✅ Progressed to task:', this.currentTask);
         }
@@ -1061,18 +1062,22 @@ class ChatApp {
         const finishBtn = document.getElementById('finish-btn');
         if (!finishBtn) return;
 
+        finishBtn.classList.add('has-custom-content');
+
         const isLastTask = this.isFinalTask();
 
         if (isLastTask) {
             finishBtn.innerHTML = '🏁 Finish Study';
             finishBtn.title = 'Complete study and download data';
+            finishBtn.classList.add('final-task'); // ADD: red styling for final task
         } else {
             const nextTask = this.getNextTask();
             const nextTaskConfig = nextTask ? this.taskConfig[nextTask] : null;
-            finishBtn.innerHTML = `Complete Task & Continue`;
+            finishBtn.innerHTML = `📋 Complete Task`;
             finishBtn.title = nextTaskConfig ?
                 `Finish current task and move to ${nextTaskConfig.name}` :
                 'Complete current task';
+            finishBtn.classList.remove('final-task'); // ADD: ensure blue styling for tasks
         }
     }
 
