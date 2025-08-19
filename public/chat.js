@@ -636,7 +636,6 @@ class ChatApp {
                 if (rankText && rankings[rankIndex]) {
                     const rank = model.lmarena[rankings[rankIndex]];
                     rankText.textContent = this.formatOrdinal(rank);
-                    rankText.textContent = rankText.textContent + " place";
                 }
             });
         });
