@@ -2504,11 +2504,11 @@ body.light-theme {
         radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
         radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.05) 0%, transparent 50%),
         linear-gradient(135deg, 
-            #0f0f23 0%, 
-            #1a1a2e 25%, 
-            #16213e 50%, 
-            #0f3460 75%, 
-            #0e4b78 100%);
+            #272731 0%, 
+            #26262e 25%, 
+            #313542 50%, 
+            #3b4d64 75%, 
+            #3b617c 100%);
     overflow: hidden;
 }
 
@@ -2525,7 +2525,6 @@ body.light-theme {
             #c2d9eb 100%);
 }
 
-/* Floating subtle orbs instead of plaid */
 .welcome-backdrop::before {
     content: '';
     position: absolute;
@@ -2534,21 +2533,72 @@ body.light-theme {
     width: 200%;
     height: 200%;
     background-image:
-        radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.05), transparent),
-        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.03), transparent),
-        radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.04), transparent),
-        radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.02), transparent);
+        /* Large orbs (3x size) */
+        radial-gradient(6px 6px at 20px 30px, rgba(255,255,255,0.06), transparent),
+        radial-gradient(5px 5px at 160px 90px, rgba(255,255,255,0.04), transparent),
+        radial-gradient(6px 6px at 300px 150px, rgba(255,255,255,0.05), transparent),
+        radial-gradient(4px 4px at 80px 200px, rgba(255,255,255,0.045), transparent),
+        
+        /* Medium orbs (2x size) */
+        radial-gradient(4px 4px at 40px 70px, rgba(255,255,255,0.035), transparent),
+        radial-gradient(3px 3px at 220px 40px, rgba(255,255,255,0.04), transparent),
+        radial-gradient(4px 4px at 120px 180px, rgba(255,255,255,0.038), transparent),
+        radial-gradient(3px 3px at 280px 110px, rgba(255,255,255,0.042), transparent),
+        
+        /* Small orbs (1.5x size) */
+        radial-gradient(3px 3px at 90px 40px, rgba(255,255,255,0.04), transparent),
+        radial-gradient(2px 2px at 180px 120px, rgba(255,255,255,0.035), transparent),
+        radial-gradient(3px 3px at 50px 160px, rgba(255,255,255,0.045), transparent),
+        radial-gradient(2px 2px at 260px 70px, rgba(255,255,255,0.038), transparent),
+        
+        /* Original size orbs */
+        radial-gradient(2px 2px at 130px 80px, rgba(255,255,255,0.03), transparent),
+        radial-gradient(1px 1px at 200px 160px, rgba(255,255,255,0.025), transparent),
+        radial-gradient(2px 2px at 60px 120px, rgba(255,255,255,0.032), transparent),
+        radial-gradient(1px 1px at 240px 180px, rgba(255,255,255,0.028), transparent);
+    
     background-repeat: repeat;
-    background-size: 200px 200px, 180px 180px, 160px 160px, 140px 140px;
-    animation: floatingOrbs 20s linear infinite;
+    background-size: 
+        350px 250px, 320px 280px, 380px 300px, 310px 260px,  /* Large orbs */
+        280px 220px, 300px 240px, 320px 270px, 290px 230px,  /* Medium orbs */
+        250px 200px, 270px 210px, 260px 190px, 280px 220px,  /* Small orbs */
+        240px 180px, 220px 160px, 230px 170px, 210px 150px;  /* Original orbs */
+    
+    animation: floatingOrbs 25s linear infinite;
 }
 
 .light-theme .welcome-backdrop::before {
     background-image:
-        radial-gradient(2px 2px at 20px 30px, rgba(0,0,0,0.02), transparent),
-        radial-gradient(2px 2px at 40px 70px, rgba(0,0,0,0.015), transparent),
-        radial-gradient(1px 1px at 90px 40px, rgba(0,0,0,0.02), transparent),
-        radial-gradient(1px 1px at 130px 80px, rgba(0,0,0,0.01), transparent);
+        /* Large orbs (3x size) */
+        radial-gradient(6px 6px at 20px 30px, rgba(0,0,0,0.025), transparent),
+        radial-gradient(5px 5px at 160px 90px, rgba(0,0,0,0.018), transparent),
+        radial-gradient(6px 6px at 300px 150px, rgba(0,0,0,0.022), transparent),
+        radial-gradient(4px 4px at 80px 200px, rgba(0,0,0,0.02), transparent),
+        
+        /* Medium orbs (2x size) */
+        radial-gradient(4px 4px at 40px 70px, rgba(0,0,0,0.016), transparent),
+        radial-gradient(3px 3px at 220px 40px, rgba(0,0,0,0.019), transparent),
+        radial-gradient(4px 4px at 120px 180px, rgba(0,0,0,0.017), transparent),
+        radial-gradient(3px 3px at 280px 110px, rgba(0,0,0,0.021), transparent),
+        
+        /* Small orbs (1.5x size) */
+        radial-gradient(3px 3px at 90px 40px, rgba(0,0,0,0.018), transparent),
+        radial-gradient(2px 2px at 180px 120px, rgba(0,0,0,0.015), transparent),
+        radial-gradient(3px 3px at 50px 160px, rgba(0,0,0,0.02), transparent),
+        radial-gradient(2px 2px at 260px 70px, rgba(0,0,0,0.017), transparent),
+        
+        /* Original size orbs */
+        radial-gradient(2px 2px at 130px 80px, rgba(0,0,0,0.014), transparent),
+        radial-gradient(1px 1px at 200px 160px, rgba(0,0,0,0.012), transparent),
+        radial-gradient(2px 2px at 60px 120px, rgba(0,0,0,0.015), transparent),
+        radial-gradient(1px 1px at 240px 180px, rgba(0,0,0,0.013), transparent);
+    
+    background-repeat: repeat;
+    background-size: 
+        350px 250px, 320px 280px, 380px 300px, 310px 260px,  /* Large orbs */
+        280px 220px, 300px 240px, 320px 270px, 290px 230px,  /* Medium orbs */
+        250px 200px, 270px 210px, 260px 190px, 280px 220px,  /* Small orbs */
+        240px 180px, 220px 160px, 230px 170px, 210px 150px;  /* Original orbs */
 }
 
 @keyframes floatingOrbs {
