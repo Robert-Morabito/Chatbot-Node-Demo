@@ -5,7 +5,7 @@ import { ClaudeHandler } from '../../handlers/claudeHandler.js';
 function validateModel(model) {
     console.log(`✅ [Stream] Validating model: "${model}"`);
 
-    const validOpenAIModels = ['gpt-3.5-turbo-0125', 'gpt-4-turbo', 'gpt-5']; // Added gpt-5
+    const validOpenAIModels = ['gpt-3.5-turbo-0125', 'gpt-4-0125-preview', 'gpt-5-2025-08-07']; // Added gpt-5
     const validClaudeModels = ['claude-3-haiku-20240307', 'claude-3-5-haiku-20241022', 'claude-sonnet-4-20250514']; // Updated names
 
     if (validOpenAIModels.includes(model)) {
