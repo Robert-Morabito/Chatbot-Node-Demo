@@ -616,40 +616,51 @@ body.light-theme {
     transform: translateX(100%);
 }
 
-/* Welcome Content Components */
 .welcome-instructions {
-    text-align: left;
-    padding: 1.25rem;
-    border-radius: 0.5rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: left;  /* Your desired alignment */
+    padding: 2rem 1.5rem;
+    border-radius: 8px;
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.welcome-instructions::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
 }
 
 .light-theme .welcome-instructions {
-    background: rgba(0, 0, 0, 0.03);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(59, 130, 246, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .welcome-instructions h3 {
-    color: var(--text-dark);
-    margin: 0 0 1.25rem 0;
-    font-size: clamp(1.125rem, 3vw, 1.25rem);
+    color: rgba(249, 250, 251, 0.95);
+    margin: 0 0 1rem 0;
+    font-size: 1.25rem;
     font-weight: 600;
 }
 
 .light-theme .welcome-instructions h3 {
-    color: var(--text-light);
+    color: rgba(17, 24, 39, 0.9);
 }
 
 .welcome-instructions p {
-    margin: 0.9375rem 0;
-    font-size: clamp(0.875rem, 2.5vw, 1rem);
-    line-height: 1.5;
-    color: var(--text-dark);
+    margin: 0;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    color: rgba(229, 231, 235, 0.9);
 }
 
 .light-theme .welcome-instructions p {
-    color: var(--text-light);
+    color: rgba(55, 65, 81, 0.8);
 }
 
 .welcome-persistent-header {
@@ -1064,54 +1075,6 @@ body.light-theme {
 
 .light-theme .info-item-text p {
     color: rgba(55, 65, 81, 0.8) !important;
-}
-
-/* Enhanced welcome instructions */
-.welcome-instructions {
-    text-align: center;
-    padding: 2rem 1.5rem;
-    border-radius: 8px;
-    background: rgba(59, 130, 246, 0.08);
-    border: 1px solid rgba(59, 130, 246, 0.15);
-    position: relative;
-    overflow: hidden;
-}
-
-.welcome-instructions::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
-}
-
-.light-theme .welcome-instructions {
-    background: rgba(59, 130, 246, 0.05);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-}
-
-.welcome-instructions h3 {
-    color: rgba(249, 250, 251, 0.95);
-    margin: 0 0 1rem 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-}
-
-.light-theme .welcome-instructions h3 {
-    color: rgba(17, 24, 39, 0.9);
-}
-
-.welcome-instructions p {
-    margin: 0;
-    font-size: 1.0625rem;
-    line-height: 1.6;
-    color: rgba(229, 231, 235, 0.9);
-}
-
-.light-theme .welcome-instructions p {
-    color: rgba(55, 65, 81, 0.8);
 }
 
 /* Error Modal Styles */
@@ -3003,54 +2966,6 @@ body.light-theme {
 
 .light-theme .info-item-text p {
     color: rgba(55, 65, 81, 0.8) !important;
-}
-
-/* Enhanced welcome instructions */
-.welcome-instructions {
-    text-align: center;
-    padding: 2rem 1.5rem;
-    border-radius: 8px;
-    background: rgba(59, 130, 246, 0.08);
-    border: 1px solid rgba(59, 130, 246, 0.15);
-    position: relative;
-    overflow: hidden;
-}
-
-.welcome-instructions::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
-}
-
-.light-theme .welcome-instructions {
-    background: rgba(59, 130, 246, 0.05);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-}
-
-.welcome-instructions h3 {
-    color: rgba(249, 250, 251, 0.95);
-    margin: 0 0 1rem 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-}
-
-.light-theme .welcome-instructions h3 {
-    color: rgba(17, 24, 39, 0.9);
-}
-
-.welcome-instructions p {
-    margin: 0;
-    font-size: 1.0625rem;
-    line-height: 1.6;
-    color: rgba(229, 231, 235, 0.9);
-}
-
-.light-theme .welcome-instructions p {
-    color: rgba(55, 65, 81, 0.8);
 }
 
 /* Feature Grid - Updated for Color Coding */
