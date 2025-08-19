@@ -239,6 +239,7 @@ class ChatApp {
         this.setupEventListeners();
         this.updateBotName();
         this.updateTaskHeader();
+        this.updateTaskColors();
         this.updateFinishButton();
         this.createNewConversation();
         this.setupTextareaAutoResize();
@@ -963,9 +964,11 @@ class ChatApp {
 
             // Update UI for new task
             this.updateTaskHeader();
-            this.updateConversationList();
+            this.updateTaskColors(); // ADD this line
             this.updateFinishButton();
-            this.showWelcomeMessage();
+
+            // AUTO-CREATE new conversation for new task
+            this.createNewConversation(); // This will also show welcome message
 
             console.log('✅ Progressed to task:', this.currentTask);
         }
@@ -1003,6 +1006,21 @@ class ChatApp {
     }
 
     /**
+     * Update UI colors based on current task
+     */
+    updateTaskColors() {
+        const body = document.body;
+
+        // Remove existing task classes
+        body.classList.remove('task-image-generation', 'task-social-media', 'task-acronym-building');
+
+        // Add current task class
+        body.classList.add(`task-${this.currentTask}`);
+
+        console.log('🎨 Updated colors for task:', this.currentTask);
+    }
+
+    /**
      * Show task completion confirmation dialog
      */
     showTaskCompletionDialog(taskName, isLastTask) {
@@ -1010,13 +1028,16 @@ class ChatApp {
             const modal = document.getElementById('finish-confirmation-modal');
             const titleEl = modal.querySelector('h3');
             const bodyEl = modal.querySelector('p');
+            const warningEl = modal.querySelector('.finish-warning');
 
             if (isLastTask) {
-                titleEl.textContent = 'Complete Study';
-                bodyEl.textContent = `You are about to complete the final task (${taskName}) and finish the entire study. This will download your data and close the interface.`;
+                titleEl.textContent = 'Finish Study';
+                bodyEl.textContent = `Complete the ${taskName} task and end the study.`;
+                warningEl.textContent = 'This will download your data and close the interface.';
             } else {
-                titleEl.textContent = `Complete ${taskName} Task`;
-                bodyEl.textContent = `You are about to finish the ${taskName} task and move to the next task. You won't be able to return to this task once you continue.`;
+                titleEl.textContent = `Finish ${taskName}`;
+                bodyEl.textContent = `Move to the next task. You cannot return to ${taskName} once you continue.`;
+                warningEl.textContent = 'Are you ready to continue?';
             }
 
             modal.style.display = 'flex';
@@ -1063,16 +1084,17 @@ class ChatApp {
 
         const isLastTask = this.isFinalTask();
 
+        // Remove existing classes
+        finishBtn.classList.remove('task-completion', 'study-completion');
+
         if (isLastTask) {
-            finishBtn.innerHTML = '🏁 Finish Study';
+            finishBtn.innerHTML = 'Finish Study';
             finishBtn.title = 'Complete study and download data';
+            finishBtn.classList.add('study-completion'); // Red styling
         } else {
-            const nextTask = this.getNextTask();
-            const nextTaskConfig = nextTask ? this.taskConfig[nextTask] : null;
-            finishBtn.innerHTML = `Complete Task & Continue`;
-            finishBtn.title = nextTaskConfig ?
-                `Finish current task and move to ${nextTaskConfig.name}` :
-                'Complete current task';
+            finishBtn.innerHTML = 'Finish Task';
+            finishBtn.title = 'Complete current task and move to next';
+            finishBtn.classList.add('task-completion'); // Blue styling
         }
     }
 

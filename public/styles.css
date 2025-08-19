@@ -1590,92 +1590,97 @@ body.light-theme {
    9. UTILITY COMPONENTS
    ================================================================= */
 
-/* Finish Button - Updated with responsive positioning */
+/* Finish Button - Updated with compact styling and better positioning */
 .finish-btn {
     position: fixed;
-    bottom: calc(var(--input-area-height, 80px) + 1.5rem);
-    /* Stay above input area */
-    right: 1.25rem;
-    background: linear-gradient(135deg, #dc2626, #b91c1c);
-    color: white;
+    bottom: calc(var(--input-area-height, 80px) + 0.75rem); /* Closer to input */
+    right: 1rem; /* Closer to edge */
     border: none;
-    padding: 0.75rem 1.25rem;
-    border-radius: 1.5625rem;
+    padding: 0.5rem 1rem; /* More compact padding */
+    border-radius: 1rem; /* More compact radius */
     cursor: pointer;
-    font-size: 0.875rem;
+    font-size: 0.8125rem; /* Smaller font */
     font-weight: 600;
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* Subtler shadow */
     transition: all 0.3s ease;
     z-index: 100;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    /* Ensure minimum distance from input area */
+    gap: 0.375rem; /* Smaller gap */
     margin-bottom: env(safe-area-inset-bottom, 0);
+    min-height: 2.25rem; /* Compact height */
 }
 
-.finish-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+/* Task completion button - Blue like other buttons */
+.finish-btn.task-completion {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+}
+
+.finish-btn.task-completion:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+/* Study completion button - Red for final action */
+.finish-btn.study-completion {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    color: white;
+}
+
+.finish-btn.study-completion:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
     background: linear-gradient(135deg, #b91c1c, #991b1b);
 }
 
 .finish-btn::before {
-    content: '🏁';
-    font-size: 1rem;
+    content: '📋'; /* Default icon */
+    font-size: 0.875rem;
 }
 
-/* Responsive adjustments for finish button */
+.finish-btn.study-completion::before {
+    content: '🏁'; /* Flag for final completion */
+}
+
+/* Enhanced responsive positioning to avoid overlap */
 @media (max-width: 1024px) {
     .finish-btn {
-        bottom: calc(var(--input-area-height, 90px) + 1.25rem);
-        right: 1rem;
+        bottom: calc(var(--input-area-height, 90px) + 1rem);
+        right: 0.875rem;
+        padding: 0.4375rem 0.875rem;
+        font-size: 0.75rem;
     }
 }
 
 @media (max-width: 768px) {
     .finish-btn {
-        bottom: calc(var(--input-area-height, 100px) + 1rem);
-        right: 1rem;
-        padding: 0.625rem 1rem;
-        font-size: 0.8125rem;
+        bottom: calc(var(--input-area-height, 100px) + 1.25rem);
+        right: 0.75rem;
+        padding: 0.375rem 0.75rem;
+        font-size: 0.6875rem;
+        min-height: 2rem;
     }
-
+    
     .finish-btn::before {
-        font-size: 0.875rem;
+        font-size: 0.75rem;
     }
 }
 
+/* Extra safety for very small screens */
 @media (max-width: 480px) {
     .finish-btn {
-        bottom: calc(var(--input-area-height, 110px) + 0.75rem);
-        right: 0.75rem;
-        padding: 0.5rem 0.875rem;
-        font-size: 0.75rem;
-    }
-
-    .finish-btn::before {
-        font-size: 0.8125rem;
+        bottom: calc(var(--input-area-height, 110px) + 1.5rem); /* Extra clearance */
+        right: 0.625rem;
     }
 }
 
-/* Very small screens - move finish button to top area if needed */
-@media (max-width: 380px) {
-    .finish-btn {
-        top: 1rem;
-        bottom: auto;
-        right: 1rem;
-        padding: 0.5rem 0.875rem;
-        font-size: 0.75rem;
-    }
-}
-
-/* Landscape mobile - adjust positioning */
+/* Landscape mobile - move higher to avoid keyboard issues */
 @media (max-height: 500px) and (orientation: landscape) {
     .finish-btn {
-        bottom: calc(var(--input-area-height, 80px) + 0.5rem);
+        bottom: calc(var(--input-area-height, 80px) + 2rem); /* More clearance in landscape */
         right: 0.75rem;
-        padding: 0.5rem 0.875rem;
     }
 }
 
@@ -4751,4 +4756,72 @@ body.light-theme {
         transform: scale(1);
         opacity: 1;
     }
+}
+
+/* ===================================================================
+   TASK-SPECIFIC COLOR THEMES
+   ================================================================= */
+
+/* Image Generation Task - Purple/Pink theme */
+.task-image-generation .conversation-item.active {
+    background-color: #8b5cf6 !important; /* Purple */
+}
+
+.task-image-generation .conversation-item.active::before {
+    background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.task-image-generation .user .message-content {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.task-image-generation .task-header {
+    border-left: 3px solid #8b5cf6;
+}
+
+/* Social Media Task - Green theme */
+.task-social-media .conversation-item.active {
+    background-color: #10b981 !important; /* Green */
+}
+
+.task-social-media .conversation-item.active::before {
+    background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+}
+
+.task-social-media .user .message-content {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.task-social-media .task-header {
+    border-left: 3px solid #10b981;
+}
+
+/* Acronym Building Task - Orange theme */
+.task-acronym-building .conversation-item.active {
+    background-color: #f59e0b !important; /* Orange */
+}
+
+.task-acronym-building .conversation-item.active::before {
+    background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+}
+
+.task-acronym-building .user .message-content {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.task-acronym-building .task-header {
+    border-left: 3px solid #f59e0b;
+}
+
+/* Light theme adjustments */
+.light-theme.task-image-generation .user .message-content {
+    background: linear-gradient(135deg, #a855f7, #9333ea);
+}
+
+.light-theme.task-social-media .user .message-content {
+    background: linear-gradient(135deg, #059669, #047857);
+}
+
+.light-theme.task-acronym-building .user .message-content {
+    background: linear-gradient(135deg, #d97706, #b45309);
 }
