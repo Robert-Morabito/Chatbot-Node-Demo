@@ -4165,7 +4165,6 @@ body.light-theme {
 
 .comparison-title {
     text-align: center;
-    margin: 0 0 1.5rem 0;
     opacity: 0;
     animation: fadeInUp 0.8s ease-out forwards;
     flex-shrink: 0;
@@ -4566,7 +4565,7 @@ body.light-theme {
 
 .assignment-popup {
     position: absolute;
-    top: 60px;
+    top: 46px;
     left: 50%;
     transform: translateX(-50%);
     opacity: 0;
@@ -4585,7 +4584,7 @@ body.light-theme {
 }
 
 .popup-content {
-    background: rgba(245, 158, 11, 0.95);
+    background: rgba(230, 149, 10, 0.95);
     color: white;
     padding: 0.875rem 1.75rem;
     /* Slightly bigger */
