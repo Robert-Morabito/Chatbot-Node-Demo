@@ -4852,7 +4852,7 @@ body.light-theme {
 }
 
 .mini-model-year {
-    font-size: 0.6875rem;
+    font-size: 0.71rem;
     color: rgba(156, 163, 175, 0.8);
     font-weight: 400;
     line-height: 1;
@@ -4892,8 +4892,8 @@ body.light-theme {
 }
 
 .mini-capability-label {
-    font-size: 0.625rem;
-    font-weight: 500;
+    font-size: 0.75rem;
+    font-weight: 400;
     color: rgba(209, 213, 219, 0.8);
     text-transform: uppercase;
     letter-spacing: 0.02em;
@@ -4929,8 +4929,8 @@ body.light-theme {
 }
 
 .mini-capability-icon.bulb.lit {
-    filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.7));
-    text-shadow: 0 0 3px rgba(255, 215, 0, 0.5);
+    filter: drop-shadow(0 0 1px rgba(255, 215, 0, 0.7));
+    text-shadow: 0 0 1px rgba(255, 215, 0, 0.5);
 }
 
 .mini-capability-icon.bolt {
@@ -4938,13 +4938,13 @@ body.light-theme {
 }
 
 .mini-capability-icon.bolt.lit {
-    filter: drop-shadow(0 0 2px rgba(96, 165, 250, 0.7));
-    text-shadow: 0 0 3px rgba(96, 165, 250, 0.5);
+    filter: drop-shadow(0 0 1px rgba(96, 165, 250, 0.7));
+    text-shadow: 0 0 1px rgba(96, 165, 250, 0.5);
 }
 
 .mini-capability-icon.bulb:not(.lit),
 .mini-capability-icon.bolt:not(.lit) {
-    color: #555555;
+    color: #707070;
     filter: grayscale(1) brightness(0.5);
 }
 
