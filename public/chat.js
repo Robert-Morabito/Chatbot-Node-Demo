@@ -65,7 +65,7 @@ class ChatApp {
                 description: 'Use this chat to generate some detailed images!'
             },
             'social-media': {
-                name: 'Social Media Posting',
+                name: 'Social Media Posts',
                 icon: '📱',
                 shortName: 'Social',
                 description: 'Use this chat to write a convincing outreach message!'
@@ -1811,69 +1811,15 @@ class ChatApp {
     // ===================================================================
     // UI MANAGEMENT
     // ===================================================================
-    /**
-     * Update minimal model info panel in header
-     */
-    updateModelInfoPanel() {
-        const modelName = this.config?.displayName || 'GPT-4';
-        const actualModel = this.config?.trueModel || 'gpt-4-turbo';
-
-        // Get model data from the comparison system
-        const comparisonData = this.getModelComparisonData();
-        const { models, assignedIndex } = comparisonData;
-        const modelData = models[assignedIndex];
-
-        // Update model name
-        const modelNameEl = document.getElementById('model-name-mini');
-        const modelYearEl = document.getElementById('model-year-mini');
-        const knowledgeCutoffEl = document.getElementById('knowledge-cutoff-mini');
-
-        if (modelNameEl) modelNameEl.textContent = modelData.name;
-        if (modelYearEl) modelYearEl.textContent = modelData.year;
-        if (knowledgeCutoffEl) knowledgeCutoffEl.textContent = modelData.capabilities.knowledge;
-
-        // Update model icon
-        const modelIconEl = document.getElementById('model-icon-mini');
-        if (modelIconEl) {
-            if (modelName.toLowerCase().includes('claude')) {
-                modelIconEl.src = 'images/claude.png';
-            } else {
-                modelIconEl.src = 'images/gpt.png';
-            }
-            modelIconEl.alt = `${modelName} Icon`;
-        }
-
-        // Update capability icons
-        this.updateMiniCapabilityIcons(modelData.capabilities);
-    }
 
     /**
-     * Update mini capability icons in header
-     */
-    updateMiniCapabilityIcons(capabilities) {
-        const reasoningEl = document.getElementById('mini-reasoning-icons');
-        const speedEl = document.getElementById('mini-speed-icons');
-
-        if (reasoningEl) {
-            reasoningEl.innerHTML = '💡'.repeat(capabilities.reasoning);
-        }
-
-        if (speedEl) {
-            speedEl.innerHTML = '⚡'.repeat(capabilities.speed);
-        }
-    }
-
-    /**
-     * Update bot name display and model info panel
+     * Update bot name display
      */
     updateBotName() {
         document.getElementById('bot-name').textContent = `Currently Chatting with ${this.config.displayName}`;
         document.getElementById('header-participant-id').textContent = this.participantId;
         document.getElementById('welcome-model-name').textContent = this.config.displayName;
         document.title = `${this.config.displayName} - Study ${this.participantId}`;
-        
-        // Update the new model info panel
-        this.updateModelInfoPanel();
     }
 
     /**

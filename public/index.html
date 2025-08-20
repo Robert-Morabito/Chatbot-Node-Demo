@@ -26,7 +26,7 @@
                     <span>3</span>
                 </div>
             </div>
-
+            
             <!-- Content Container -->
             <div class="content-stage" id="content-stage">
                 <!-- Step 1: Welcome Message -->
@@ -316,6 +316,12 @@
         </div>
     </div>
 
+
+    <!-- Finish Study Button -->
+    <button id="finish-btn" class="finish-btn" aria-label="Finish current task">
+        Finish Task
+    </button>
+
     <!-- Finish Confirmation Modal (hidden by default) -->
     <div id="finish-confirmation-modal" class="modal-backdrop" style="display: none;">
         <div class="finish-confirmation-dialog">
@@ -358,11 +364,6 @@
                 </div>
             </div>
 
-            <!-- Finish Study Button -->
-            <button id="finish-btn" class="finish-btn" aria-label="Finish current task">
-                Finish Task
-            </button>
-
             <div class="sidebar-footer">
                 <div class="theme-toggle">
                     <input type="checkbox" id="theme-switch" class="theme-checkbox">
@@ -379,40 +380,18 @@
             <!-- Header Section -->
             <div class="header">
                 <button id="mobile-sidebar-toggle" class="mobile-sidebar-toggle">☰</button>
-                
-                <!-- Minimal Model Info Panel -->
-                <div class="model-info-panel" id="model-info-panel">
-                    <div class="model-avatar-mini" id="model-avatar-mini">
-                        <img id="model-icon-mini" src="images/gpt.png" alt="Model Icon" class="model-icon-mini">
-                    </div>
-                    <div class="model-details-mini">
-                        <div class="model-name-mini" id="model-name-mini">GPT-4</div>
-                        <div class="model-capabilities-mini">
-                            <span class="model-year-mini" id="model-year-mini">2023</span>
-                            <span class="capability-separator">•</span>
-                            <div class="mini-capability-group">
-                                <div class="mini-icons" id="mini-reasoning-icons">💡💡</div>
-                                <div class="mini-icons" id="mini-speed-icons">⚡⚡⚡</div>
-                            </div>
-                            <span class="capability-separator">•</span>
-                            <span class="knowledge-cutoff-mini" id="knowledge-cutoff-mini">Dec 2023</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Header Actions -->
+                <h1 id="bot-name" class="bot-name">Connected to GPT-4</h1>
                 <div class="header-actions">
+                    <!-- Add timer element here -->
                     <div class="session-timer" id="session-timer">
-                        <span class="timer-icon">⏱️</span>
                         <span class="timer-text" id="timer-display">00:00:00</span>
                     </div>
-                    <div class="participant-badge" id="participant-badge">
-                        <span class="participant-label">ID</span>
-                        <span class="participant-id" id="header-participant-id">------</span>
+                    <div class="participant-display" id="participant-display">
+                        <span style="font-size: 12px; color: var(--text-secondary-dark); margin-right: 8px;">ID:</span>
+                        <span style="font-family: monospace; font-weight: bold; color: var(white);"
+                            id="header-participant-id">------</span>
                     </div>
-                    <button id="save-chat-btn" class="save-btn" title="Save Current Chat">
-                        <span class="save-icon">💾</span>
-                    </button>
+                    <button id="save-chat-btn" class="save-btn" title="Save Current Chat">💾</button>
                 </div>
             </div>
 
