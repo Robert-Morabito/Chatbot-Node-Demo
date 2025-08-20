@@ -2507,15 +2507,15 @@ body.light-theme {
     width: 100%;
     height: 100%;
     background:
-        radial-gradient(circle at 20% 80%, rgba(51, 112, 211, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(109, 72, 194, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(11, 122, 85, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 20% 80%, rgba(37, 81, 151, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(80, 53, 141, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(8, 94, 65, 0.05) 0%, transparent 50%),
         linear-gradient(135deg,
-            #272731 0%,
-            #26262e 25%,
-            #313542 50%,
-            #3b4d64 75%,
-            #3b617c 100%);
+            #202029 0%,
+            #202027 25%,
+            #232630 50%,
+            #242f3d 75%,
+            #274052 100%);
     overflow: hidden;
 }
 
@@ -2664,16 +2664,15 @@ body.light-theme {
     box-sizing: border-box;
 }
 
-/* Progress System - Made Responsive */
 .progress-system {
     position: relative;
-    top: -20px;
+    top: 0;
     left: 0;
     transform: none;
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    margin: 2rem 0 1rem 0;
+    margin: 1rem 0 2rem 0;
     flex-shrink: 0;
     width: 100%;
     justify-content: center;
@@ -2681,9 +2680,9 @@ body.light-theme {
 
 .progress-track {
     width: 200px;
-    height: 1px;
+    height: 4px;
     background: rgba(156, 163, 175, 0.3);
-    border-radius: 1px;
+    border-radius: 2px;
     overflow: hidden;
 }
 
@@ -2694,7 +2693,7 @@ body.light-theme {
 .progress-indicator {
     height: 100%;
     background: linear-gradient(90deg, #3b82f6, #1d4ed8);
-    border-radius: 1px;
+    border-radius: 2px;
     width: 16.67%;
     transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
@@ -2705,11 +2704,11 @@ body.light-theme {
     position: absolute;
     top: -2px;
     right: -2px;
-    width: 5px;
-    height: 5px;
+    width: 8px;
+    height: 8px;
     background: #3b82f6;
     border-radius: 50%;
-    box-shadow: 0 0 6px rgba(59, 130, 246, 0.6);
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
 }
 
 .progress-counter {
@@ -3409,9 +3408,8 @@ body.light-theme {
     transform: none;
     display: flex;
     gap: 1rem;
-    margin: 1rem 0 2rem 0;
+    margin: 1rem 0 0 0;
     opacity: 1;
-    /* Changed from 0 to 1 to always show */
     transition: opacity 0.3s ease;
     flex-shrink: 0;
     width: 100%;

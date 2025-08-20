@@ -1082,17 +1082,6 @@ class ChatApp {
     }
 
     /**
-     * Update task header display
-     */
-    updateTaskHeader() {
-        const taskHeader = document.getElementById('task-header');
-        const taskTitle = taskHeader.querySelector('.task-title');
-        const config = this.getCurrentTaskConfig();
-        taskTitle.textContent = config.name;
-    }
-
-
-    /**
      * Create new conversation for current task
      */
     createNewConversation() {
