@@ -23,35 +23,108 @@ function validateModel(model) {
 }
 
 // Image classification function
-async function classifyImageIntent(userMessage, hasImageContext, req) {
-    console.log('🔍 [Stream] Calling classify.js API...');
+async function classifyImageIntent(userMessage, hasImageContext) {
+    console.log('🔍 [Stream] Starting direct classification...');
 
     try {
-        const classifyResponse = await fetch(`${req.headers.host.startsWith('localhost') ? 'http' : 'https'}://${req.headers.host}/api/image/classify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userMessage: userMessage,
-                hasImageContext: hasImageContext
-            })
-        });
+        // Import and use the handler directly
+        const { OpenAIHandler } = await import('../../handlers/openaiHandler.js');
 
-        if (!classifyResponse.ok) {
-            console.log('❌ [Stream] Classify API failed:', classifyResponse.status);
-            return { intent: 'none' };
+        if (!process.env.OPENAI_API_KEY) {
+            console.error('❌ [Stream] Missing OpenAI API key for classification');
+            return { intent: 'none', error: 'No OpenAI API key' };
         }
 
-        const classifyData = await classifyResponse.json();
-        console.log('✅ [Stream] Classify API result:', classifyData);
+        const classifier = new OpenAIHandler(process.env.OPENAI_API_KEY);
+
+        // Create classification prompt (same as classify.js)
+        let classificationPrompt;
+        if (hasImageContext) {
+            classificationPrompt = `The user previously generated an image. Now they said: "${userMessage}"
+
+            Analyze what the user wants:
+            - If they want a completely NEW/DIFFERENT image, respond: NEW
+            - If they want to MODIFY/CHANGE the existing image (color, size, add/remove things), respond: MODIFY  
+            - If they're just having normal conversation, respond: NEITHER
+
+            Respond with only one word: NEW, MODIFY, or NEITHER`;
+        } else {
+            classificationPrompt = `The user said: "${userMessage}"
+
+            Does this request involve creating, generating, drawing, or making an image, picture, or visual?
+
+            Examples that should be YES:
+            - "draw a dog"
+            - "generate an image of a cat"
+            - "create a picture of a sunset"
+            - "make an image of a car"
+            - "I want a picture of flowers"
+            - "show me an image of a mountain"
+
+            Examples that should be NO:
+            - "hello"
+            - "how are you?"
+            - "what's the weather?"
+            - "tell me a joke"
+
+            Respond with only: YES or NO`;
+        }
+
+        // Create fake conversation for classification
+        const messages = [
+            { sender: 'User', content: classificationPrompt }
+        ];
+
+        console.log('🔍 [Stream] Classifying with GPT-3.5 (direct)...');
+
+        // Get classification using the no-system method
+        let classification = '';
+        for await (const chunk of classifier.streamChatNoSystem(messages, 'gpt-3.5-turbo-0125')) {
+            if (chunk.type === 'content') {
+                classification += chunk.content;
+            } else if (chunk.type === 'done') {
+                break;
+            } else if (chunk.type === 'error') {
+                throw new Error(chunk.error);
+            }
+        }
+
+        // Clean up classification
+        classification = classification.trim().toUpperCase();
+        console.log('🔍 [Stream] Raw classification (direct):', classification);
+
+        // Determine intent
+        let intent;
+        if (hasImageContext) {
+            if (classification.includes('NEW')) {
+                intent = 'new_image';
+            } else if (classification.includes('MODIFY')) {
+                intent = 'modify_image';
+            } else {
+                intent = 'none';
+            }
+        } else {
+            if (classification.includes('YES')) {
+                intent = 'new_image';
+            } else {
+                intent = 'none';
+            }
+        }
+
+        console.log('🔍 [Stream] Final intent (direct):', intent);
 
         return {
-            intent: classifyData.intent,
-            classification: classifyData.classification
+            intent: intent,
+            classification: classification,
+            userMessage: userMessage
         };
 
     } catch (error) {
-        console.error('❌ [Stream] Classify API error:', error);
-        return { intent: 'none' };
+        console.error('❌ [Stream] Direct classification error:', error);
+        return {
+            intent: 'none',
+            error: error.message
+        };
     }
 }
 
@@ -206,8 +279,7 @@ export default async function handler(req, res) {
             try {
                 const imageClassification = await classifyImageIntent(
                     lastMessage.content,
-                    !!(imageContext?.lastPrompt),
-                    req
+                    !!(imageContext?.lastPrompt)
                 );
 
                 console.log('🔍 [Stream] Classification complete:', imageClassification);
