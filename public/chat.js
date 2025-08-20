@@ -78,13 +78,6 @@ class ChatApp {
             }
         };
 
-        // Image generation context
-        this.imageContext = {
-            lastPrompt: null,
-            lastImageUrl: null,
-            conversationHasImage: false
-        };
-
         // ===================================================================
         // BEHAVIOR TRACKING
         // ===================================================================
@@ -1085,12 +1078,19 @@ class ChatApp {
             title: 'New Chat',
             messages: [],
             createdAt: new Date(),
-            lastMessageAt: new Date()
+            lastMessageAt: new Date(),
+            // Initialize empty image context for new conversation
+            imageContext: {
+                lastPrompt: null,
+                lastImageUrl: null,
+                conversationHasImage: false
+            }
         };
 
         this.taskConversations[this.currentTask].set(conversationId, conversation);
         this.switchToConversation(conversationId);
         this.updateConversationList();
+        this.updateTaskHeader();
         this.showWelcomeMessage();
     }
 
@@ -1102,12 +1102,18 @@ class ChatApp {
             this.behaviorMetrics.conversationSwitches++;
         }
 
-        // Save current conversation state
+        // Save current conversation state INCLUDING image context
         if (this.currentConversationId) {
             const currentTaskConversations = this.taskConversations[this.currentTask];
             const currentConv = currentTaskConversations.get(this.currentConversationId);
             if (currentConv) {
                 currentConv.messages = [...this.currentChatlog];
+                // Save image context per conversation
+                currentConv.imageContext = {
+                    lastPrompt: this.imageContext?.lastPrompt || null,
+                    lastImageUrl: this.imageContext?.lastImageUrl || null,
+                    conversationHasImage: this.imageContext?.conversationHasImage || false
+                };
             }
         }
 
@@ -1117,10 +1123,17 @@ class ChatApp {
 
         if (conversation) {
             this.currentChatlog = [...conversation.messages];
+            // Restore image context for this conversation
+            this.imageContext = conversation.imageContext || {
+                lastPrompt: null,
+                lastImageUrl: null,
+                conversationHasImage: false
+            };
             this.renderConversation();
             this.updateConversationList();
         }
     }
+
 
     /**
      * Render current conversation
@@ -1386,8 +1399,6 @@ class ChatApp {
                                     }
                                     this.scrollToBottom();
                                 } else if (isImageGeneration) {
-                                    console.log('🟨 DEBUG: Processing image generation content');
-                                    console.log('🟨 DEBUG: Image URL:', data.imageUrl);
                                     this.hideImageGenerationIndicator();
 
                                     botMsgId = ++this.messageIdCounter;
@@ -1401,9 +1412,20 @@ class ChatApp {
                                     this.renderMessage(botMsg);
 
                                     if (data.imageUrl) {
+                                        console.log('🟨 DEBUG: Updating image context with:', data.imageUrl);
+                                        // Make sure imageContext exists
+                                        if (!this.imageContext) {
+                                            this.imageContext = {
+                                                lastPrompt: null,
+                                                lastImageUrl: null,
+                                                conversationHasImage: false
+                                            };
+                                        }
                                         this.imageContext.lastPrompt = data.imagePrompt;
                                         this.imageContext.lastImageUrl = data.imageUrl;
                                         this.imageContext.conversationHasImage = true;
+                                    } else {
+                                        console.log('🔴 DEBUG: No imageUrl in response data!');
                                     }
                                 }
 

@@ -201,7 +201,7 @@ async function generateImage(userMessage, model, imageContext, intent, req, res)
 
         const imageHandler = new OpenAIHandler(process.env.OPENAI_API_KEY);
         console.log('🖼️ [Stream] Calling DALL-E with prompt:', enhancedPrompt);
-        
+
         const imageResult = await imageHandler.generateImage(enhancedPrompt);
         console.log('🖼️ [Stream] Image generation result:', imageResult);
 
@@ -253,7 +253,7 @@ async function generateImage(userMessage, model, imageContext, intent, req, res)
         console.error('❌ [Stream] Error stack:', error.stack);
 
         const errorMessage = `I apologize, but I couldn't generate the image. Error: ${error.message}`;
-        
+
         res.write(`data: ${JSON.stringify({
             type: 'content',
             content: errorMessage,
@@ -321,64 +321,79 @@ export default async function handler(req, res) {
             console.log('🔍 [Stream] Has image context:', !!(imageContext?.lastPrompt));
             console.log('🔍 [Stream] Request host:', req.headers.host);
 
-            // Send a debug message to the client
-            res.write(`data: ${JSON.stringify({
-                type: 'debug',
-                message: `🔍 About to classify: "${lastMessage.content}"`
-            })}\n\n`);
+            // Get current task from conversation ID
+            const currentTask = conversationId ? conversationId.split('_')[0] : 'unknown';
+            console.log('🔍 [Stream] Current task:', currentTask);
 
-            try {
-                const imageClassification = await classifyImageIntent(
-                    lastMessage.content,
-                    !!(imageContext?.lastPrompt)
-                );
+            // Only run image classification for image-generation task
+            if (currentTask === 'image-generation') {
+                console.log('🔍 [Stream] Running image classification for image-generation task');
 
-                console.log('🔍 [Stream] Classification complete:', imageClassification);
-
-                // Send classification result to client
+                // Send a debug message to the client
                 res.write(`data: ${JSON.stringify({
                     type: 'debug',
-                    message: `🔍 Classification result: ${imageClassification.intent}`,
-                    data: imageClassification
+                    message: `🔍 About to classify: "${lastMessage.content}"`
                 })}\n\n`);
 
-                if (imageClassification.error) {
-                    console.error('❌ [Stream] Classification had error:', imageClassification.error);
-                    res.write(`data: ${JSON.stringify({
-                        type: 'debug',
-                        message: `❌ Classification error: ${imageClassification.error}`
-                    })}\n\n`);
-                }
-
-                if (imageClassification.intent === 'new_image' || imageClassification.intent === 'modify_image') {
-                    console.log('🎨 [Stream] Image request detected:', imageClassification.intent);
-
-                    res.write(`data: ${JSON.stringify({ type: 'image_request_detected' })}\n\n`);
-
-                    const imageGenerated = await generateImage(
+                try {
+                    const imageClassification = await classifyImageIntent(
                         lastMessage.content,
-                        model,
-                        imageContext,
-                        imageClassification.intent,
-                        req,
-                        res
+                        !!(imageContext?.lastPrompt)
                     );
 
-                    if (imageGenerated) {
-                        res.end();
-                        return;
+                    console.log('🔍 [Stream] Classification complete:', imageClassification);
+
+                    // Send classification result to client
+                    res.write(`data: ${JSON.stringify({
+                        type: 'debug',
+                        message: `🔍 Classification result: ${imageClassification.intent}`,
+                        data: imageClassification
+                    })}\n\n`);
+
+                    if (imageClassification.error) {
+                        console.error('❌ [Stream] Classification had error:', imageClassification.error);
+                        res.write(`data: ${JSON.stringify({
+                            type: 'debug',
+                            message: `❌ Classification error: ${imageClassification.error}`
+                        })}\n\n`);
                     }
 
-                    // If image generation failed, continue to regular chat
-                    console.log('🔄 [Stream] Image generation failed, falling back to regular chat');
-                } else {
-                    console.log('💬 [Stream] Regular chat message detected, intent:', imageClassification.intent);
+                    if (imageClassification.intent === 'new_image' || imageClassification.intent === 'modify_image') {
+                        console.log('🎨 [Stream] Image request detected:', imageClassification.intent);
+
+                        res.write(`data: ${JSON.stringify({ type: 'image_request_detected' })}\n\n`);
+
+                        const imageGenerated = await generateImage(
+                            lastMessage.content,
+                            model,
+                            imageContext,
+                            imageClassification.intent,
+                            req,
+                            res
+                        );
+
+                        if (imageGenerated) {
+                            res.end();
+                            return;
+                        }
+
+                        // If image generation failed, continue to regular chat
+                        console.log('🔄 [Stream] Image generation failed, falling back to regular chat');
+                    } else {
+                        console.log('💬 [Stream] Regular chat message detected, intent:', imageClassification.intent);
+                    }
+                } catch (error) {
+                    console.error('❌ [Stream] Classification error:', error);
+                    res.write(`data: ${JSON.stringify({
+                        type: 'debug',
+                        message: `❌ Classification threw error: ${error.message}`
+                    })}\n\n`);
                 }
-            } catch (error) {
-                console.error('❌ [Stream] Classification error:', error);
+            } else {
+                console.log('💬 [Stream] Skipping image classification - not on image-generation task');
                 res.write(`data: ${JSON.stringify({
                     type: 'debug',
-                    message: `❌ Classification threw error: ${error.message}`
+                    message: `💬 Skipping image classification - current task: ${currentTask}`
                 })}\n\n`);
             }
         }
