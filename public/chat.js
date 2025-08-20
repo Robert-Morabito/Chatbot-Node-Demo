@@ -238,7 +238,6 @@ class ChatApp {
     async init() {
         this.setupEventListeners();
         this.updateBotName();
-        this.updateTaskHeader();
         this.updateFinishButton();
         this.createNewConversation();
         this.setupTextareaAutoResize();
@@ -962,7 +961,6 @@ class ChatApp {
             this.currentChatlog = [];
 
             // Update UI for new task
-            this.updateTaskHeader();
             this.updateFinishButton();
 
             // AUTO-CREATE new chat for the new task (ADD this line)
@@ -1101,7 +1099,6 @@ class ChatApp {
         this.taskConversations[this.currentTask].set(conversationId, conversation);
         this.switchToConversation(conversationId);
         this.updateConversationList();
-        this.updateTaskHeader();
         this.showWelcomeMessage();
 
         console.log('✅ Created new conversation for task:', this.currentTask, conversationId);
