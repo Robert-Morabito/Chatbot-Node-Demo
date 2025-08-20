@@ -1090,7 +1090,6 @@ class ChatApp {
         this.taskConversations[this.currentTask].set(conversationId, conversation);
         this.switchToConversation(conversationId);
         this.updateConversationList();
-        this.updateTaskHeader();
         this.showWelcomeMessage();
     }
 
