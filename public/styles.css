@@ -4824,20 +4824,8 @@ body.light-theme {
 
 .mini-model-card.current {
     border-color: #f59e0b;
-    background: rgba(245, 158, 11, 0.08);
     box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
     transform: scale(1.05);
-}
-
-.mini-model-card.current::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #f59e0b, #d97706);
-    border-radius: 12px 12px 0 0;
 }
 
 .mini-model-info {

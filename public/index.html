@@ -383,6 +383,63 @@
                 <!-- Update the existing bot-name header -->
                 <h1 id="bot-name" class="bot-name" style="display: none;">Connected to GPT-4</h1>
                 <div class="header-actions">
+                    <!-- Model Comparison Header (Enhanced) -->
+                    <div class="model-comparison-header" id="model-comparison-header">
+                        <div class="comparison-header-content">
+                            <div class="comparison-models">
+                                <!-- Model 1 -->
+                                <div class="mini-model-card" data-model="0">
+                                    <div class="mini-model-info">
+                                        <span class="mini-model-name" id="mini-model-name-0">GPT-3.5</span>
+                                    </div>
+                                    <div class="mini-capabilities">
+                                        <div class="mini-capability-row">
+                                            <span class="mini-capability-label">Reason</span>
+                                            <div class="mini-capability-icons" data-capability="reasoning"></div>
+                                        </div>
+                                        <div class="mini-capability-row">
+                                            <span class="mini-capability-label">Speed</span>
+                                            <div class="mini-capability-icons" data-capability="speed"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Model 2 -->
+                                <div class="mini-model-card" data-model="1">
+                                    <div class="mini-model-info">
+                                        <span class="mini-model-name" id="mini-model-name-1">GPT-4</span>
+                                    </div>
+                                    <div class="mini-capabilities">
+                                        <div class="mini-capability-row">
+                                            <span class="mini-capability-label">Reason</span>
+                                            <div class="mini-capability-icons" data-capability="reasoning"></div>
+                                        </div>
+                                        <div class="mini-capability-row">
+                                            <span class="mini-capability-label">Speed</span>
+                                            <div class="mini-capability-icons" data-capability="speed"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Model 3 -->
+                                <div class="mini-model-card" data-model="2">
+                                    <div class="mini-model-info">
+                                        <span class="mini-model-name" id="mini-model-name-2">GPT-5</span>
+                                    </div>
+                                    <div class="mini-capabilities">
+                                        <div class="mini-capability-row">
+                                            <span class="mini-capability-label">Reason</span>
+                                            <div class="mini-capability-icons" data-capability="reasoning"></div>
+                                        </div>
+                                        <div class="mini-capability-row">
+                                            <span class="mini-capability-label">Speed</span>
+                                            <div class="mini-capability-icons" data-capability="speed"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <!-- Add timer element here -->
                     <div class="session-timer" id="session-timer">
                         <span class="timer-text" id="timer-display">00:00:00</span>
@@ -393,79 +450,6 @@
                             id="header-participant-id">------</span>
                     </div>
                     <button id="save-chat-btn" class="save-btn" title="Save Current Chat">💾</button>
-                </div>
-            </div>
-
-            <!-- Model Comparison Header (Enhanced) -->
-            <div class="model-comparison-header" id="model-comparison-header">
-                <div class="comparison-header-content">
-                    <div class="comparison-models">
-                        <!-- Model 1 -->
-                        <div class="mini-model-card" data-model="0">
-                            <div class="mini-model-info">
-                                <span class="mini-model-name" id="mini-model-name-0">GPT-3.5</span>
-                                <span class="mini-model-year" id="mini-model-year-0">released 2022</span>
-                            </div>
-                            <div class="mini-capabilities">
-                                <div class="mini-capability-row">
-                                    <span class="mini-capability-label">Think</span>
-                                    <div class="mini-capability-icons" data-capability="reasoning"></div>
-                                </div>
-                                <div class="mini-capability-row">
-                                    <span class="mini-capability-label">Speed</span>
-                                    <div class="mini-capability-icons" data-capability="speed"></div>
-                                </div>
-                            </div>
-                            <div class="mini-knowledge-row">
-                                <span class="mini-knowledge-label">Knowledge</span>
-                                <div class="mini-knowledge-date" id="mini-knowledge-0">Sept 2021</div>
-                            </div>
-                        </div>
-
-                        <!-- Model 2 -->
-                        <div class="mini-model-card" data-model="1">
-                            <div class="mini-model-info">
-                                <span class="mini-model-name" id="mini-model-name-1">GPT-4</span>
-                                <span class="mini-model-year" id="mini-model-year-1">released 2023</span>
-                            </div>
-                            <div class="mini-capabilities">
-                                <div class="mini-capability-row">
-                                    <span class="mini-capability-label">Think</span>
-                                    <div class="mini-capability-icons" data-capability="reasoning"></div>
-                                </div>
-                                <div class="mini-capability-row">
-                                    <span class="mini-capability-label">Speed</span>
-                                    <div class="mini-capability-icons" data-capability="speed"></div>
-                                </div>
-                            </div>
-                            <div class="mini-knowledge-row">
-                                <span class="mini-knowledge-label">Knowledge</span>
-                                <div class="mini-knowledge-date" id="mini-knowledge-1">Dec 2023</div>
-                            </div>
-                        </div>
-
-                        <!-- Model 3 -->
-                        <div class="mini-model-card" data-model="2">
-                            <div class="mini-model-info">
-                                <span class="mini-model-name" id="mini-model-name-2">GPT-5</span>
-                                <span class="mini-model-year" id="mini-model-year-2">released 2024</span>
-                            </div>
-                            <div class="mini-capabilities">
-                                <div class="mini-capability-row">
-                                    <span class="mini-capability-label">Think</span>
-                                    <div class="mini-capability-icons" data-capability="reasoning"></div>
-                                </div>
-                                <div class="mini-capability-row">
-                                    <span class="mini-capability-label">Speed</span>
-                                    <div class="mini-capability-icons" data-capability="speed"></div>
-                                </div>
-                            </div>
-                            <div class="mini-knowledge-row">
-                                <span class="mini-knowledge-label">Knowledge</span>
-                                <div class="mini-knowledge-date" id="mini-knowledge-2">Sept 2024</div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
