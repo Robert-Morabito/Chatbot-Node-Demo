@@ -1319,7 +1319,7 @@ body.light-theme {
     line-height: 1.5;
     position: relative;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    font-size: 0.9375rem;
+    font-size: 1.01rem;
 }
 
 .message.user .message-content {
@@ -4915,7 +4915,7 @@ body.light-theme {
 
 .mini-capability-icon {
     font-size: 0.75rem;
-    opacity: 0.25;
+    opacity: 0.2;
     transition: all 0.3s ease;
 }
 
@@ -4925,7 +4925,7 @@ body.light-theme {
 }
 
 .mini-capability-icon.bulb {
-    color: #ffd700;
+    color: #bea308;
 }
 
 .mini-capability-icon.bulb.lit {
@@ -4934,7 +4934,7 @@ body.light-theme {
 }
 
 .mini-capability-icon.bolt {
-    color: #60a5fa;
+    color: #4d82c4;
 }
 
 .mini-capability-icon.bolt.lit {
@@ -4944,8 +4944,8 @@ body.light-theme {
 
 .mini-capability-icon.bulb:not(.lit),
 .mini-capability-icon.bolt:not(.lit) {
-    color: #707070;
-    filter: grayscale(1) brightness(0.5);
+    color: #a5a5a5;
+    filter: grayscale(1) brightness(0.65);
 }
 
 /* Responsive adjustments */
