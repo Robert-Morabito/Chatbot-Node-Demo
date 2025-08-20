@@ -193,36 +193,70 @@ export default async function handler(req, res) {
         // Check if this is a user message and might be an image request
         if (lastMessage?.sender === 'User') {
             console.log('🔍 [Stream] Checking for image intent...');
+            console.log('🔍 [Stream] Message content:', lastMessage.content);
+            console.log('🔍 [Stream] Has image context:', !!(imageContext?.lastPrompt));
+            console.log('🔍 [Stream] Request host:', req.headers.host);
 
-            const imageClassification = await classifyImageIntent(
-                lastMessage.content,
-                !!(imageContext?.lastPrompt),
-                req
-            );
+            // Send a debug message to the client
+            res.write(`data: ${JSON.stringify({
+                type: 'debug',
+                message: `🔍 About to classify: "${lastMessage.content}"`
+            })}\n\n`);
 
-            if (imageClassification.intent === 'new_image' || imageClassification.intent === 'modify_image') {
-                console.log('🎨 [Stream] Image request detected:', imageClassification.intent);
-
-                res.write(`data: ${JSON.stringify({ type: 'image_request_detected' })}\n\n`);
-
-                const imageGenerated = await generateImage(
+            try {
+                const imageClassification = await classifyImageIntent(
                     lastMessage.content,
-                    model,
-                    imageContext,
-                    imageClassification.intent,
-                    req,
-                    res
+                    !!(imageContext?.lastPrompt),
+                    req
                 );
 
-                if (imageGenerated) {
-                    res.end();
-                    return;
+                console.log('🔍 [Stream] Classification complete:', imageClassification);
+
+                // Send classification result to client
+                res.write(`data: ${JSON.stringify({
+                    type: 'debug',
+                    message: `🔍 Classification result: ${imageClassification.intent}`,
+                    data: imageClassification
+                })}\n\n`);
+
+                if (imageClassification.error) {
+                    console.error('❌ [Stream] Classification had error:', imageClassification.error);
+                    res.write(`data: ${JSON.stringify({
+                        type: 'debug',
+                        message: `❌ Classification error: ${imageClassification.error}`
+                    })}\n\n`);
                 }
 
-                // If image generation failed, continue to regular chat
-                console.log('🔄 [Stream] Image generation failed, falling back to regular chat');
-            } else {
-                console.log('💬 [Stream] Regular chat message detected');
+                if (imageClassification.intent === 'new_image' || imageClassification.intent === 'modify_image') {
+                    console.log('🎨 [Stream] Image request detected:', imageClassification.intent);
+
+                    res.write(`data: ${JSON.stringify({ type: 'image_request_detected' })}\n\n`);
+
+                    const imageGenerated = await generateImage(
+                        lastMessage.content,
+                        model,
+                        imageContext,
+                        imageClassification.intent,
+                        req,
+                        res
+                    );
+
+                    if (imageGenerated) {
+                        res.end();
+                        return;
+                    }
+
+                    // If image generation failed, continue to regular chat
+                    console.log('🔄 [Stream] Image generation failed, falling back to regular chat');
+                } else {
+                    console.log('💬 [Stream] Regular chat message detected, intent:', imageClassification.intent);
+                }
+            } catch (error) {
+                console.error('❌ [Stream] Classification error:', error);
+                res.write(`data: ${JSON.stringify({
+                    type: 'debug',
+                    message: `❌ Classification threw error: ${error.message}`
+                })}\n\n`);
             }
         }
 
