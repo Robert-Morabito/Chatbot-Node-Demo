@@ -1349,6 +1349,13 @@ class ChatApp {
                                 throw error;
                             }
 
+                            if (data.type === 'debug') {
+                                console.log('🟨 DEBUG FROM SERVER:', data.message);
+                                if (data.data) {
+                                    console.log('🟨 DEBUG DATA:', data.data);
+                                }
+                            }
+
                             if (data.type === 'image_request_detected') {
                                 console.log('🟨 DEBUG: IMAGE REQUEST DETECTED!');
                                 isImageGeneration = true;
