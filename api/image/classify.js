@@ -4,25 +4,35 @@ export default async function handler(req, res) {
     console.log('🔍 [Image Classify] Request received');
 
     if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
+        return res.status(405).json({
+            success: false,
+            error: 'Method not allowed',
+            debug: 'classify.js method check failed'
+        });
     }
 
     try {
         const { userMessage, hasImageContext } = req.body;
 
-        console.log('🔍 [Image Classify] Processing:', {
-            userMessage,
-            hasImageContext
-        });
-
         if (!userMessage) {
-            return res.status(400).json({ error: 'userMessage is required' });
+            return res.status(400).json({
+                success: false,
+                error: 'userMessage is required',
+                debug: 'classify.js missing userMessage'
+            });
         }
 
-        // Always use OpenAI for classification (reliable and fast)
+        // CHECK: OpenAI API key
         if (!process.env.OPENAI_API_KEY) {
-            throw new Error('OpenAI API key not configured');
+            console.error('❌ [Image Classify] Missing OpenAI API key');
+            return res.status(500).json({
+                success: false,
+                error: 'OpenAI API key not configured',
+                debug: 'classify.js missing OPENAI_API_KEY'
+            });
         }
+
+        console.log('🔍 [Image Classify] Processing message:', userMessage.substring(0, 50) + '...');
 
         const classifier = new OpenAIHandler(process.env.OPENAI_API_KEY);
 
@@ -113,7 +123,9 @@ export default async function handler(req, res) {
         console.error('❌ [Image Classify] Error:', error);
         res.status(500).json({
             success: false,
-            error: error.message
+            error: error.message,
+            debug: 'classify.js caught exception',
+            stack: error.stack
         });
     }
 }

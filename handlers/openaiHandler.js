@@ -11,8 +11,8 @@ export class OpenAIHandler {
         });
 
         this.modelMapping = {
-            'GPT-4': 'gpt-4-turbo-0125',
-            'GPT-5': 'gpt-5', // Add this
+            'GPT-4': 'gpt-4-0125-preview',
+            'GPT-5': 'gpt-5-2025-08-07', 
             'GPT-3.5': 'gpt-3.5-turbo-0125',
             'o1-mini': 'o1-mini',
             'o1-preview': 'o1-preview'

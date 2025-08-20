@@ -946,8 +946,6 @@ class ChatApp {
      * Progress to next task
      */
     async progressToNextTask() {
-        console.log('📋 Progressing to next task...');
-
         // Mark current task as completed
         this.completedTasks.push(this.currentTask);
 
@@ -965,8 +963,6 @@ class ChatApp {
 
             // AUTO-CREATE new chat for the new task (ADD this line)
             this.createNewConversation();
-
-            console.log('✅ Progressed to task:', this.currentTask);
         }
     }
 
@@ -974,8 +970,6 @@ class ChatApp {
      * Handle task completion
      */
     async handleTaskCompletion() {
-        console.log('🏁 Task completion requested for:', this.currentTask);
-
         const taskConfig = this.getCurrentTaskConfig();
         const isLastTask = this.isFinalTask();
 
@@ -1049,8 +1043,6 @@ class ChatApp {
                 currentConv.lastMessageAt = new Date();
             }
         }
-
-        console.log(`💾 Saved ${this.currentTask} task data`);
     }
 
     /**
@@ -1100,8 +1092,6 @@ class ChatApp {
         this.switchToConversation(conversationId);
         this.updateConversationList();
         this.showWelcomeMessage();
-
-        console.log('✅ Created new conversation for task:', this.currentTask, conversationId);
     }
 
     /**
@@ -1247,8 +1237,6 @@ class ChatApp {
      * Send user message
      */
     sendMessage() {
-        console.log('📤 sendMessage() called');
-
         const messageInput = document.getElementById('message-input');
         const message = messageInput.value.trim();
 
@@ -1301,8 +1289,6 @@ class ChatApp {
      * Get response from LLM
      */
     async getLLMResponse() {
-        console.log('🤖 getLLMResponse() called');
-
         try {
             const requestData = {
                 messages: this.currentChatlog,
@@ -1312,7 +1298,12 @@ class ChatApp {
                 imageContext: this.imageContext
             };
 
-            console.log('📡 Making API request to /api/chat/stream');
+            console.log('🟦 DEBUG: Request data prepared:', {
+                messageCount: requestData.messages.length,
+                model: requestData.model,
+                lastMessage: requestData.messages[requestData.messages.length - 1]?.content?.substring(0, 50) + '...',
+                hasImageContext: !!requestData.imageContext?.lastPrompt
+            });
 
             const response = await fetch('/api/chat/stream', {
                 method: 'POST',
@@ -1326,6 +1317,7 @@ class ChatApp {
 
             if (!response.ok) {
                 const errorText = await response.text();
+                console.error('🔴 DEBUG: Stream response error:', response.status, errorText);
                 const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
                 error.status = response.status;
                 error.responseText = errorText;
@@ -1351,8 +1343,6 @@ class ChatApp {
                     if (line.startsWith('data: ')) {
                         try {
                             const data = JSON.parse(line.slice(6));
-                            console.log('📦 Stream data:', data.type);
-
                             if (data.type === 'error') {
                                 const error = new Error(data.error || 'Stream error occurred');
                                 error.context = 'stream';
@@ -1360,14 +1350,25 @@ class ChatApp {
                             }
 
                             if (data.type === 'image_request_detected') {
-                                console.log('🎨 Image request detected');
+                                console.log('🟨 DEBUG: IMAGE REQUEST DETECTED!');
                                 isImageGeneration = true;
                                 this.hideTypingIndicator();
                                 this.showImageGenerationIndicator();
-
                             } else if (data.type === 'typing_start') {
-                                console.log('⏳ Typing start signal received');
+                                console.log('🟦 DEBUG: Regular chat typing started');
 
+                            } else if (data.type === 'content' && isImageGeneration) {
+                                console.log('🟨 DEBUG: Image generation completed, showing result');
+
+                            } else if (data.type === 'done') {
+                                console.log('🟦 DEBUG: Stream completed, type:', data.finishReason || 'normal');
+                                break;
+
+                            } else if (data.type === 'error') {
+                                console.error('🔴 DEBUG: Stream error:', data.error);
+                                const error = new Error(data.error || 'Stream error occurred');
+                                error.context = 'stream';
+                                throw error;
                             } else if (data.type === 'content') {
                                 if (!botMsg && !isImageGeneration) {
                                     this.hideTypingIndicator();
@@ -1418,7 +1419,6 @@ class ChatApp {
                                 }
 
                             } else if (data.type === 'done') {
-                                console.log('✅ Stream completed');
                                 this.hideImageGenerationIndicator();
                                 this.hideTypingIndicator();
                                 break;
@@ -1429,9 +1429,6 @@ class ChatApp {
                     }
                 }
             }
-
-            console.log('✅ Full response received');
-
         } catch (error) {
             console.error('❌ getLLMResponse error:', error);
             this.hideTypingIndicator();
@@ -1444,8 +1441,6 @@ class ChatApp {
      * Show typing indicator
      */
     showTypingIndicator() {
-        console.log('⏳ Showing typing indicator');
-
         const messagesContainer = document.getElementById('messages');
 
         const existing = document.getElementById('typing-indicator');
@@ -1460,14 +1455,11 @@ class ChatApp {
         iconImg.alt = 'Bot';
 
         const displayedModel = this.config?.displayName || '';
-        console.log(`⏳ Setting typing icon for displayed model: "${displayedModel}"`);
 
         if (displayedModel.toLowerCase().includes('claude')) {
             iconImg.src = 'images/claude.png';
-            console.log('⏳ Using Claude typing icon');
         } else {
             iconImg.src = 'images/gpt.png';
-            console.log('⏳ Using GPT typing icon');
         }
 
         const typingContent = document.createElement('div');
@@ -1485,7 +1477,6 @@ class ChatApp {
      * Hide typing indicator
      */
     hideTypingIndicator() {
-        console.log('⏳ Hiding typing indicator');
         const typingIndicator = document.getElementById('typing-indicator');
         if (typingIndicator) {
             typingIndicator.remove();
@@ -1496,8 +1487,6 @@ class ChatApp {
      * Show image generation indicator
      */
     showImageGenerationIndicator() {
-        console.log('🎨 Showing image generation indicator');
-
         const messagesContainer = document.getElementById('messages');
 
         const existingTyping = document.getElementById('typing-indicator');
@@ -1535,7 +1524,6 @@ class ChatApp {
      * Hide image generation indicator
      */
     hideImageGenerationIndicator() {
-        console.log('🎨 Hiding image generation indicator');
         const imageGenIndicator = document.getElementById('image-generation-indicator');
         if (imageGenIndicator) {
             imageGenIndicator.remove();
@@ -1546,8 +1534,6 @@ class ChatApp {
      * Render message in chat
      */
     renderMessage(msgInfo, autoScroll = true) {
-        console.log('🎨 renderMessage() called for:', msgInfo.sender, msgInfo.content);
-
         const messagesContainer = document.getElementById('messages');
 
         const messageDiv = document.createElement('div');
@@ -1562,14 +1548,11 @@ class ChatApp {
             iconImg.src = 'images/user.png';
         } else {
             const displayedModel = this.config?.displayName || '';
-            console.log(`🎨 Setting icon for displayed model: "${displayedModel}"`);
 
             if (displayedModel.toLowerCase().includes('claude')) {
                 iconImg.src = 'images/claude.png';
-                console.log('🎨 Using Claude icon');
             } else {
                 iconImg.src = 'images/gpt.png';
-                console.log('🎨 Using GPT icon');
             }
         }
 
@@ -1608,8 +1591,6 @@ class ChatApp {
         if (autoScroll) {
             this.scrollToBottom();
         }
-
-        console.log('✅ Message rendered successfully');
     }
 
     /**
@@ -1983,8 +1964,6 @@ class ChatApp {
         this.sessionTimer.intervalId = setInterval(() => {
             this.updateTimerDisplay();
         }, 1000);
-
-        console.log('⏱️ Session timer started');
     }
 
     /**
@@ -2447,8 +2426,6 @@ class ChatApp {
      * Handle task completion - this is the NEW method that the finish button calls
      */
     async handleTaskCompletion() {
-        console.log('🏁 Task completion requested for:', this.currentTask);
-
         const taskConfig = this.getCurrentTaskConfig();
         const isLastTask = this.isFinalTask();
 
@@ -2537,9 +2514,6 @@ class ChatApp {
             document.body.removeChild(link);
 
             setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-            console.log('✅ Study data downloaded:', filename);
-
         } catch (error) {
             console.error('Error creating download:', error);
             throw error;
@@ -2677,8 +2651,6 @@ class ChatApp {
 
                 const blob = new Blob([JSON.stringify(saveData)], { type: 'application/json' });
                 navigator.sendBeacon('/api/save', blob);
-
-                console.log('📤 Beacon save sent');
             } catch (error) {
                 console.error('Error saving on close:', error);
                 event.preventDefault();

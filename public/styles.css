@@ -2666,7 +2666,7 @@ body.light-theme {
 
 .progress-system {
     position: relative;
-    top: 0;
+    top: -20px;
     left: 0;
     transform: none;
     display: flex;
