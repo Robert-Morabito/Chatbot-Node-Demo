@@ -238,6 +238,7 @@ class ChatApp {
         this.startSessionTimer();
         this.initializeBehaviorTracking();
         this.setupFinishButton();
+        this.initializeModelComparisonHeader();
     }
 
     // ===================================================================
@@ -1811,6 +1812,68 @@ class ChatApp {
     // ===================================================================
     // UI MANAGEMENT
     // ===================================================================
+    /**
+ * Initialize and populate the model comparison header
+ */
+    initializeModelComparisonHeader() {
+        const comparisonData = this.getModelComparisonData();
+        const { models, assignedIndex } = comparisonData;
+
+        console.log('🎯 Initializing model comparison header with assigned index:', assignedIndex);
+
+        // Populate each mini model card
+        models.forEach((model, index) => {
+            // Update names and years
+            const nameEl = document.getElementById(`mini-model-name-${index}`);
+            const yearEl = document.getElementById(`mini-model-year-${index}`);
+            const knowledgeEl = document.getElementById(`mini-knowledge-${index}`);
+
+            if (nameEl) nameEl.textContent = model.name;
+            if (yearEl) yearEl.textContent = model.year;
+            if (knowledgeEl) knowledgeEl.textContent = model.capabilities.knowledge;
+
+            // Populate capability icons
+            const card = document.querySelector(`.mini-model-card[data-model="${index}"]`);
+            if (card) {
+                // Reasoning icons
+                const reasoningContainer = card.querySelector('[data-capability="reasoning"]');
+                if (reasoningContainer) {
+                    reasoningContainer.innerHTML = '';
+                    for (let i = 0; i < 4; i++) {
+                        const icon = document.createElement('span');
+                        icon.className = 'mini-capability-icon bulb';
+                        if (i < model.capabilities.reasoning) {
+                            icon.classList.add('lit');
+                        }
+                        icon.textContent = '💡';
+                        reasoningContainer.appendChild(icon);
+                    }
+                }
+
+                // Speed icons
+                const speedContainer = card.querySelector('[data-capability="speed"]');
+                if (speedContainer) {
+                    speedContainer.innerHTML = '';
+                    for (let i = 0; i < 4; i++) {
+                        const icon = document.createElement('span');
+                        icon.className = 'mini-capability-icon bolt';
+                        if (i < model.capabilities.speed) {
+                            icon.classList.add('lit');
+                        }
+                        icon.textContent = '⚡';
+                        speedContainer.appendChild(icon);
+                    }
+                }
+
+                // Mark current model
+                if (index === assignedIndex) {
+                    card.classList.add('current');
+                }
+            }
+        });
+
+        console.log('✅ Model comparison header initialized');
+    }
 
     /**
      * Update bot name display
