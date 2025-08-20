@@ -78,7 +78,7 @@ export default async function handler(req, res) {
 
         // Get classification using GPT-3.5 (fast and reliable)
         let classification = '';
-        for await (const chunk of classifier.streamChat(messages, 'gpt-3.5-turbo-0125')) {
+        for await (const chunk of classifier.streamChatNoSystem(messages, 'gpt-3.5-turbo-0125')) {
             if (chunk.type === 'content') {
                 classification += chunk.content;
             } else if (chunk.type === 'done') {

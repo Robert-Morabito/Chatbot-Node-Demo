@@ -12,7 +12,7 @@ export class OpenAIHandler {
 
         this.modelMapping = {
             'GPT-4': 'gpt-4-0125-preview',
-            'GPT-5': 'gpt-5-2025-08-07', 
+            'GPT-5': 'gpt-5-2025-08-07',
             'GPT-3.5': 'gpt-3.5-turbo-0125',
             'o1-mini': 'o1-mini',
             'o1-preview': 'o1-preview'
@@ -116,5 +116,53 @@ export class OpenAIHandler {
         }
     }
 
-    // Remove the duplicate chatStreamTextOnly method - just use streamChat
+    async* streamChatNoSystem(messages, model) {
+        const actualModel = this.modelMapping[model] || model;
+        console.log('💬 [OpenAI] Starting chat stream (NO SYSTEM) with model:', actualModel);
+
+        try {
+            // Convert messages WITHOUT system prompt
+            const userMessages = messages.map(msg => ({
+                role: msg.sender === 'User' ? 'user' : 'assistant',
+                content: msg.content
+            }));
+
+            const stream = await this.client.chat.completions.create({
+                model: actualModel,
+                messages: userMessages, // NO system message
+                stream: true,
+                max_tokens: 800,
+                temperature: 0.1 // Lower temperature for more consistent classification
+            });
+
+            let fullResponse = '';
+
+            for await (const chunk of stream) {
+                const delta = chunk.choices[0]?.delta;
+
+                if (delta?.content) {
+                    fullResponse += delta.content;
+                    yield {
+                        type: 'content',
+                        content: delta.content,
+                        fullContent: fullResponse
+                    };
+                }
+
+                if (chunk.choices[0]?.finish_reason) {
+                    yield {
+                        type: 'done',
+                        fullContent: fullResponse,
+                        finishReason: chunk.choices[0].finish_reason
+                    };
+                }
+            }
+        } catch (error) {
+            console.error('❌ [OpenAI] Chat stream error:', error);
+            yield {
+                type: 'error',
+                error: error.message
+            };
+        }
+    }
 }
