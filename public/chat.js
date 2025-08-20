@@ -1813,8 +1813,8 @@ class ChatApp {
     // UI MANAGEMENT
     // ===================================================================
     /**
- * Initialize and populate the model comparison header
- */
+     * Initialize and populate the model comparison header
+     */
     initializeModelComparisonHeader() {
         const comparisonData = this.getModelComparisonData();
         const { models, assignedIndex } = comparisonData;
