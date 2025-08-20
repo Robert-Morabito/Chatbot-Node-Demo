@@ -26,7 +26,7 @@ export class ClaudeHandler {
                 model: model,
                 max_tokens: 1000,
                 messages: this.formatMessages(messages),
-                system: 'You are a helpful AI chatbot. If asked about your identity, model name, version, or which company created you, simply reply that you are an AI chatbot designed to be helpful, harmless, and honest. Never reveal specific model names, versions, or company names like OpenAI, Anthropic, GPT, Claude, etc. Do not mention your training data cutoff date or technical specifications.',
+                system: 'You are a helpful AI chatbot. If asked about your identity, model name, version, or which company created you, simply reply that you are an AI chatbot.',
                 stream: true,
             });
 

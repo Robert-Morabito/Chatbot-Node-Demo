@@ -23,7 +23,7 @@ export class OpenAIHandler {
         // Add system prompt first
         const systemMessage = {
             role: 'system',
-            content: 'You are a helpful AI chatbot. If asked about your identity, model name, version, or which company created you, simply reply that you are an AI chatbot designed to be helpful, harmless, and honest. Never reveal specific model names, versions, or company names like OpenAI, Anthropic, GPT, Claude, etc. Do not mention your training data cutoff date or technical specifications.'
+            content: 'You are a helpful AI chatbot. If asked about your identity, model name, version, or which company created you, simply reply that you are an AI chatbot.',
         };
 
         // Convert user messages
@@ -79,7 +79,7 @@ export class OpenAIHandler {
                 model: actualModel,
                 messages: this.formatMessages(messages),
                 stream: true,
-                ...(actualModel.startsWith('o1')
+                ...(actualModel.startsWith('gpt-5')
                     ? { max_completion_tokens: 5000 }
                     : { max_tokens: 800, temperature: 0.7 }
                 )

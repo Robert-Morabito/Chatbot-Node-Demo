@@ -1014,10 +1014,10 @@ class ChatApp {
 
             if (isLastTask) {
                 titleEl.textContent = 'Complete Study';
-                bodyEl.textContent = `You are about to complete the final task (${taskName}) and finish the entire study. This will download your data and close the interface.`;
+                bodyEl.textContent = `You are about to complete the final task (${taskName}) and finish the entire study. This will download your data and close the interface. Please make sure you have finished everything before continuing.`;
             } else {
-                titleEl.textContent = `Complete ${taskName} Task`;
-                bodyEl.textContent = `You are about to finish the ${taskName} task and move to the next task. You won't be able to return to this task once you continue.`;
+                titleEl.textContent = `Complete ${taskName} Task?`;
+                bodyEl.textContent = `Continuting will finish the ${taskName} task and move to the next task. You won't be able to return.`;
             }
 
             modal.style.display = 'flex';

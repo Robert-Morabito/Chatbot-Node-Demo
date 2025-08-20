@@ -1769,6 +1769,7 @@ body.light-theme {
 .finish-confirmation-dialog {
     background: var(--main-bg-dark);
     color: var(--text-dark);
+    font-weight: 400;
     padding: 1.875rem;
     border-radius: 0.75rem;
     max-width: 31.25rem;
@@ -1824,12 +1825,12 @@ body.light-theme {
 }
 
 .finish-confirm {
-    background: #dc2626;
+    background: var(--user-msg-bg-dark);
     color: white;
 }
 
 .finish-confirm:hover {
-    background: #b91c1c;
+    background: #2c4da8;
 }
 
 /* Loading Indicator */
