@@ -128,7 +128,7 @@ async function classifyImageIntent(userMessage, hasImageContext) {
     }
 }
 
-// Image generation function
+// Image generation function - direct implementation with debug logging
 async function generateImage(userMessage, model, imageContext, intent, req, res) {
     console.log('🎨 [Stream] Starting direct image generation...');
 
@@ -142,7 +142,6 @@ async function generateImage(userMessage, model, imageContext, intent, req, res)
 
         let enhancementPrompt;
         if (intent === 'modify_image' && imageContext?.lastPrompt) {
-            // User is modifying an existing image
             enhancementPrompt = `Previous DALL-E prompt: "${imageContext.lastPrompt}"
 
             User wants to modify it: "${userMessage}"
@@ -151,7 +150,6 @@ async function generateImage(userMessage, model, imageContext, intent, req, res)
 
             Only respond with the new prompt:`;
         } else {
-            // User is creating a new image
             enhancementPrompt = `User wants: "${userMessage}"
 
             Create a natural DALL-E prompt like ChatGPT would. Keep it concise but effective - add key details for quality (good lighting, clear subject) but don't over-describe.
@@ -159,7 +157,6 @@ async function generateImage(userMessage, model, imageContext, intent, req, res)
             Only respond with the prompt:`;
         }
 
-        // Create fake conversation for enhancement
         const enhanceMessages = [
             { sender: 'User', content: enhancementPrompt }
         ];
@@ -182,7 +179,7 @@ async function generateImage(userMessage, model, imageContext, intent, req, res)
 
         // Get the enhanced prompt
         let enhancedPrompt = '';
-        for await (const chunk of enhanceHandler.streamChat(enhanceMessages, model)) {
+        for await (const chunk of enhanceHandler.streamChatNoSystem(enhanceMessages, model)) {
             if (chunk.type === 'content') {
                 enhancedPrompt += chunk.content;
             } else if (chunk.type === 'done') {
@@ -193,7 +190,7 @@ async function generateImage(userMessage, model, imageContext, intent, req, res)
         }
 
         enhancedPrompt = enhancedPrompt.trim();
-        console.log('🎨 [Stream] Enhanced prompt:', enhancedPrompt);
+        console.log('🎨 [Stream] Enhanced prompt created:', enhancedPrompt);
 
         // Step 2: Generate image directly
         console.log('🖼️ [Stream] Generating image directly...');
@@ -203,15 +200,21 @@ async function generateImage(userMessage, model, imageContext, intent, req, res)
         }
 
         const imageHandler = new OpenAIHandler(process.env.OPENAI_API_KEY);
-        console.log('🖼️ [Stream] Using DALL-E for generation...');
-
+        console.log('🖼️ [Stream] Calling DALL-E with prompt:', enhancedPrompt);
+        
         const imageResult = await imageHandler.generateImage(enhancedPrompt);
+        console.log('🖼️ [Stream] Image generation result:', imageResult);
 
-        if (!imageResult.success) {
-            throw new Error('Image generation failed');
+        if (!imageResult || !imageResult.success) {
+            throw new Error(`Image generation failed: ${imageResult?.error || 'Unknown error'}`);
         }
 
-        console.log('🖼️ [Stream] Image generated successfully');
+        if (!imageResult.url) {
+            console.error('🖼️ [Stream] No URL in image result:', imageResult);
+            throw new Error('Image generation succeeded but no URL returned');
+        }
+
+        console.log('🖼️ [Stream] Image URL received:', imageResult.url);
 
         // Step 3: Send response
         let imageResponse;
@@ -221,7 +224,9 @@ async function generateImage(userMessage, model, imageContext, intent, req, res)
             imageResponse = `I've generated an image for you:\n\n![Generated Image](${imageResult.url})`;
         }
 
-        res.write(`data: ${JSON.stringify({
+        console.log('🖼️ [Stream] Sending image response to client...');
+
+        const responseData = {
             type: 'content',
             content: imageResponse,
             fullContent: imageResponse,
@@ -229,19 +234,26 @@ async function generateImage(userMessage, model, imageContext, intent, req, res)
             imagePrompt: enhancedPrompt,
             originalPrompt: userMessage,
             revisedPrompt: imageResult.revisedPrompt
-        })}\n\n`);
+        };
+
+        console.log('🖼️ [Stream] Response data structure:', responseData);
+
+        res.write(`data: ${JSON.stringify(responseData)}\n\n`);
 
         res.write(`data: ${JSON.stringify({
             type: 'done',
             finishReason: 'image_generated'
         })}\n\n`);
 
+        console.log('🖼️ [Stream] Image generation completed successfully');
         return true;
 
     } catch (error) {
         console.error('❌ [Stream] Direct image generation error:', error);
+        console.error('❌ [Stream] Error stack:', error.stack);
 
         const errorMessage = `I apologize, but I couldn't generate the image. Error: ${error.message}`;
+        
         res.write(`data: ${JSON.stringify({
             type: 'content',
             content: errorMessage,

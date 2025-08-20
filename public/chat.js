@@ -1348,31 +1348,11 @@ class ChatApp {
                                 error.context = 'stream';
                                 throw error;
                             }
-
-                            if (data.type === 'debug') {
-                                console.log('🟨 DEBUG FROM SERVER:', data.message);
-                                if (data.data) {
-                                    console.log('🟨 DEBUG DATA:', data.data);
-                                }
-                            }
-
                             if (data.type === 'image_request_detected') {
-                                console.log('🟨 DEBUG: IMAGE REQUEST DETECTED!');
                                 isImageGeneration = true;
                                 this.hideTypingIndicator();
                                 this.showImageGenerationIndicator();
-                            } else if (data.type === 'typing_start') {
-                                console.log('🟦 DEBUG: Regular chat typing started');
-
-                            } else if (data.type === 'content' && isImageGeneration) {
-                                console.log('🟨 DEBUG: Image generation completed, showing result');
-
-                            } else if (data.type === 'done') {
-                                console.log('🟦 DEBUG: Stream completed, type:', data.finishReason || 'normal');
-                                break;
-
                             } else if (data.type === 'error') {
-                                console.error('🔴 DEBUG: Stream error:', data.error);
                                 const error = new Error(data.error || 'Stream error occurred');
                                 error.context = 'stream';
                                 throw error;
@@ -1406,6 +1386,8 @@ class ChatApp {
                                     }
                                     this.scrollToBottom();
                                 } else if (isImageGeneration) {
+                                    console.log('🟨 DEBUG: Processing image generation content');
+                                    console.log('🟨 DEBUG: Image URL:', data.imageUrl);
                                     this.hideImageGenerationIndicator();
 
                                     botMsgId = ++this.messageIdCounter;
