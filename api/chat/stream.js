@@ -130,66 +130,105 @@ async function classifyImageIntent(userMessage, hasImageContext) {
 
 // Image generation function
 async function generateImage(userMessage, model, imageContext, intent, req, res) {
-    console.log('🎨 [Stream] Starting image generation...');
+    console.log('🎨 [Stream] Starting direct image generation...');
 
     try {
-        // Step 1: Enhance prompt
-        console.log('🎨 [Stream] Enhancing prompt...');
+        // Import handlers directly
+        const { OpenAIHandler } = await import('../../handlers/openaiHandler.js');
+        const { ClaudeHandler } = await import('../../handlers/claudeHandler.js');
 
-        const enhanceResponse = await fetch(`${req.headers.host.startsWith('localhost') ? 'http' : 'https'}://${req.headers.host}/api/image/enhance`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userPrompt: userMessage,
-                model: model,
-                previousPrompt: imageContext?.lastPrompt,
-                modificationType: intent === 'modify_image' ? 'modification' : 'new'
-            })
-        });
+        // Step 1: Enhance prompt directly
+        console.log('🎨 [Stream] Enhancing prompt directly...');
 
-        if (!enhanceResponse.ok) {
-            throw new Error(`Enhancement failed: ${enhanceResponse.status}`);
+        let enhancementPrompt;
+        if (intent === 'modify_image' && imageContext?.lastPrompt) {
+            // User is modifying an existing image
+            enhancementPrompt = `Previous DALL-E prompt: "${imageContext.lastPrompt}"
+
+            User wants to modify it: "${userMessage}"
+
+            Create an updated DALL-E prompt that applies the user's modification. Keep it natural and concise like ChatGPT would - don't over-describe.
+
+            Only respond with the new prompt:`;
+        } else {
+            // User is creating a new image
+            enhancementPrompt = `User wants: "${userMessage}"
+
+            Create a natural DALL-E prompt like ChatGPT would. Keep it concise but effective - add key details for quality (good lighting, clear subject) but don't over-describe.
+
+            Only respond with the prompt:`;
         }
 
-        const enhanceData = await enhanceResponse.json();
-        console.log('🎨 [Stream] Enhanced prompt:', enhanceData.enhancedPrompt);
+        // Create fake conversation for enhancement
+        const enhanceMessages = [
+            { sender: 'User', content: enhancementPrompt }
+        ];
 
-        // Step 2: Generate image
-        console.log('🖼️ [Stream] Generating image...');
-
-        const generateResponse = await fetch(`${req.headers.host.startsWith('localhost') ? 'http' : 'https'}://${req.headers.host}/api/image/generate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                enhancedPrompt: enhanceData.enhancedPrompt,
-                originalPrompt: userMessage,
-                model: model
-            })
-        });
-
-        if (!generateResponse.ok) {
-            throw new Error(`Image generation failed: ${generateResponse.status}`);
+        // Get the appropriate handler for enhancement
+        let enhanceHandler;
+        if (model.startsWith('claude-')) {
+            if (!process.env.ANTHROPIC_API_KEY) {
+                throw new Error('Anthropic API key not configured for enhancement');
+            }
+            enhanceHandler = new ClaudeHandler(process.env.ANTHROPIC_API_KEY);
+            console.log('🎨 [Stream] Using Claude for enhancement');
+        } else {
+            if (!process.env.OPENAI_API_KEY) {
+                throw new Error('OpenAI API key not configured for enhancement');
+            }
+            enhanceHandler = new OpenAIHandler(process.env.OPENAI_API_KEY);
+            console.log('🎨 [Stream] Using OpenAI for enhancement');
         }
 
-        const generateData = await generateResponse.json();
+        // Get the enhanced prompt
+        let enhancedPrompt = '';
+        for await (const chunk of enhanceHandler.streamChat(enhanceMessages, model)) {
+            if (chunk.type === 'content') {
+                enhancedPrompt += chunk.content;
+            } else if (chunk.type === 'done') {
+                break;
+            } else if (chunk.type === 'error') {
+                throw new Error(chunk.error);
+            }
+        }
+
+        enhancedPrompt = enhancedPrompt.trim();
+        console.log('🎨 [Stream] Enhanced prompt:', enhancedPrompt);
+
+        // Step 2: Generate image directly
+        console.log('🖼️ [Stream] Generating image directly...');
+
+        if (!process.env.OPENAI_API_KEY) {
+            throw new Error('OpenAI API key not configured for image generation');
+        }
+
+        const imageHandler = new OpenAIHandler(process.env.OPENAI_API_KEY);
+        console.log('🖼️ [Stream] Using DALL-E for generation...');
+
+        const imageResult = await imageHandler.generateImage(enhancedPrompt);
+
+        if (!imageResult.success) {
+            throw new Error('Image generation failed');
+        }
+
         console.log('🖼️ [Stream] Image generated successfully');
 
         // Step 3: Send response
         let imageResponse;
         if (intent === 'modify_image') {
-            imageResponse = `I've modified the image based on your request:\n\n![Generated Image](${generateData.imageUrl})`;
+            imageResponse = `I've modified the image based on your request:\n\n![Generated Image](${imageResult.url})`;
         } else {
-            imageResponse = `I've generated an image for you:\n\n![Generated Image](${generateData.imageUrl})`;
+            imageResponse = `I've generated an image for you:\n\n![Generated Image](${imageResult.url})`;
         }
 
         res.write(`data: ${JSON.stringify({
             type: 'content',
             content: imageResponse,
             fullContent: imageResponse,
-            imageUrl: generateData.imageUrl,
-            imagePrompt: enhanceData.enhancedPrompt,
+            imageUrl: imageResult.url,
+            imagePrompt: enhancedPrompt,
             originalPrompt: userMessage,
-            revisedPrompt: generateData.revisedPrompt
+            revisedPrompt: imageResult.revisedPrompt
         })}\n\n`);
 
         res.write(`data: ${JSON.stringify({
@@ -200,7 +239,7 @@ async function generateImage(userMessage, model, imageContext, intent, req, res)
         return true;
 
     } catch (error) {
-        console.error('❌ [Stream] Image generation error:', error);
+        console.error('❌ [Stream] Direct image generation error:', error);
 
         const errorMessage = `I apologize, but I couldn't generate the image. Error: ${error.message}`;
         res.write(`data: ${JSON.stringify({
