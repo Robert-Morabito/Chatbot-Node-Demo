@@ -65,7 +65,7 @@ class ChatApp {
                 name: 'Image Generation',
                 icon: '🎨',
                 shortName: 'Images',
-                description: 'Use this chat to generate some detailed images!'
+                description: 'Use this chat to generate images! Try typing "Make me an image of..."'
             },
             'social-media': {
                 name: 'Social Media Posts',
