@@ -48,6 +48,7 @@ class ChatApp {
         this.isAnimationPlaying = false;
         this.isTransitioning = false; // ADD: Prevent spam clicking
         this.transitionTimeout = null; // ADD: Track active timeouts
+        this.readingDelay = 10; // ADD: 10 second delay
 
         // ===================================================================
         // CONFIGURATION
@@ -392,6 +393,8 @@ class ChatApp {
      * Render specific welcome step
      */
     renderWelcomeStep(stepIndex) {
+        this.clearActiveTransitions();
+        
         if (this.transitionTimeout) {
             clearTimeout(this.transitionTimeout);
             this.transitionTimeout = null;
@@ -442,6 +445,19 @@ class ChatApp {
      */
     updateNavigationButtons() {
         const continueBtn = document.getElementById('nav-continue');
+        const backBtn = document.getElementById('nav-back');
+
+        // Handle back button visibility
+        if (this.currentStepIndex > 0) {
+            backBtn.style.display = 'flex';
+            backBtn.onclick = () => {
+                // Clear any active countdowns/transitions
+                this.clearActiveTransitions();
+                this.renderWelcomeStep(this.currentStepIndex - 1);
+            };
+        } else {
+            backBtn.style.display = 'none';
+        }
 
         // Check if we're transitioning
         if (this.isTransitioning) {
@@ -504,6 +520,21 @@ class ChatApp {
         };
     }
 
+    /**
+ * Clear all active transitions and timers
+ */
+    clearActiveTransitions() {
+        if (this.transitionTimeout) {
+            clearTimeout(this.transitionTimeout);
+            this.transitionTimeout = null;
+        }
+        if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+            this.countdownInterval = null;
+        }
+        this.isTransitioning = false;
+    }
+
     showCapabilityCardsSequence() {
         // Prevent multiple simultaneous executions
         if (this.isTransitioning) {
@@ -513,10 +544,14 @@ class ChatApp {
 
         this.isTransitioning = true;
 
-        // Clear any existing timeout
+        // Clear any existing timeouts/intervals
         if (this.transitionTimeout) {
             clearTimeout(this.transitionTimeout);
             this.transitionTimeout = null;
+        }
+        if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+            this.countdownInterval = null;
         }
 
         const comparisonContainer = document.querySelector('.comparison-container');
@@ -539,34 +574,75 @@ class ChatApp {
                 cardsWrapper.classList.add('show');
             }
 
-            // Set final timeout for button update
+            // Set final timeout for button update with reading delay
             this.transitionTimeout = setTimeout(() => {
                 // Only update if we're still on step 1 (comparison step)
                 if (this.currentStepIndex === 1) {
-                    continueBtn.innerHTML = `
-                    Continue to ID Entry
-                    <svg class="nav-icon" viewBox="0 0 24 24">
-                        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-                    </svg>
-                `;
-
-                    continueBtn.onclick = () => {
-                        this.renderWelcomeStep(this.currentStepIndex + 1);
-                    };
-
-                    // Re-enable button
-                    continueBtn.disabled = false;
-                    continueBtn.style.opacity = '1';
-
-                    console.log('✅ Button updated to "Continue to ID Entry"');
+                    // Start 10-second countdown
+                    this.startReadingCountdown();
+                } else {
+                    // Clear transition state if we've moved on
+                    this.isTransitioning = false;
+                    this.transitionTimeout = null;
                 }
-
-                // Clear transition state
-                this.isTransitioning = false;
-                this.transitionTimeout = null;
-
             }, 500);
         }, 500);
+    }
+
+    /**
+ * Start 10-second reading countdown before enabling continue
+ */
+    startReadingCountdown() {
+        const continueBtn = document.getElementById('nav-continue');
+        let timeLeft = this.readingDelay;
+
+        // Update button to show countdown
+        const updateCountdownButton = () => {
+            if (timeLeft > 0) {
+                continueBtn.innerHTML = `
+                Please read the details
+                <span class="nav-countdown">(${timeLeft}s)</span>
+            `;
+                continueBtn.disabled = true;
+                continueBtn.style.opacity = '0.6';
+            } else {
+                // Enable the button after countdown
+                continueBtn.innerHTML = `
+                Continue to ID Entry
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                </svg>
+            `;
+                continueBtn.onclick = () => {
+                    this.renderWelcomeStep(this.currentStepIndex + 1);
+                };
+                continueBtn.disabled = false;
+                continueBtn.style.opacity = '1';
+
+                // Clear intervals and transition state
+                if (this.countdownInterval) {
+                    clearInterval(this.countdownInterval);
+                    this.countdownInterval = null;
+                }
+                this.isTransitioning = false;
+
+                console.log('✅ Reading countdown completed, button enabled');
+            }
+        };
+
+        // Initial update
+        updateCountdownButton();
+
+        // Start countdown interval
+        this.countdownInterval = setInterval(() => {
+            timeLeft--;
+            updateCountdownButton();
+
+            if (timeLeft <= 0) {
+                clearInterval(this.countdownInterval);
+                this.countdownInterval = null;
+            }
+        }, 1000);
     }
 
     /**
