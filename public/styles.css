@@ -4421,9 +4421,10 @@ body.light-theme {
 
 .arrow-head {
     color: #f59e0b;
-    font-size: 1rem;
-    filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.4));
+    filter: drop-shadow(0 0 4px rgba(250, 169, 29, 0.4));
     animation: arrowPulse 2s ease-in-out infinite;
+    position: relative;
+    top: 8px;
 }
 
 @keyframes arrowPulse {
@@ -4498,10 +4499,9 @@ body.light-theme {
 }
 
 .capability-card h4 {
-    font-size: 1rem;
+    font-size: 0.875rem;
     font-weight: 600;
     color: rgba(249, 250, 251, 0.95);
-    margin: 0 0 0.5rem 0;
 }
 
 .light-theme .capability-card h4 {
@@ -4509,9 +4509,8 @@ body.light-theme {
 }
 
 .capability-card p {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     color: rgba(245, 246, 248, 0.938);
-    margin: 0;
     line-height: 1.4;
 }
 
@@ -5051,7 +5050,6 @@ body.light-theme {
     }
     
     .capability-card {
-        padding: 1rem 0.875rem;
         min-width: 160px;
         max-width: 200px;
     }
@@ -5071,13 +5069,63 @@ body.light-theme {
     }
     
     .assignment-popup {
-        top: 50px; /* Closer to cards */
+        top: 0px; /* Closer to cards */
     }
 }
-
-@media (max-height: 700px) {
+@media (max-width: 700px) {
+    /* Shrink the overall container */
+    .model-comparison-container {
+        gap: 0.75rem; /* Reduce gap between cards from 1.5rem */
+        margin: 0 auto 1rem auto; /* Reduce bottom margin */
+        max-width: 650px; /* Constrain width */
+    }
+    
+    /* Shrink individual model cards */
+    .model-card {
+        padding: 1rem; /* Reduce from 1.5rem */
+        border-radius: 12px; /* Slightly smaller radius */
+    }
+    
+    /* Shrink model header text */
+    .model-name-card {
+        font-size: 1.375rem; /* Reduce from 1.75rem */
+        margin: 0 0 0.125rem 0; /* Tighter margins */
+    }
+    
+    .model-year-card {
+        font-size: 1.125rem; /* Reduce from 1.5rem */
+    }
+    
+    .model-header-card {
+        margin-bottom: 1rem; /* Reduce from 1.5rem */
+    }
+    
+    /* Shrink capability items */
+    .capability-item {
+        margin: 0.75rem 0; /* Reduce from 1rem */
+    }
+    
+    .capability-item-label {
+        font-size: 0.875rem; /* Reduce from 1rem */
+    }
+    
+    /* Shrink capability icons */
+    .capability-icon-item-inline {
+        font-size: 1rem; /* Reduce from 1.25rem */
+    }
+    
+    .capability-icons-inline {
+        gap: 0.1875rem; /* Keep same gap but icons are smaller */
+    }
+    
+    /* Shrink knowledge date */
+    .knowledge-date-inline {
+        font-size: 1rem; /* Reduce from 1.2rem */
+        padding: 0.25rem 0.5rem; /* Reduce padding */
+    }
+    
     .capability-cards-wrapper {
-        top: 75%;
+        top: 82%;
     }
     
     .capability-arrow {
@@ -5090,6 +5138,6 @@ body.light-theme {
     
     .capability-cards {
         gap: 0.875rem;
-        max-width: 550px;
+        max-width: 575px;
     }
 }
