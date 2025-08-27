@@ -426,10 +426,13 @@ body.light-theme {
     display: flex;
     align-items: center;
     background-color: var(--hover-dark);
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.5rem;
+    padding: 0.375rem 0.625rem;
+    /* Match participant display */
+    border-radius: 0.375rem;
+    /* Match participant display */
     border: 1px solid var(--border-dark);
-    font-size: 0.875rem;
+    font-size: 0.75rem;
+    /* Slightly smaller */
     gap: 0.5rem;
     min-width: fit-content;
     justify-content: center;
@@ -454,7 +457,8 @@ body.light-theme {
     font-family: monospace;
     font-weight: bold;
     color: var(--text-dark);
-    font-size: 0.875rem;
+    font-size: 0.75rem;
+    /* Slightly smaller */
     letter-spacing: 0.03125rem;
     flex-shrink: 0;
 }
@@ -463,15 +467,25 @@ body.light-theme {
     color: var(--text-light);
 }
 
+.user-info-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    /* Small gap between participant ID and timer */
+}
+
 /* Participant Display */
 .participant-display {
     display: flex;
     align-items: center;
     background-color: var(--hover-dark);
-    padding: 0.5rem 0.75rem;
+    padding: 0.375rem 0.625rem;
+    /* Slightly smaller padding */
     border-radius: 0.375rem;
     border: 1px solid var(--border-dark);
-    font-size: 0.875rem;
+    font-size: 0.75rem;
+    /* Slightly smaller */
     gap: 0.5rem;
     min-width: fit-content;
 }
@@ -4982,7 +4996,8 @@ body.light-theme {
 }
 
 .mini-capability-icon.brush {
-    color: #c084fc; /* Slightly different purple for smaller icons */
+    color: #c084fc;
+    /* Slightly different purple for smaller icons */
 }
 
 .mini-capability-icon.brush.lit {
@@ -5097,6 +5112,21 @@ body.light-theme {
 }
 
 @media (max-height: 800px) {
+    .user-info-stack {
+        gap: 0.125rem;
+        /* Even tighter on mobile */
+    }
+
+    .participant-display,
+    .session-timer {
+        padding: 0.25rem 0.5rem;
+        /* Smaller on mobile */
+        font-size: 0.6875rem;
+    }
+
+    .timer-text {
+        font-size: 0.6875rem;
+    }
 
     /* Shrink mini model cards in header */
     .comparison-models {
@@ -5226,7 +5256,7 @@ body.light-theme {
     }
 
     .capability-cards-wrapper {
-        top: 79%;
+        top: 76%;
         /* Move up even more */
     }
 

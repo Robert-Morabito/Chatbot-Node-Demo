@@ -1858,6 +1858,21 @@ class ChatApp {
                     }
                 }
 
+                // Creativity icons
+                const createContainer = card.querySelector('[data-capability="creativity"]');
+                if (createContainer) {
+                    createContainer.innerHTML = '';
+                    for (let i = 0; i < 4; i++) {
+                        const icon = document.createElement('span');
+                        icon.className = 'mini-capability-icon brush';
+                        if (i < model.capabilities.creativity) {
+                            icon.classList.add('lit');
+                        }
+                        icon.textContent = '🎨';
+                        createContainer.appendChild(icon);
+                    }
+                }
+
                 // Mark current model
                 if (index === assignedIndex) {
                     card.classList.add('current');

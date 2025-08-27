@@ -360,13 +360,17 @@
 
                 <!-- Other elements on the right -->
                 <div class="header-actions">
-                    <div class="session-timer" id="session-timer">
-                        <span class="timer-text" id="timer-display">00:00:00</span>
-                    </div>
-                    <div class="participant-display" id="participant-display">
-                        <span style="font-size: 12px; color: var(--text-secondary-dark); margin-right: 8px;">ID:</span>
-                        <span style="font-family: monospace; font-weight: bold; color: var(white);"
-                            id="header-participant-id">------</span>
+                    <!-- Wrap timer and participant in a container -->
+                    <div class="user-info-stack">
+                        <div class="participant-display" id="participant-display">
+                            <span
+                                style="font-size: 12px; color: var(--text-secondary-dark); margin-right: 8px;">ID:</span>
+                            <span style="font-family: monospace; font-weight: bold; color: var(white);"
+                                id="header-participant-id">------</span>
+                        </div>
+                        <div class="session-timer" id="session-timer">
+                            <span class="timer-text" id="timer-display">00:00:00</span>
+                        </div>
                     </div>
                     <button id="save-chat-btn" class="save-btn" title="Save Current Chat">💾</button>
                 </div>
