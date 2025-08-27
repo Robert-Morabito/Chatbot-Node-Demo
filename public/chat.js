@@ -46,6 +46,8 @@ class ChatApp {
         this.currentStepIndex = 0;
         this.maxSteps = 3;
         this.isAnimationPlaying = false;
+        this.isTransitioning = false; // ADD: Prevent spam clicking
+        this.transitionTimeout = null; // ADD: Track active timeouts
 
         // ===================================================================
         // CONFIGURATION
@@ -390,6 +392,12 @@ class ChatApp {
      * Render specific welcome step
      */
     renderWelcomeStep(stepIndex) {
+        if (this.transitionTimeout) {
+            clearTimeout(this.transitionTimeout);
+            this.transitionTimeout = null;
+        }
+        this.isTransitioning = false;
+
         this.currentStepIndex = stepIndex;
         this.updateProgressIndicator();
 
@@ -435,12 +443,24 @@ class ChatApp {
     updateNavigationButtons() {
         const continueBtn = document.getElementById('nav-continue');
 
+        // Check if we're transitioning
+        if (this.isTransitioning) {
+            continueBtn.style.opacity = '0.6';
+            continueBtn.disabled = true;
+            return;
+        }
+
         // Check if we're on step 2 (index 1) and animation is playing
         if (this.currentStepIndex === 1 && this.isAnimationPlaying) {
             continueBtn.style.opacity = '0';
             continueBtn.disabled = true;
             return;
         }
+
+        continueBtn.style.opacity = '1';
+        continueBtn.style.visibility = 'visible';
+        continueBtn.style.display = 'flex';
+        continueBtn.disabled = false;
 
         // Special handler for step 2 (comparison step) - currentStepIndex === 1
         if (this.currentStepIndex === 1) {
@@ -456,12 +476,7 @@ class ChatApp {
             };
             return;
         }
-        
-        continueBtn.style.opacity = '1';
-        continueBtn.style.visibility = 'visible';
-        continueBtn.style.display = 'flex';
-        continueBtn.disabled = false;
-        
+
         // Regular continue button for other steps
         if (this.currentStepIndex === 2) {
             continueBtn.innerHTML = `
@@ -490,10 +505,28 @@ class ChatApp {
     }
 
     showCapabilityCardsSequence() {
+        // Prevent multiple simultaneous executions
+        if (this.isTransitioning) {
+            console.log('⚠️ Already transitioning, ignoring click');
+            return;
+        }
+
+        this.isTransitioning = true;
+
+        // Clear any existing timeout
+        if (this.transitionTimeout) {
+            clearTimeout(this.transitionTimeout);
+            this.transitionTimeout = null;
+        }
+
         const comparisonContainer = document.querySelector('.comparison-container');
         const modelContainer = document.getElementById('model-comparison-container');
-        const cardsWrapper = document.getElementById('capability-cards-wrapper'); // Changed from cards to wrapper
+        const cardsWrapper = document.getElementById('capability-cards-wrapper');
         const continueBtn = document.getElementById('nav-continue');
+
+        // Disable button during transition
+        continueBtn.disabled = true;
+        continueBtn.style.opacity = '0.6';
 
         // Add showing-cards class and shrink models
         comparisonContainer.classList.add('showing-cards');
@@ -502,23 +535,36 @@ class ChatApp {
         // Show capability cards after animation
         setTimeout(() => {
             if (cardsWrapper) {
-                // Position the cards wrapper under the assigned model
                 this.positionCapabilityCards(cardsWrapper);
                 cardsWrapper.classList.add('show');
             }
 
-            // Update button to continue to next step
-            setTimeout(() => {
-                continueBtn.innerHTML = `
-            Continue to ID Entry
-            <svg class="nav-icon" viewBox="0 0 24 24">
-                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-            </svg>
-        `;
+            // Set final timeout for button update
+            this.transitionTimeout = setTimeout(() => {
+                // Only update if we're still on step 1 (comparison step)
+                if (this.currentStepIndex === 1) {
+                    continueBtn.innerHTML = `
+                    Continue to ID Entry
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                    </svg>
+                `;
 
-                continueBtn.onclick = () => {
-                    this.renderWelcomeStep(this.currentStepIndex + 1);
-                };
+                    continueBtn.onclick = () => {
+                        this.renderWelcomeStep(this.currentStepIndex + 1);
+                    };
+
+                    // Re-enable button
+                    continueBtn.disabled = false;
+                    continueBtn.style.opacity = '1';
+
+                    console.log('✅ Button updated to "Continue to ID Entry"');
+                }
+
+                // Clear transition state
+                this.isTransitioning = false;
+                this.transitionTimeout = null;
+
             }, 500);
         }, 500);
     }

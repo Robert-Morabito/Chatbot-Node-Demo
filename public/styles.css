@@ -4947,8 +4947,9 @@ body.light-theme {
 .mini-capability-icons {
     display: flex;
     align-items: center;
-    gap: 0.1875rem;
+    gap: 8px;
     justify-content: flex-end;
+    margin: 0 5px 0 0
 }
 
 .mini-capability-icon {
@@ -5159,7 +5160,6 @@ body.light-theme {
 
     .mini-capability-icon {
         font-size: 0.625rem;
-        margin: 0 10px 0 10px;
         /* Reduce from 0.75rem */
     }
 
