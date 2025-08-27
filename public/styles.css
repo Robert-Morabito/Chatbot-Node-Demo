@@ -5060,19 +5060,6 @@ body.light-theme {
 }
 
 @media (max-height: 800px) {
-    .capability-cards-wrapper {
-        top: 80%; /* Move up even more */
-    }
-    
-    .comparison-title {
-        padding-bottom: 15px; /* Further reduced */
-    }
-    
-    .assignment-popup {
-        top: 0px; /* Closer to cards */
-    }
-}
-@media (max-width: 700px) {
     /* Shrink the overall container */
     .model-comparison-container {
         gap: 0.75rem; /* Reduce gap between cards from 1.5rem */
@@ -5124,6 +5111,19 @@ body.light-theme {
         padding: 0.25rem 0.5rem; /* Reduce padding */
     }
     
+    .capability-cards-wrapper {
+        top: 80%; /* Move up even more */
+    }
+    
+    .comparison-title {
+        padding-bottom: 15px; /* Further reduced */
+    }
+    
+    .assignment-popup {
+        top: 0px; /* Closer to cards */
+    }
+}
+@media (max-width: 700px) {
     .capability-cards-wrapper {
         top: 82%;
     }
