@@ -129,10 +129,13 @@ export class OpenAIHandler {
 
             const stream = await this.client.chat.completions.create({
                 model: actualModel,
-                messages: userMessages, // NO system message
+                messages: userMessages,
                 stream: true,
-                max_tokens: 800,
-                temperature: 0.1 // Lower temperature for more consistent classification
+                // 🔧 FIX: Add the same conditional logic as streamChat
+                ...(actualModel.startsWith('gpt-5')
+                    ? { max_completion_tokens: 800, temperature: 0.1 }
+                    : { max_tokens: 800, temperature: 0.1 }
+                )
             });
 
             let fullResponse = '';
