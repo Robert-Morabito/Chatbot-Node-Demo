@@ -600,8 +600,7 @@ class ChatApp {
         const updateCountdownButton = () => {
             if (timeLeft > 0) {
                 continueBtn.innerHTML = `
-                Please read the details
-                <span class="nav-countdown">(${timeLeft}s)</span>
+                Please read...
             `;
                 continueBtn.disabled = true;
                 continueBtn.style.opacity = '0.6';
