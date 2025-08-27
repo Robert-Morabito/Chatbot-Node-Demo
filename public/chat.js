@@ -492,10 +492,8 @@ class ChatApp {
     showCapabilityCardsSequence() {
         const comparisonContainer = document.querySelector('.comparison-container');
         const modelContainer = document.getElementById('model-comparison-container');
-        const cardsHeader = document.getElementById('capability-cards-header');
-        const cards = document.getElementById('capability-cards');
+        const cardsWrapper = document.getElementById('capability-cards-wrapper'); // Changed from cards to wrapper
         const continueBtn = document.getElementById('nav-continue');
-        const popup = document.getElementById('assignment-popup');
 
         // Add showing-cards class and shrink models
         comparisonContainer.classList.add('showing-cards');
@@ -503,30 +501,54 @@ class ChatApp {
 
         // Show capability cards after animation
         setTimeout(() => {
-            if (cardsHeader) {
-                cardsHeader.classList.add('show');
+            if (cardsWrapper) {
+                // Position the cards wrapper under the assigned model
+                this.positionCapabilityCards(cardsWrapper);
+                cardsWrapper.classList.add('show');
             }
 
+            // Update button to continue to next step
             setTimeout(() => {
-                if (cards) {
-                    cards.classList.add('show');
-                }
+                continueBtn.innerHTML = `
+            Continue to ID Entry
+            <svg class="nav-icon" viewBox="0 0 24 24">
+                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+            </svg>
+        `;
 
-                // Update button to continue to next step
-                setTimeout(() => {
-                    continueBtn.innerHTML = `
-                    Continue to ID Entry
-                    <svg class="nav-icon" viewBox="0 0 24 24">
-                        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-                    </svg>
-                `;
-
-                    continueBtn.onclick = () => {
-                        this.renderWelcomeStep(this.currentStepIndex + 1);
-                    };
-                }, 500);
-            }, 300);
+                continueBtn.onclick = () => {
+                    this.renderWelcomeStep(this.currentStepIndex + 1);
+                };
+            }, 500);
         }, 500);
+    }
+
+    /**
+ * Position capability cards under the assigned model
+ */
+    positionCapabilityCards(cardsWrapper) {
+        const comparisonData = this.getModelComparisonData();
+        const assignedIndex = comparisonData.assignedIndex;
+        const modelCards = document.querySelectorAll('.model-card');
+        const modelContainer = document.getElementById('model-comparison-container');
+
+        if (modelCards[assignedIndex] && modelContainer) {
+            const assignedCard = modelCards[assignedIndex];
+            const containerRect = modelContainer.getBoundingClientRect();
+            const cardRect = assignedCard.getBoundingClientRect();
+
+            // Calculate the center position of the assigned card relative to the container
+            const cardCenterX = cardRect.left - containerRect.left + (cardRect.width / 2);
+            const containerCenterX = containerRect.width / 2;
+
+            // Calculate offset needed to center cards under assigned model
+            const offsetX = cardCenterX - containerCenterX;
+
+            // Apply the offset
+            cardsWrapper.style.transform = `translateX(${offsetX}px)`;
+
+            console.log('📍 Positioned capability cards under model:', assignedIndex, 'offset:', offsetX);
+        }
     }
 
     /**

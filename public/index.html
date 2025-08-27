@@ -169,25 +169,38 @@
 
 
                         <!-- Capability Cards (appear after cards shrink) -->
-                        <div class="capability-cards" id="capability-cards">
-                            <div class="capability-card strength-card">
-                                <div class="card-indicator"></div>
-                                <h4>Strengths</h4>
-                                <p id="strength-text">Excellent at complex reasoning and creative problem-solving tasks.
-                                </p>
+                        <div class="capability-cards-wrapper" id="capability-cards-wrapper">
+                            <div class="capability-cards-header" id="capability-cards-header">
+                                <h3 id="capability-cards-title">Additional details about <span
+                                        id="capability-model-name">GPT-4</span></h3>
                             </div>
 
-                            <div class="capability-card weakness-card">
-                                <div class="card-indicator"></div>
-                                <h4>Weaknesses</h4>
-                                <p id="weakness-text">Takes more time to process complex requests thoroughly.</p>
+                            <!-- ADD: Arrow pointing to assigned model -->
+                            <div class="capability-arrow" id="capability-arrow">
+                                <div class="arrow-line"></div>
+                                <div class="arrow-head">▲</div>
                             </div>
 
-                            <div class="capability-card usecase-card">
-                                <div class="card-indicator"></div>
-                                <h4>Best Use Cases</h4>
-                                <p id="usecase-text">Creative writing, professional communication, and complex analysis.
-                                </p>
+                            <div class="capability-cards" id="capability-cards">
+                                <div class="capability-card strength-card">
+                                    <div class="card-indicator"></div>
+                                    <h4>Strengths</h4>
+                                    <p id="strength-text">Excellent at complex reasoning and creative problem-solving
+                                        tasks.</p>
+                                </div>
+
+                                <div class="capability-card weakness-card">
+                                    <div class="card-indicator"></div>
+                                    <h4>Weaknesses</h4>
+                                    <p id="weakness-text">Takes more time to process complex requests thoroughly.</p>
+                                </div>
+
+                                <div class="capability-card usecase-card">
+                                    <div class="card-indicator"></div>
+                                    <h4>Best Use Cases</h4>
+                                    <p id="usecase-text">Creative writing, professional communication, and complex
+                                        analysis.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
