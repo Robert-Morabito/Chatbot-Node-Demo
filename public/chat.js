@@ -442,11 +442,6 @@ class ChatApp {
             return;
         }
 
-        continueBtn.style.opacity = '1';
-        continueBtn.style.visibility = 'visible';
-        continueBtn.style.display = 'flex';
-        continueBtn.disabled = false;
-
         // Special handler for step 2 (comparison step) - currentStepIndex === 1
         if (this.currentStepIndex === 1) {
             continueBtn.innerHTML = `
@@ -461,7 +456,12 @@ class ChatApp {
             };
             return;
         }
-
+        
+        continueBtn.style.opacity = '1';
+        continueBtn.style.visibility = 'visible';
+        continueBtn.style.display = 'flex';
+        continueBtn.disabled = false;
+        
         // Regular continue button for other steps
         if (this.currentStepIndex === 2) {
             continueBtn.innerHTML = `
