@@ -528,10 +528,6 @@ class ChatApp {
             clearTimeout(this.transitionTimeout);
             this.transitionTimeout = null;
         }
-        if (this.countdownInterval) {
-            clearInterval(this.countdownInterval);
-            this.countdownInterval = null;
-        }
         this.isTransitioning = false;
     }
 
@@ -548,10 +544,6 @@ class ChatApp {
         if (this.transitionTimeout) {
             clearTimeout(this.transitionTimeout);
             this.transitionTimeout = null;
-        }
-        if (this.countdownInterval) {
-            clearInterval(this.countdownInterval);
-            this.countdownInterval = null;
         }
 
         const comparisonContainer = document.querySelector('.comparison-container');
@@ -619,11 +611,6 @@ class ChatApp {
                 continueBtn.disabled = false;
                 continueBtn.style.opacity = '1';
 
-                // Clear intervals and transition state
-                if (this.countdownInterval) {
-                    clearInterval(this.countdownInterval);
-                    this.countdownInterval = null;
-                }
                 this.isTransitioning = false;
 
                 console.log('✅ Reading countdown completed, button enabled');
@@ -632,17 +619,6 @@ class ChatApp {
 
         // Initial update
         updateCountdownButton();
-
-        // Start countdown interval
-        this.countdownInterval = setInterval(() => {
-            timeLeft--;
-            updateCountdownButton();
-
-            if (timeLeft <= 0) {
-                clearInterval(this.countdownInterval);
-                this.countdownInterval = null;
-            }
-        }, 1000);
     }
 
     /**
