@@ -79,7 +79,7 @@ async function classifyImageIntent(userMessage, hasImageContext) {
 
         // Get classification using the no-system method
         let classification = '';
-        for await (const chunk of classifier.streamChatNoSystem(messages, 'gpt-3.5-turbo-0125')) {
+        for await (const chunk of classifier.streamChat(messages, 'gpt-3.5-turbo-0125')) {
             if (chunk.type === 'content') {
                 classification += chunk.content;
             } else if (chunk.type === 'done') {
@@ -179,7 +179,7 @@ async function generateImage(userMessage, model, imageContext, intent, req, res)
 
         // Get the enhanced prompt
         let enhancedPrompt = '';
-        for await (const chunk of enhanceHandler.streamChatNoSystem(enhanceMessages, model)) {
+        for await (const chunk of enhanceHandler.streamChat(enhanceMessages, model)) {
             if (chunk.type === 'content') {
                 enhancedPrompt += chunk.content;
             } else if (chunk.type === 'done') {

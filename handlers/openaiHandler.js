@@ -70,20 +70,59 @@ export class OpenAIHandler {
         }
     }
 
-    async* streamChat(messages, model) {
+    /**
+ * Unified streaming method that handles all models properly
+ */
+    async* streamChat(messages, model, options = {}) {
+        const {
+            includeSystemPrompt = true,
+            temperature = 0.7,
+            maxTokens = 800
+        } = options;
+
         const actualModel = this.modelMapping[model] || model;
-        console.log('💬 [OpenAI] Starting chat stream with model:', actualModel);
+        console.log(`💬 [OpenAI] Starting chat stream with model: ${actualModel}, system: ${includeSystemPrompt}`);
 
         try {
-            const stream = await this.client.chat.completions.create({
+            // Prepare messages
+            let formattedMessages;
+            if (includeSystemPrompt) {
+                formattedMessages = this.formatMessages(messages);
+            } else {
+                // No system prompt version
+                formattedMessages = messages.map(msg => ({
+                    role: msg.sender === 'User' ? 'user' : 'assistant',
+                    content: msg.content
+                }));
+            }
+
+            // GPT-5 specific parameters
+            const isGPT5 = actualModel.startsWith('gpt-5');
+            let streamConfig = {
                 model: actualModel,
-                messages: this.formatMessages(messages),
+                messages: formattedMessages,
                 stream: true,
-                ...(actualModel.startsWith('gpt-5')
-                    ? { max_completion_tokens: 5000 }
-                    : { max_tokens: 800, temperature: 0.7 }
-                )
+            };
+
+            if (isGPT5) {
+                // GPT-5 restrictions
+                streamConfig.max_completion_tokens = maxTokens;
+                // GPT-5 only supports temperature = 1 (default), so we omit it
+                // No temperature parameter for GPT-5
+            } else {
+                // GPT-3.5/GPT-4 parameters
+                streamConfig.max_tokens = maxTokens;
+                streamConfig.temperature = temperature;
+            }
+
+            console.log('🔧 [OpenAI] Stream config:', {
+                model: actualModel,
+                includeSystemPrompt,
+                hasTemperature: !isGPT5,
+                tokenParam: isGPT5 ? 'max_completion_tokens' : 'max_tokens'
             });
+
+            const stream = await this.client.chat.completions.create(streamConfig);
 
             let fullResponse = '';
 
@@ -116,56 +155,16 @@ export class OpenAIHandler {
         }
     }
 
+    /**
+     * Legacy method - now just calls the unified method
+     * @deprecated Use streamChat with includeSystemPrompt: false instead
+     */
     async* streamChatNoSystem(messages, model) {
-        const actualModel = this.modelMapping[model] || model;
-        console.log('💬 [OpenAI] Starting chat stream (NO SYSTEM) with model:', actualModel);
-
-        try {
-            // Convert messages WITHOUT system prompt
-            const userMessages = messages.map(msg => ({
-                role: msg.sender === 'User' ? 'user' : 'assistant',
-                content: msg.content
-            }));
-
-            const stream = await this.client.chat.completions.create({
-                model: actualModel,
-                messages: userMessages,
-                stream: true,
-                // 🔧 FIX: Add the same conditional logic as streamChat
-                ...(actualModel.startsWith('gpt-5')
-                    ? { max_completion_tokens: 800, temperature: 0.1 }
-                    : { max_tokens: 800, temperature: 0.1 }
-                )
-            });
-
-            let fullResponse = '';
-
-            for await (const chunk of stream) {
-                const delta = chunk.choices[0]?.delta;
-
-                if (delta?.content) {
-                    fullResponse += delta.content;
-                    yield {
-                        type: 'content',
-                        content: delta.content,
-                        fullContent: fullResponse
-                    };
-                }
-
-                if (chunk.choices[0]?.finish_reason) {
-                    yield {
-                        type: 'done',
-                        fullContent: fullResponse,
-                        finishReason: chunk.choices[0].finish_reason
-                    };
-                }
-            }
-        } catch (error) {
-            console.error('❌ [OpenAI] Chat stream error:', error);
-            yield {
-                type: 'error',
-                error: error.message
-            };
-        }
+        console.log('⚠️ [OpenAI] Using legacy streamChatNoSystem - consider updating to unified method');
+        yield* this.streamChat(messages, model, {
+            includeSystemPrompt: false,
+            temperature: 0.1,  // This will be ignored for GPT-5
+            maxTokens: 800
+        });
     }
 }
