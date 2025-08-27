@@ -255,14 +255,10 @@ class ChatApp {
                     name: 'GPT-3.5',
                     year: 'released 2022',
                     capabilities: {
-                        reasoning: 1, // number of lightbulbs
-                        speed: 2, // number of lightning bolts
+                        reasoning: 1,
+                        speed: 2,
+                        creativity: 2,
                         knowledge: 'Sept 2021'
-                    },
-                    lmarena: {
-                        creative: 139,
-                        instruction: 139,
-                        hard: 144
                     },
                     strengths: "Quick responses and good general knowledge for everyday tasks.",
                     weaknesses: "Limited creativity and may struggle with complex reasoning tasks.",
@@ -274,12 +270,8 @@ class ChatApp {
                     capabilities: {
                         reasoning: 2,
                         speed: 3,
+                        creativity: 3,
                         knowledge: 'Dec 2023'
-                    },
-                    lmarena: {
-                        creative: 88,
-                        instruction: 102,
-                        hard: 110
                     },
                     strengths: "Excellent balance of creativity, accuracy, and professional communication.",
                     weaknesses: "Slower response times compared to simpler models.",
@@ -291,12 +283,8 @@ class ChatApp {
                     capabilities: {
                         reasoning: 4,
                         speed: 3,
+                        creativity: 4,
                         knowledge: 'Sept 2024'
-                    },
-                    lmarena: {
-                        creative: 3,
-                        instruction: 1,
-                        hard: 1
                     },
                     strengths: "Exceptional reasoning abilities and highly creative problem-solving.",
                     weaknesses: "Takes significantly more time to process and respond to requests.",
@@ -310,12 +298,8 @@ class ChatApp {
                     capabilities: {
                         reasoning: 1,
                         speed: 3,
+                        creativity: 2,
                         knowledge: 'Aug 2023'
-                    },
-                    lmarena: {
-                        creative: 127,
-                        instruction: 122,
-                        hard: 122
                     },
                     strengths: "Fast responses with good accuracy for routine tasks.",
                     weaknesses: "Limited depth in creative and complex analytical tasks.",
@@ -327,12 +311,8 @@ class ChatApp {
                     capabilities: {
                         reasoning: 2,
                         speed: 3,
+                        creativity: 3,
                         knowledge: 'July 2024'
-                    },
-                    lmarena: {
-                        creative: 57,
-                        instruction: 62,
-                        hard: 59
                     },
                     strengths: "Outstanding professional communication and analytical capabilities.",
                     weaknesses: "May be overly verbose in some responses.",
@@ -344,12 +324,8 @@ class ChatApp {
                     capabilities: {
                         reasoning: 4,
                         speed: 2,
+                        creativity: 4,
                         knowledge: 'Mar 2025'
-                    },
-                    lmarena: {
-                        creative: 11,
-                        instruction: 14,
-                        hard: 18
                     },
                     strengths: "Cutting-edge reasoning with exceptional creative and analytical depth.",
                     weaknesses: "Slower processing for maximum accuracy and thoughtfulness.",
@@ -617,24 +593,28 @@ class ChatApp {
                 }
             }
 
+            // Populate creativity icons (always show 4 total, some lit based on capability)  
+            const creativityContainer = card.querySelector('[data-capability="creativity"] .capability-icons-inline');
+            if (creativityContainer) {
+                creativityContainer.innerHTML = '';
+                for (let i = 0; i < 4; i++) { // Always show 4 brushes total
+                    const icon = document.createElement('span');
+                    icon.className = 'capability-icon-item-inline brush';
+                    if (i < model.capabilities.creativity) {
+                        // This brush should be lit
+                        icon.classList.add('lit');
+                    }
+                    icon.textContent = '🎨';
+                    icon.style.animationDelay = `${i * 100}ms`;
+                    creativityContainer.appendChild(icon);
+                }
+            }
+
             // Populate knowledge date
             const knowledgeEl = card.querySelector('.knowledge-date-inline');
             if (knowledgeEl) {
                 knowledgeEl.textContent = model.capabilities.knowledge;
             }
-
-            // Populate LMArena rankings (no crowns)
-            const rankingItems = card.querySelectorAll('.ranking-item');
-            const rankings = ['creative', 'instruction', 'hard'];
-
-            rankingItems.forEach((item, rankIndex) => {
-                const rankText = item.querySelector('.rank-text-card');
-
-                if (rankText && rankings[rankIndex]) {
-                    const rank = model.lmarena[rankings[rankIndex]];
-                    rankText.textContent = this.formatOrdinal(rank);
-                }
-            });
         });
 
         const assignedModel = models[assignedIndex];
@@ -759,15 +739,6 @@ class ChatApp {
                             icon.classList.add('animate-in');
                         }, iconIndex * 150);
                     });
-                }, itemDelay);
-            });
-
-            // Animate ranking items (no crown animation needed)
-            card.querySelectorAll('.ranking-item').forEach((item, itemIndex) => {
-                const itemDelay = baseDelay + 1800 + (itemIndex * 200);
-
-                setTimeout(() => {
-                    item.classList.add('show');
                 }, itemDelay);
             });
         });

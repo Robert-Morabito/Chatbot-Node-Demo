@@ -4356,6 +4356,20 @@ body.light-theme {
     filter: grayscale(1) brightness(0.6);
 }
 
+.capability-icon-item-inline.brush {
+    color: #e879f9;
+}
+
+.capability-icon-item-inline.brush.lit {
+    filter: drop-shadow(0 0 2px rgba(232, 121, 249, 0.6));
+    text-shadow: 0 0 4px rgba(232, 121, 249, 0.5);
+}
+
+.capability-icon-item-inline.brush:not(.lit) {
+    color: #666666;
+    filter: grayscale(1) brightness(0.6);
+}
+
 .knowledge-date-inline {
     font-size: 1.2rem;
     font-weight: 600;
