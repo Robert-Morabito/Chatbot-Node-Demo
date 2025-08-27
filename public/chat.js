@@ -276,9 +276,9 @@ class ChatApp {
                         creativity: 3,
                         knowledge: 'Dec 2023'
                     },
-                    strengths: "Excellent balance of creativity, accuracy, and professional communication.",
+                    strengths: "Good balance of creativity, accuracy, and professional communication.",
                     weaknesses: "Slower response times compared to simpler models.",
-                    bestFor: "Professional writing, creative projects, and complex analysis tasks."
+                    bestFor: "Professional writing, basic creative projects, and moderate reasoning tasks."
                 },
                 {
                     name: 'GPT-5',
@@ -289,8 +289,8 @@ class ChatApp {
                         creativity: 4,
                         knowledge: 'Sept 2024'
                     },
-                    strengths: "Exceptional reasoning abilities and highly creative problem-solving.",
-                    weaknesses: "Takes significantly more time to process and respond to requests.",
+                    strengths: "State of the art, exceptional reasoning abilities and highly creative problem-solving.",
+                    weaknesses: "May take more time to process requests to ensure the best accuracy.",
                     bestFor: "Complex creative challenges, advanced reasoning, and innovative solutions."
                 }
             ],
@@ -304,7 +304,7 @@ class ChatApp {
                         creativity: 2,
                         knowledge: 'Aug 2023'
                     },
-                    strengths: "Fast responses with good accuracy for routine tasks.",
+                    strengths: "Fast responses with decent accuracy for routine tasks.",
                     weaknesses: "Limited depth in creative and complex analytical tasks.",
                     bestFor: "Quick tasks, basic writing assistance, and straightforward questions."
                 },
@@ -317,9 +317,9 @@ class ChatApp {
                         creativity: 3,
                         knowledge: 'July 2024'
                     },
-                    strengths: "Outstanding professional communication and analytical capabilities.",
-                    weaknesses: "May be overly verbose in some responses.",
-                    bestFor: "Professional communication, detailed analysis, and structured writing."
+                    strengths: "Good professional communication and analytical capabilities.",
+                    weaknesses: "Slower response times compared to simpler models.",
+                    bestFor: "Professional writing, basic creative projects, and moderate reasoning tasks."
                 },
                 {
                     name: 'Claude 4',
@@ -330,9 +330,9 @@ class ChatApp {
                         creativity: 4,
                         knowledge: 'Mar 2025'
                     },
-                    strengths: "Cutting-edge reasoning with exceptional creative and analytical depth.",
-                    weaknesses: "Slower processing for maximum accuracy and thoughtfulness.",
-                    bestFor: "Advanced creative projects, complex reasoning, and high-stakes communication."
+                    strengths: "Cutting-edge reasoning with exceptional creativity.",
+                    weaknesses: "May process requests slower for best accuracy.",
+                    bestFor: "Advanced creative projects, complex reasoning, and detailed writing."
                 }
             ]
         };
