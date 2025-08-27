@@ -4170,7 +4170,7 @@ body.light-theme {
     opacity: 0;
     animation: fadeInUp 0.8s ease-out forwards;
     flex-shrink: 0;
-    padding-bottom: 40px;
+    padding-bottom: 25px; /* Reduced from 40px */
     position: relative;
     top: -2px;
 }
@@ -4196,7 +4196,7 @@ body.light-theme {
     gap: 1.5rem;
     width: 100%;
     max-width: 1000px;
-    margin: 0 auto 2rem auto;
+    margin: 0 auto 1.5rem auto; /* Reduced bottom margin from 2rem */
     opacity: 0;
     animation: fadeInUp 1s ease-out 1s forwards;
     flex-shrink: 0;
@@ -4368,14 +4368,14 @@ body.light-theme {
 /* Capability Cards Wrapper - NEW: Container for positioning */
 .capability-cards-wrapper {
     position: absolute;
-    top: 100%;
+    top: 90%; /* Moved up from 100% */
     width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     opacity: 0;
     visibility: hidden;
-    transform: translateY(30px);
+    transform: translateY(20px); /* Reduced from 30px */
     transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 10;
 }
@@ -4408,20 +4408,20 @@ body.light-theme {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem; /* Reduced from 1rem */
     position: relative;
 }
 
 .arrow-line {
     width: 2px;
-    height: 30px;
+    height: 15px;
     background: linear-gradient(180deg, transparent 0%, #f59e0b 100%);
     margin-bottom: -2px;
 }
 
 .arrow-head {
     color: #f59e0b;
-    font-size: 1.2rem;
+    font-size: 1rem;
     filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.4));
     animation: arrowPulse 2s ease-in-out infinite;
 }
@@ -4434,22 +4434,23 @@ body.light-theme {
 /* Updated Capability Cards - Horizontal layout, smaller size */
 .capability-cards {
     display: flex;
-    gap: 1rem;
+    gap: 1.25rem;
     justify-content: center;
     width: 100%;
-    max-width: 600px;
+    max-width: 750px;
 }
 
 .capability-card {
     background: rgb(0 0 0 / 28%);
     border: 1px solid rgba(229, 231, 235, 0.12);
     border-radius: 10px;
-    padding: 1rem;
+    padding: 1.25rem 1rem; /* Increased padding */
     text-align: center;
     position: relative;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     flex: 1;
-    min-width: 0;
+    min-width: 180px; /* Added minimum width */
+    max-width: 220px; /* Added maximum width */
 }
 
 .light-theme .capability-card {
@@ -4520,7 +4521,7 @@ body.light-theme {
 
 .assignment-popup {
     position: absolute;
-    top: 46px;
+    top: 60px; /* Increased from 46px */
     left: 50%;
     transform: translateX(-50%);
     opacity: 0;
@@ -5014,6 +5015,17 @@ body.light-theme {
     .mini-capabilities {
         gap: 0.25rem;
     }
+
+    .capability-cards {
+        flex-direction: column;
+        gap: 1rem;
+        max-width: 320px; /* Wider for stacked cards */
+    }
+    
+    .capability-card {
+        min-width: auto;
+        max-width: none;
+    }
 }
 
 @media (max-width: 480px) {
@@ -5024,5 +5036,60 @@ body.light-theme {
     .mini-model-card.current {
         min-width: 160px;
         transform: scale(1);
+    }
+}
+
+/* Enhanced responsive for smaller screens */
+@media (max-height: 900px) {
+    .capability-cards-wrapper {
+        top: 85%; /* Move up further on shorter screens */
+    }
+    
+    .capability-cards {
+        max-width: 650px;
+        gap: 1rem;
+    }
+    
+    .capability-card {
+        padding: 1rem 0.875rem;
+        min-width: 160px;
+        max-width: 200px;
+    }
+    
+    .arrow-line {
+        height: 12px; /* Even shorter on small screens */
+    }
+}
+
+@media (max-height: 800px) {
+    .capability-cards-wrapper {
+        top: 80%; /* Move up even more */
+    }
+    
+    .comparison-title {
+        padding-bottom: 15px; /* Further reduced */
+    }
+    
+    .assignment-popup {
+        top: 50px; /* Closer to cards */
+    }
+}
+
+@media (max-height: 700px) {
+    .capability-cards-wrapper {
+        top: 75%;
+    }
+    
+    .capability-arrow {
+        margin-bottom: 0.5rem;
+    }
+    
+    .arrow-line {
+        height: 10px; /* Shortest arrow */
+    }
+    
+    .capability-cards {
+        gap: 0.875rem;
+        max-width: 550px;
     }
 }
