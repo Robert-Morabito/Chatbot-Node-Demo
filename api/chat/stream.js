@@ -3,7 +3,7 @@
  * 
  * Main endpoint for handling chat conversations with LLM streaming responses.
  * Supports both regular text chat and image generation requests.
- * Routes image requests to specialized handlers while managing SSE streaming.
+ * Uses direct function calls for image processing (no HTTP calls).
  */
 
 import { OpenAIHandler } from '../../handlers/openaiHandler.js';
@@ -79,28 +79,12 @@ function shouldCheckForImageIntent(lastMessage, currentTask) {
 }
 
 /**
- * Handles potential image generation requests
+ * Handles image generation requests using DIRECT function calls
  */
 async function handleImageRequest(userMessage, imageContext, model, res) {
     try {
-        // Call the dedicated classification endpoint
-        const response = await fetch('/api/chat/imageHandler', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                action: 'classify',
-                userMessage: userMessage,
-                hasImageContext: !!(imageContext?.lastPrompt)
-            })
-        });
-
-
-
-        if (!response.ok) {
-            throw new Error('Classification failed');
-        }
-
-        const classification = await response.json();
+        // DIRECT classification (no HTTP call)
+        const classification = await classifyImageIntent(userMessage, !!(imageContext?.lastPrompt));
 
         if (classification.intent === 'new_image' || classification.intent === 'modify_image') {
             res.write(`data: ${JSON.stringify({ type: 'image_request_detected' })}\n\n`);
@@ -116,32 +100,83 @@ async function handleImageRequest(userMessage, imageContext, model, res) {
 }
 
 /**
- * Generates images using the dedicated enhancement endpoint
+ * Direct image classification (inline, no HTTP call)
+ */
+async function classifyImageIntent(userMessage, hasImageContext) {
+    if (!process.env.OPENAI_API_KEY) {
+        return { intent: 'none', error: 'No OpenAI API key' };
+    }
+
+    const classifier = new OpenAIHandler(process.env.OPENAI_API_KEY);
+
+    // Create classification prompt
+    const classificationPrompt = hasImageContext
+        ? createModificationClassificationPrompt(userMessage)
+        : createNewImageClassificationPrompt(userMessage);
+
+    const messages = [{ sender: 'User', content: classificationPrompt }];
+
+    // Use NO system prompt for better classification accuracy
+    let classification = '';
+    for await (const chunk of classifier.streamChat(messages, 'gpt-3.5-turbo-0125', {
+        includeSystemPrompt: false
+    })) {
+        if (chunk.type === 'content') {
+            classification += chunk.content;
+        } else if (chunk.type === 'done') {
+            break;
+        } else if (chunk.type === 'error') {
+            throw new Error(chunk.error);
+        }
+    }
+
+    classification = classification.trim().toUpperCase();
+    const intent = determineIntent(classification, hasImageContext);
+
+    return { intent, classification, userMessage };
+}
+
+/**
+ * Direct prompt enhancement (inline, no HTTP call)
+ */
+async function enhancePrompt(userPrompt, model, previousPrompt, modificationType) {
+    const enhancementPrompt = modificationType === 'modification' && previousPrompt
+        ? createModificationPrompt(userPrompt, previousPrompt)
+        : createNewImagePrompt(userPrompt);
+
+    const messages = [{ sender: 'User', content: enhancementPrompt }];
+    const handler = createModelHandler(model);
+
+    let enhancedPrompt = '';
+    for await (const chunk of handler.streamChat(messages, model)) {
+        if (chunk.type === 'content') {
+            enhancedPrompt += chunk.content;
+        } else if (chunk.type === 'done') {
+            break;
+        } else if (chunk.type === 'error') {
+            throw new Error(chunk.error);
+        }
+    }
+
+    return enhancedPrompt.trim();
+}
+
+/**
+ * Generates images using DIRECT function calls
  */
 async function generateImage(userMessage, model, imageContext, intent, res) {
     try {
-        // Call the dedicated enhancement endpoint
-        const response = await fetch('/api/chat/imageHandler', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                action: 'enhance',
-                userPrompt: userMessage,
-                model: model,
-                previousPrompt: imageContext?.lastPrompt,
-                modificationType: intent === 'modify_image' ? 'modification' : 'new'
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error('Prompt enhancement failed');
-        }
-
-        const enhancement = await response.json();
+        // DIRECT enhancement (no HTTP call)
+        const enhancedPrompt = await enhancePrompt(
+            userMessage,
+            model,
+            imageContext?.lastPrompt,
+            intent === 'modify_image' ? 'modification' : 'new'
+        );
 
         // Generate image with DALL-E
         const imageHandler = new OpenAIHandler(process.env.OPENAI_API_KEY);
-        const imageResult = await imageHandler.generateImage(enhancement.enhancedPrompt);
+        const imageResult = await imageHandler.generateImage(enhancedPrompt);
 
         if (!imageResult?.success || !imageResult.url) {
             throw new Error('Image generation failed');
@@ -157,7 +192,7 @@ async function generateImage(userMessage, model, imageContext, intent, res) {
             content: responseMessage,
             fullContent: responseMessage,
             imageUrl: imageResult.url,
-            imagePrompt: enhancement.enhancedPrompt,
+            imagePrompt: enhancedPrompt,
             originalPrompt: userMessage,
             revisedPrompt: imageResult.revisedPrompt
         })}\n\n`);
@@ -184,6 +219,68 @@ async function generateImage(userMessage, model, imageContext, intent, res) {
         })}\n\n`);
 
         return true;
+    }
+}
+
+// Helper functions (same as before)
+function createNewImageClassificationPrompt(userMessage) {
+    return `The user said: "${userMessage}"
+
+    Does this request involve creating, generating, drawing, or making an image, picture, or visual?
+
+    Examples that should be YES:
+    - "draw a dog"
+    - "generate an image of a cat" 
+    - "create a picture of a sunset"
+    - "make an image of a car"
+    - "I want a picture of flowers"
+    - "show me an image of a mountain"
+
+    Examples that should be NO:
+    - "hello"
+    - "how are you?"
+    - "what's the weather?"
+    - "tell me a joke"
+
+    Respond with only: YES or NO`;
+}
+
+function createModificationClassificationPrompt(userMessage) {
+    return `The user previously generated an image. Now they said: "${userMessage}"
+
+    Analyze what the user wants:
+    - If they want a completely NEW/DIFFERENT image, respond: NEW
+    - If they want to MODIFY/CHANGE the existing image (color, size, add/remove things), respond: MODIFY  
+    - If they're just having normal conversation, respond: NEITHER
+
+    Respond with only one word: NEW, MODIFY, or NEITHER`;
+}
+
+function createNewImagePrompt(userPrompt) {
+    return `User wants: "${userPrompt}"
+
+    Create a natural DALL-E prompt like ChatGPT would. Keep it concise but effective - add key details for quality (good lighting, clear subject) but don't over-describe.
+
+    Only respond with the prompt:`;
+}
+
+function createModificationPrompt(userPrompt, previousPrompt) {
+    return `Previous DALL-E prompt: "${previousPrompt}"
+
+    User wants to modify it: "${userPrompt}"
+
+    Create an updated DALL-E prompt that applies the user's modification. Keep it natural and concise like ChatGPT would - don't over-describe.
+
+    Only response with the new prompt:`;
+}
+
+function determineIntent(classification, hasImageContext) {
+    if (hasImageContext) {
+        if (classification.includes('NEW')) return 'new_image';
+        if (classification.includes('MODIFY')) return 'modify_image';
+        return 'none';
+    } else {
+        return classification.includes('YES') ? 'new_image' : 'none';
     }
 }
 
