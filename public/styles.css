@@ -4212,7 +4212,8 @@ body.light-theme {
     width: 100%;
     max-width: 1000px;
     margin: 0 auto 1.5rem auto;
-    /* Reduced bottom margin from 2rem */
+    position: relative;
+    top: 40px;
     opacity: 0;
     animation: fadeInUp 1s ease-out 1s forwards;
     flex-shrink: 0;
@@ -4384,7 +4385,7 @@ body.light-theme {
 /* Capability Cards Wrapper - NEW: Container for positioning */
 .capability-cards-wrapper {
     position: absolute;
-    top: 90%;
+    top: 70%;
     /* Moved up from 100% */
     width: 100%;
     display: flex;
@@ -4411,7 +4412,7 @@ body.light-theme {
 }
 
 .capability-cards-header h3 {
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-weight: 600;
     color: rgba(249, 250, 251, 0.9);
     margin: 0;
@@ -4552,7 +4553,6 @@ body.light-theme {
 .assignment-popup {
     position: absolute;
     top: 60px;
-    /* Increased from 46px */
     left: 50%;
     transform: translateX(-50%);
     opacity: 0;
