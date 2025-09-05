@@ -88,12 +88,11 @@ async function handleImageRequest(userMessage, imageContext, model, res) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                action: 'classify',
-                userMessage: userMessage,
+                action: 'classify', // or 'enhance'
+                userPrompt: userMessage,
                 hasImageContext: !!(imageContext?.lastPrompt)
             })
         });
-
 
         if (!response.ok) {
             throw new Error('Classification failed');
@@ -126,9 +125,7 @@ async function generateImage(userMessage, model, imageContext, intent, res) {
             body: JSON.stringify({
                 action: 'enhance',
                 userPrompt: userMessage,
-                model: model,
-                previousPrompt: imageContext?.lastPrompt,
-                modificationType: intent === 'modify_image' ? 'modification' : 'new'
+                hasImageContext: !!(imageContext?.lastPrompt)
             })
         });
 
