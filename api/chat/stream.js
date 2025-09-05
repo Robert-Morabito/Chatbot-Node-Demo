@@ -84,7 +84,7 @@ function shouldCheckForImageIntent(lastMessage, currentTask) {
 async function handlePotentialImageRequest(userMessage, imageContext, model, res) {
     try {
         // Call the dedicated classification endpoint
-        const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/api/imageHandler`, {
+        const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/api/chat/imageHandler`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -94,11 +94,11 @@ async function handlePotentialImageRequest(userMessage, imageContext, model, res
             })
         });
 
-        if (!classifyResponse.ok) {
+        if (!response.ok) {
             throw new Error('Classification failed');
         }
 
-        const classification = await classifyResponse.json();
+        const classification = await response.json();
 
         if (classification.intent === 'new_image' || classification.intent === 'modify_image') {
             res.write(`data: ${JSON.stringify({ type: 'image_request_detected' })}\n\n`);
@@ -123,17 +123,17 @@ async function generateImage(userMessage, model, imageContext, intent, res) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                action: 'classify', // or 'enhance'
+                action: 'enhance',
                 userMessage,
                 hasImageContext: !!(imageContext?.lastPrompt)
             })
         });
 
-        if (!enhanceResponse.ok) {
+        if (!response.ok) {
             throw new Error('Prompt enhancement failed');
         }
 
-        const enhancement = await enhanceResponse.json();
+        const enhancement = await response.json();
 
         // Generate image with DALL-E
         const imageHandler = new OpenAIHandler(process.env.OPENAI_API_KEY);
