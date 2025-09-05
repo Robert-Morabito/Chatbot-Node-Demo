@@ -90,7 +90,7 @@ export class OpenAIHandler {
         try {
             const formattedMessages = this.formatMessages(messages, includeSystemPrompt);
             const streamConfig = this.buildStreamConfig(model, formattedMessages, temperature, maxTokens);
-            
+
             const stream = await this.client.chat.completions.create(streamConfig);
             let fullResponse = '';
 
@@ -122,6 +122,37 @@ export class OpenAIHandler {
                 type: 'error',
                 error: error.message
             };
+        }
+    }
+
+    /**
+     * Gets a complete response from OpenAI (non-streaming)
+     * Useful for internal operations like classification and enhancement
+     * @param {Array} messages - Conversation messages
+     * @param {string} model - Model identifier  
+     * @param {Object} options - Completion options
+     * @returns {Promise<string>} Complete response text
+     */
+    async getCompletion(messages, model, options = {}) {
+        const {
+            includeSystemPrompt = true,
+            temperature = 0.7,
+            maxTokens = 800
+        } = options;
+
+        try {
+            const formattedMessages = this.formatMessages(messages, includeSystemPrompt);
+            const config = this.buildStreamConfig(model, formattedMessages, temperature, maxTokens);
+
+            // Remove stream flag for regular completion
+            delete config.stream;
+
+            const response = await this.client.chat.completions.create(config);
+            return response.choices[0].message.content;
+
+        } catch (error) {
+            console.error('OpenAI completion failed:', error.message);
+            throw error;
         }
     }
 

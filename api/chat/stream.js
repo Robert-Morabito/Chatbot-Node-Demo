@@ -34,18 +34,18 @@ export default async function handler(req, res) {
         res.write(`data: ${JSON.stringify({ type: 'connected', conversationId })}\n\n`);
 
         const lastMessage = messages[messages.length - 1];
-        
+
         // Handle image classification for image-generation task
         if (shouldClassifyForImages(lastMessage, conversationId)) {
             const imageIntent = await classifyImageIntent(lastMessage.content, imageContext);
-            
+
             if (imageIntent === 'new_image' || imageIntent === 'modify_image') {
                 res.write(`data: ${JSON.stringify({ type: 'image_request_detected' })}\n\n`);
-                
+
                 const imageGenerated = await generateImage(
                     lastMessage.content, model, imageContext, imageIntent, res
                 );
-                
+
                 if (imageGenerated) {
                     res.end();
                     return;
@@ -109,7 +109,7 @@ function setupSSEHeaders(res) {
  */
 function shouldClassifyForImages(lastMessage, conversationId) {
     if (lastMessage?.sender !== 'User') return false;
-    
+
     const currentTask = conversationId ? conversationId.split('_')[0] : 'unknown';
     return currentTask === 'image-generation';
 }
@@ -127,24 +127,15 @@ async function classifyImageIntent(userMessage, imageContext) {
         }
 
         const classifier = new OpenAIHandler(process.env.OPENAI_API_KEY);
-        
+
         // Build classification prompt based on context
         const prompt = buildClassificationPrompt(userMessage, imageContext);
         const messages = [{ sender: 'User', content: prompt }];
 
         // Get classification (no system prompt - critical for accuracy)
-        let classification = '';
-        for await (const chunk of classifier.streamChat(messages, 'gpt-3.5-turbo-0125', { 
-            includeSystemPrompt: false 
-        })) {
-            if (chunk.type === 'content') {
-                classification += chunk.content;
-            } else if (chunk.type === 'done') {
-                break;
-            } else if (chunk.type === 'error') {
-                throw new Error(chunk.error);
-            }
-        }
+        const classification = await classifier.getCompletion(messages, 'gpt-3.5-turbo-0125', {
+            includeSystemPrompt: false
+        });
 
         return parseClassificationResult(classification.trim().toUpperCase(), imageContext);
 
@@ -197,7 +188,7 @@ function parseClassificationResult(classification, imageContext) {
         if (classification.includes('MODIFY')) return 'modify_image';
         return 'none';
     }
-    
+
     return classification.includes('YES') ? 'new_image' : 'none';
 }
 
@@ -208,17 +199,17 @@ async function generateImage(userMessage, model, imageContext, intent, res) {
     try {
         // Step 1: Enhance the prompt using the assigned model
         const enhancedPrompt = await enhanceImagePrompt(userMessage, model, imageContext, intent);
-        
+
         // Step 2: Generate image with DALL-E
         const imageHandler = new OpenAIHandler(process.env.OPENAI_API_KEY);
         const imageResult = await imageHandler.generateImage(enhancedPrompt);
-        
+
         if (!imageResult?.success || !imageResult?.url) {
             throw new Error('Image generation failed or returned no URL');
         }
 
         // Step 3: Send response to client
-        const responseMessage = intent === 'modify_image' 
+        const responseMessage = intent === 'modify_image'
             ? `I've modified the image based on your request:\n\n![Generated Image](${imageResult.url})`
             : `I've generated an image for you:\n\n![Generated Image](${imageResult.url})`;
 
@@ -234,16 +225,16 @@ async function generateImage(userMessage, model, imageContext, intent, res) {
 
         res.write(`data: ${JSON.stringify(responseData)}\n\n`);
         res.write(`data: ${JSON.stringify({ type: 'done', finishReason: 'image_generated' })}\n\n`);
-        
+
         return true;
 
     } catch (error) {
         console.error('Image generation failed:', error.message);
-        
+
         const errorMessage = `I apologize, but I couldn't generate the image. Error: ${error.message}`;
         res.write(`data: ${JSON.stringify({ type: 'content', content: errorMessage, fullContent: errorMessage })}\n\n`);
         res.write(`data: ${JSON.stringify({ type: 'done', finishReason: 'error' })}\n\n`);
-        
+
         return false;
     }
 }
@@ -254,22 +245,13 @@ async function generateImage(userMessage, model, imageContext, intent, res) {
 async function enhanceImagePrompt(userMessage, model, imageContext, intent) {
     const enhancementPrompt = buildEnhancementPrompt(userMessage, imageContext, intent);
     const messages = [{ sender: 'User', content: enhancementPrompt }];
-    
+
     // Use appropriate handler based on model type
-    const handler = getModelType(model) === 'claude' 
+    const handler = getModelType(model) === 'claude'
         ? new ClaudeHandler(process.env.ANTHROPIC_API_KEY)
         : new OpenAIHandler(process.env.OPENAI_API_KEY);
 
-    let enhancedPrompt = '';
-    for await (const chunk of handler.streamChat(messages, model)) {
-        if (chunk.type === 'content') {
-            enhancedPrompt += chunk.content;
-        } else if (chunk.type === 'done') {
-            break;
-        } else if (chunk.type === 'error') {
-            throw new Error(chunk.error);
-        }
-    }
+    const enhancedPrompt = await handler.getCompletion(messages, model);
 
     return enhancedPrompt.trim();
 }
