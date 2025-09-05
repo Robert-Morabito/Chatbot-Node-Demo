@@ -1,3 +1,10 @@
+/**
+ * OpenAI API Handler
+ * 
+ * Manages interactions with OpenAI's APIs including chat completions and image generation.
+ * Handles different model types (GPT-3.5, GPT-4, GPT-5) with appropriate parameter management.
+ */
+
 import OpenAI from 'openai';
 
 export class OpenAIHandler {
@@ -6,36 +13,38 @@ export class OpenAIHandler {
             throw new Error('OpenAI API key is required');
         }
 
-        this.client = new OpenAI({
-            apiKey: apiKey,
-        });
-
-        this.modelMapping = {
-            'GPT-4': 'gpt-4-0125-preview',
-            'GPT-5': 'gpt-5-2025-08-07',
-            'GPT-3.5': 'gpt-3.5-turbo-0125',
-            'o1-mini': 'o1-mini',
-            'o1-preview': 'o1-preview'
-        };
+        this.client = new OpenAI({ apiKey });
     }
 
-    formatMessages(messages) {
-        // Add system prompt first
-        const systemMessage = {
-            role: 'system',
-            content: 'You are a helpful AI chatbot. If asked about your identity, model name, version, or which company created you, simply reply that you are an AI chatbot.',
-        };
-
-        // Convert user messages
-        const userMessages = messages.map(msg => ({
+    /**
+     * Formats conversation messages for OpenAI API
+     * @param {Array} messages - Raw conversation messages
+     * @param {boolean} includeSystem - Whether to include system prompt
+     * @returns {Array} Formatted messages array
+     */
+    formatMessages(messages, includeSystem = true) {
+        const formattedMessages = messages.map(msg => ({
             role: msg.sender === 'User' ? 'user' : 'assistant',
             content: msg.content
         }));
 
-        // Return system message + user messages
-        return [systemMessage, ...userMessages];
+        if (includeSystem) {
+            const systemMessage = {
+                role: 'system',
+                content: 'You are a helpful AI chatbot. If asked about your identity, model name, version, or which company created you, simply reply that you are an AI chatbot.'
+            };
+            return [systemMessage, ...formattedMessages];
+        }
+
+        return formattedMessages;
     }
 
+    /**
+     * Generates images using DALL-E
+     * @param {string} prompt - Image generation prompt
+     * @param {Object} options - Generation options
+     * @returns {Promise<Object>} Generation result with URL and revised prompt
+     */
     async generateImage(prompt, options = {}) {
         const {
             model = "dall-e-3",
@@ -44,19 +53,14 @@ export class OpenAIHandler {
             n = 1
         } = options;
 
-        console.log('🎨 [OpenAI] Generating image with DALL-E-3');
-        console.log('📝 [OpenAI] Prompt:', prompt);
-
         try {
             const response = await this.client.images.generate({
-                model: model,
-                prompt: prompt,
-                n: n,
-                size: size,
-                quality: quality
+                model,
+                prompt,
+                n,
+                size,
+                quality
             });
-
-            console.log('✅ [OpenAI] Image generated successfully');
 
             return {
                 success: true,
@@ -65,14 +69,17 @@ export class OpenAIHandler {
             };
 
         } catch (error) {
-            console.error('❌ [OpenAI] Image generation error:', error);
+            console.error('DALL-E generation failed:', error.message);
             throw error;
         }
     }
 
     /**
- * Unified streaming method that handles all models properly
- */
+     * Streams chat completions from OpenAI models
+     * @param {Array} messages - Conversation messages
+     * @param {string} model - Model identifier
+     * @param {Object} options - Streaming options
+     */
     async* streamChat(messages, model, options = {}) {
         const {
             includeSystemPrompt = true,
@@ -80,50 +87,11 @@ export class OpenAIHandler {
             maxTokens = 800
         } = options;
 
-        const actualModel = this.modelMapping[model] || model;
-        console.log(`💬 [OpenAI] Starting chat stream with model: ${actualModel}, system: ${includeSystemPrompt}`);
-
         try {
-            // Prepare messages
-            let formattedMessages;
-            if (includeSystemPrompt) {
-                formattedMessages = this.formatMessages(messages);
-            } else {
-                // No system prompt version
-                formattedMessages = messages.map(msg => ({
-                    role: msg.sender === 'User' ? 'user' : 'assistant',
-                    content: msg.content
-                }));
-            }
-
-            // GPT-5 specific parameters
-            const isGPT5 = actualModel.startsWith('gpt-5');
-            let streamConfig = {
-                model: actualModel,
-                messages: formattedMessages,
-                stream: true,
-            };
-
-            if (isGPT5) {
-                // GPT-5 restrictions
-                streamConfig.max_completion_tokens = maxTokens;
-                // GPT-5 only supports temperature = 1 (default), so we omit it
-                // No temperature parameter for GPT-5
-            } else {
-                // GPT-3.5/GPT-4 parameters
-                streamConfig.max_tokens = maxTokens;
-                streamConfig.temperature = temperature;
-            }
-
-            console.log('🔧 [OpenAI] Stream config:', {
-                model: actualModel,
-                includeSystemPrompt,
-                hasTemperature: !isGPT5,
-                tokenParam: isGPT5 ? 'max_completion_tokens' : 'max_tokens'
-            });
-
+            const formattedMessages = this.formatMessages(messages, includeSystemPrompt);
+            const streamConfig = this.buildStreamConfig(model, formattedMessages, temperature, maxTokens);
+            
             const stream = await this.client.chat.completions.create(streamConfig);
-
             let fullResponse = '';
 
             for await (const chunk of stream) {
@@ -144,10 +112,12 @@ export class OpenAIHandler {
                         fullContent: fullResponse,
                         finishReason: chunk.choices[0].finish_reason
                     };
+                    break;
                 }
             }
+
         } catch (error) {
-            console.error('❌ [OpenAI] Chat stream error:', error);
+            console.error('Chat stream failed:', error.message);
             yield {
                 type: 'error',
                 error: error.message
@@ -156,15 +126,25 @@ export class OpenAIHandler {
     }
 
     /**
-     * Legacy method - now just calls the unified method
-     * @deprecated Use streamChat with includeSystemPrompt: false instead
+     * Builds stream configuration based on model type
+     * @private
      */
-    async* streamChatNoSystem(messages, model) {
-        console.log('⚠️ [OpenAI] Using legacy streamChatNoSystem - consider updating to unified method');
-        yield* this.streamChat(messages, model, {
-            includeSystemPrompt: false,
-            temperature: 0.1,  // This will be ignored for GPT-5
-            maxTokens: 800
-        });
+    buildStreamConfig(model, messages, temperature, maxTokens) {
+        const config = {
+            model,
+            messages,
+            stream: true
+        };
+
+        // GPT-5 has different parameter requirements
+        if (model.startsWith('gpt-5')) {
+            config.max_completion_tokens = maxTokens;
+            // GPT-5 uses default temperature only
+        } else {
+            config.max_tokens = maxTokens;
+            config.temperature = temperature;
+        }
+
+        return config;
     }
 }
