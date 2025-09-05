@@ -2733,14 +2733,16 @@ class ChatApp {
                 configurationId: this.configurationId
             });
 
-            const response = await fetch('/api/sessions/complete', {
+            const response = await fetch('/api/sessions/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    action: 'complete',
                     sessionId: this.sessionId,
                     participantId: this.participantId
                 })
             });
+
 
             const responseText = await response.text();
             console.log('📡 Session completion response:', response.status, responseText);
@@ -2895,10 +2897,13 @@ class ChatApp {
      */
     async releaseReservation() {
         try {
-            const response = await fetch('/api/sessions/release', {
+            const response = await fetch('/api/sessions/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ configurationId: this.configurationId })
+                body: JSON.stringify({
+                    action: 'release',
+                    configurationId: this.configurationId
+                })
             });
 
             if (response.ok) {
