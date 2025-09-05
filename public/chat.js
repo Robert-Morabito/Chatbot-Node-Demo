@@ -122,15 +122,13 @@ class ChatApp {
     // ===================================================================
 
     async initializeApp() {
+        this.showWelcomeExperience();
+
         try {
-            // Load configuration FIRST, then show welcome experience
             await this.loadConfiguration();
-            this.showWelcomeExperience();
             this.setupReleaseHandler();
         } catch (error) {
             console.error('Configuration loading failed:', error.message);
-            // Still show welcome experience even if config fails (will use fallback)
-            this.showWelcomeExperience();
             this.setupReleaseHandler();
         }
     }
