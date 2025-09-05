@@ -4,8 +4,6 @@
  * Main endpoint for handling chat conversations with integrated image generation.
  * Includes real-time message classification and DALL-E integration.
  * 
- * CRITICAL: Uses direct handler imports to avoid HTTP call issues within Vercel.
- * CRITICAL: Classification uses no system prompt to avoid bias.
  */
 
 import { OpenAIHandler } from '../../handlers/openaiHandler.js';
