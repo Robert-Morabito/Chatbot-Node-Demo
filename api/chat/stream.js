@@ -84,7 +84,7 @@ function shouldCheckForImageIntent(lastMessage, currentTask) {
 async function handleImageRequest(userMessage, imageContext, model, res) {
     try {
         // Call the dedicated classification endpoint
-        const response = await fetch('/api/chat/imageHandler', {
+        const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/api/chat/imageHandler`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -93,7 +93,6 @@ async function handleImageRequest(userMessage, imageContext, model, res) {
                 hasImageContext: !!(imageContext?.lastPrompt)
             })
         });
-
 
 
         if (!response.ok) {
@@ -121,7 +120,7 @@ async function handleImageRequest(userMessage, imageContext, model, res) {
 async function generateImage(userMessage, model, imageContext, intent, res) {
     try {
         // Call the dedicated enhancement endpoint
-        const response = await fetch('/api/chat/imageHandler', {
+        const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/api/chat/imageHandler`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
