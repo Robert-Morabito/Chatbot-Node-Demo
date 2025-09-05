@@ -37,12 +37,12 @@ export default async function handler(req, res) {
         // Check for image generation requests
         if (shouldCheckForImageIntent(lastMessage, currentTask)) {
             const imageResult = await handlePotentialImageRequest(
-                lastMessage.content,
-                imageContext,
-                model,
+                lastMessage.content, 
+                imageContext, 
+                model, 
                 res
             );
-
+            
             if (imageResult) {
                 res.end();
                 return;
@@ -84,11 +84,10 @@ function shouldCheckForImageIntent(lastMessage, currentTask) {
 async function handlePotentialImageRequest(userMessage, imageContext, model, res) {
     try {
         // Call the dedicated classification endpoint
-        const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/api/imageHandler`, {
+        const classifyResponse = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/api/image/classify`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                action: 'classify', // or 'enhance'
                 userMessage,
                 hasImageContext: !!(imageContext?.lastPrompt)
             })
@@ -99,7 +98,7 @@ async function handlePotentialImageRequest(userMessage, imageContext, model, res
         }
 
         const classification = await classifyResponse.json();
-
+        
         if (classification.intent === 'new_image' || classification.intent === 'modify_image') {
             res.write(`data: ${JSON.stringify({ type: 'image_request_detected' })}\n\n`);
             return await generateImage(userMessage, model, imageContext, classification.intent, res);
@@ -119,13 +118,14 @@ async function handlePotentialImageRequest(userMessage, imageContext, model, res
 async function generateImage(userMessage, model, imageContext, intent, res) {
     try {
         // Call the dedicated enhancement endpoint
-        const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/api/imageHandler`, {
+        const enhanceResponse = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/api/image/enhance`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                action: 'classify', // or 'enhance'
-                userMessage,
-                hasImageContext: !!(imageContext?.lastPrompt)
+                userPrompt: userMessage,
+                model,
+                previousPrompt: imageContext?.lastPrompt,
+                modificationType: intent === 'modify_image' ? 'modification' : 'new'
             })
         });
 
@@ -134,7 +134,7 @@ async function generateImage(userMessage, model, imageContext, intent, res) {
         }
 
         const enhancement = await enhanceResponse.json();
-
+        
         // Generate image with DALL-E
         const imageHandler = new OpenAIHandler(process.env.OPENAI_API_KEY);
         const imageResult = await imageHandler.generateImage(enhancement.enhancedPrompt);
@@ -144,7 +144,7 @@ async function generateImage(userMessage, model, imageContext, intent, res) {
         }
 
         // Send successful response
-        const responseMessage = intent === 'modify_image'
+        const responseMessage = intent === 'modify_image' 
             ? `I've modified the image based on your request:\n\n![Generated Image](${imageResult.url})`
             : `I've generated an image for you:\n\n![Generated Image](${imageResult.url})`;
 
@@ -167,7 +167,7 @@ async function generateImage(userMessage, model, imageContext, intent, res) {
 
     } catch (error) {
         console.error('Image generation error:', error.message);
-
+        
         res.write(`data: ${JSON.stringify({
             type: 'content',
             content: `I apologize, but I couldn't generate the image. Error: ${error.message}`,
@@ -196,11 +196,11 @@ async function handleRegularChat(messages, model, res) {
 
     // Create appropriate handler
     const handler = createModelHandler(validation.type);
-
+    
     // Stream the response
     for await (const chunk of handler.streamChat(messages, model)) {
         res.write(`data: ${JSON.stringify(chunk)}\n\n`);
-
+        
         if (chunk.type === 'done' || chunk.type === 'error') {
             break;
         }
@@ -229,13 +229,13 @@ function createModelHandler(type) {
                 throw new Error('Anthropic API key not configured');
             }
             return new ClaudeHandler(process.env.ANTHROPIC_API_KEY);
-
+            
         case 'openai':
             if (!process.env.OPENAI_API_KEY) {
                 throw new Error('OpenAI API key not configured');
             }
             return new OpenAIHandler(process.env.OPENAI_API_KEY);
-
+            
         default:
             throw new Error(`Unsupported model type: ${type}`);
     }
