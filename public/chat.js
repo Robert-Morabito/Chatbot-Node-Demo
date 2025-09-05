@@ -156,7 +156,7 @@ class ChatApp {
         try {
             console.log('🔄 Loading configuration...');
 
-            const response = await fetch('/api/configurations/assign', {
+            const response = await fetch('/api/sessions/assign', {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
             });
