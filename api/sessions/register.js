@@ -1,6 +1,9 @@
 /**
- * Session Registration Handler
- * Updates existing sessions with participant info (doesn't overwrite)
+ * Session Registration API
+ * 
+ * Registers participant information with an existing session that was
+ * created during configuration assignment. This endpoint updates the
+ * session record with participant details without overwriting existing data.
  */
 
 import GitHubStorage from '../../utils/githubStorage.js';
@@ -15,38 +18,35 @@ export default async function handler(req, res) {
     try {
         const { sessionId, participantId, configurationId } = req.body;
         
+        // Validate required parameters
         if (!sessionId || !participantId || !configurationId) {
             return res.status(400).json({ 
-                error: 'Session ID, Participant ID, and Configuration ID required' 
+                error: 'Session ID, Participant ID, and Configuration ID are required' 
             });
         }
 
-        console.log('📝 Registering participant for existing session:', { sessionId, participantId, configurationId });
-
         // Load current configuration state
         const configData = await githubStorage.loadConfigurationState();
-
-        // Find existing session (should exist from assignment)
         const existingSession = configData.sessions[sessionId];
         
         if (!existingSession) {
-            return res.status(404).json({ error: 'Session not found - assignment may have failed' });
+            return res.status(404).json({ 
+                error: 'Session not found - assignment may have failed' 
+            });
         }
 
-        // UPDATE existing session instead of overwriting
+        // Update session with participant information (preserve existing data)
         configData.sessions[sessionId] = {
-            ...existingSession,  // Keep all existing data
-            participantId,       // Add participant info
-            registeredAt: new Date().toISOString()  // Add registration timestamp
+            ...existingSession,
+            participantId,
+            registeredAt: new Date().toISOString()
         };
 
-        // Update metadata
+        // Update metadata timestamp
         configData.metadata.lastUpdated = new Date().toISOString();
 
-        // Save back to GitHub
+        // Save updated configuration state
         await githubStorage.saveConfigurationState(configData);
-
-        console.log('✅ Session registration completed - participant added to existing session');
 
         res.json({
             success: true,
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
         });
 
     } catch (error) {
-        console.error('❌ Session registration error:', error.message);
+        console.error('Session registration failed:', error.message);
         res.status(500).json({
             error: 'Failed to register session',
             details: error.message

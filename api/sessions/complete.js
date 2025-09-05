@@ -1,6 +1,9 @@
 /**
- * Session Completion Handler
- * Marks study sessions as completed and updates configuration state
+ * Session Completion API
+ * 
+ * Marks study sessions as completed and updates configuration state.
+ * This endpoint handles the final step of a participant's session,
+ * updating counters and releasing reserved slots.
  */
 
 import GitHubStorage from '../../utils/githubStorage.js';
@@ -16,11 +19,11 @@ export default async function handler(req, res) {
         const { sessionId, participantId } = req.body;
         
         if (!sessionId || !participantId) {
-            return res.status(400).json({ error: 'Session ID and Participant ID required' });
+            return res.status(400).json({ 
+                error: 'Session ID and Participant ID are required' 
+            });
         }
 
-        console.log('🏁 Processing session completion:', { sessionId, participantId });
-        
         const configData = await githubStorage.loadConfigurationState();
         const session = configData.sessions[sessionId];
         
@@ -28,61 +31,55 @@ export default async function handler(req, res) {
             return res.status(404).json({ error: 'Session not found' });
         }
 
-        let configurationUpdated = false;
-
-        // Only mark as completed if not already done
+        // Only process if session isn't already completed
+        let wasUpdated = false;
         if (!session.completed) {
-            session.completed = true;
-            session.completedAt = new Date().toISOString();
-            
-            // Also mark as released (since completion releases the reservation)
-            if (!session.released) {
-                session.released = true;
-                session.releasedAt = session.completedAt;
-                session.releaseReason = 'completed';
-            }
-            
-            configurationUpdated = true;
-
-            // Update the configuration
-            const configId = session.configurationId.toString();
-            
-            if (configData.configurations[configId]) {
-                const config = configData.configurations[configId];
-                
-                // Increment completed sessions
-                const oldCompleted = config.completedSessions;
-                config.completedSessions += 1;
-                
-                // Decrement reserved sessions (since this slot is now "used up")
-                const oldReserved = config.reservedSessions;
-                config.reservedSessions = Math.max(0, config.reservedSessions - 1);
-                
-                console.log(`✅ Updated config ${configId}: completed ${oldCompleted} → ${config.completedSessions}, reserved ${oldReserved} → ${config.reservedSessions}`);
-            }
-
-            // Update metadata
-            configData.metadata.lastUpdated = new Date().toISOString();
-            
-            // Save back to GitHub
+            wasUpdated = completeSession(session, configData);
             await githubStorage.saveConfigurationState(configData);
-            console.log('💾 Session completion processed and saved');
-        } else {
-            console.log('ℹ️ Session was already completed');
         }
 
         res.json({
             success: true,
             message: 'Session marked as completed',
             session: session,
-            configurationUpdated: configurationUpdated
+            configurationUpdated: wasUpdated
         });
 
     } catch (error) {
-        console.error('❌ Session completion error:', error.message);
+        console.error('Session completion failed:', error.message);
         res.status(500).json({
             error: 'Failed to mark session completed',
             details: error.message
         });
     }
+}
+
+/**
+ * Completes a session and updates related configuration counters.
+ * 
+ * @param {Object} session - Session to complete
+ * @param {Object} configData - Full configuration data
+ * @returns {boolean} Whether configuration was updated
+ */
+function completeSession(session, configData) {
+    const now = new Date().toISOString();
+    
+    // Mark session as completed and released
+    session.completed = true;
+    session.completedAt = now;
+    session.released = true;
+    session.releasedAt = now;
+    session.releaseReason = 'completed';
+
+    // Update configuration counters
+    const config = configData.configurations[session.configurationId.toString()];
+    if (config) {
+        config.completedSessions += 1;
+        config.reservedSessions = Math.max(0, config.reservedSessions - 1);
+    }
+
+    // Update metadata
+    configData.metadata.lastUpdated = now;
+    
+    return true;
 }
