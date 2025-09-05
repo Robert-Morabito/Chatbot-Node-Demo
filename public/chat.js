@@ -315,25 +315,9 @@ class ChatApp {
     }
 
     getAssignedModelIndex(models) {
-    const assignedName = this.config?.displayName || 'GPT-4';
-    
-    console.log('🔍 [Welcome] Finding assigned model index:', {
-        assignedName,
-        availableModels: models.map(m => m.name),
-        configDisplayName: this.config?.displayName
-    });
-    
-    const foundIndex = models.findIndex(m => m.name === assignedName);
-    const finalIndex = foundIndex !== -1 ? foundIndex : 1; // Default to middle model
-    
-    console.log('📍 [Welcome] Model index result:', {
-        foundIndex,
-        finalIndex,
-        selectedModel: models[finalIndex]?.name
-    });
-    
-    return finalIndex;
-}
+        const assignedName = this.config?.displayName || 'GPT-4';
+        return Math.max(0, models.findIndex(m => m.name === assignedName) || 1);
+    }
 
     populateModelComparison(comparisonData) {
         const { models, assignedIndex } = comparisonData;
