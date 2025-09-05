@@ -340,24 +340,27 @@ class ChatApp {
         };
     }
 
-    getAssignedModelIndex(models) {
-        const assignedName = this.config?.displayName;
-        return Math.max(0, models.findIndex(m => m.name === assignedName) || 1);
-    }
-
     populateModelComparison(comparisonData) {
-        const { models, assignedIndex } = comparisonData;
+        const { models } = comparisonData;
+        const assignedModelName = this.config.displayName;
 
         // Populate model cards
         models.forEach((model, index) => {
             this.populateModelCard(model, index);
             this.populateCapabilityIcons(model, index);
+
+            // Mark assigned model directly by name
+            if (model.name === assignedModelName) {
+                const card = document.querySelector(`.model-card[data-model="${index}"]`);
+                if (card) card.classList.add('assigned');
+            }
         });
 
         // Update capability details for assigned model
-        const assignedModel = models[assignedIndex];
-        this.updateCapabilityDetails(assignedModel);
-        this.initializeModelComparisonHeader(comparisonData);
+        const assignedModel = models.find(m => m.name === assignedModelName);
+        if (assignedModel) {
+            this.updateCapabilityDetails(assignedModel);
+        }
     }
 
     populateModelCard(model, index) {
@@ -447,14 +450,16 @@ class ChatApp {
         });
     }
 
-    highlightAssignedModel(assignedIndex) {
-        const modelCard = document.querySelector(`.model-card[data-model="${assignedIndex}"]`);
+    highlightAssignedModel() {
+        const assignedModelName = this.config.displayName;
+        const modelCard = document.querySelector(`.model-card.assigned`);
         if (modelCard) modelCard.classList.add('highlighted');
     }
 
+
     showAssignmentPopup(assignedIndex) {
         const popup = document.getElementById('assignment-popup');
-        const assignedCard = document.querySelector(`.model-card[data-model="${assignedIndex}"]`);
+        const assignedCard = document.querySelector(`.model-card.assigned`);
 
         if (popup && assignedCard) {
             const rect = assignedCard.getBoundingClientRect();
