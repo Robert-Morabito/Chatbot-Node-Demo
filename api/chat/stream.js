@@ -36,7 +36,7 @@ export default async function handler(req, res) {
 
         // Check for image generation requests
         if (shouldCheckForImageIntent(lastMessage, currentTask)) {
-            const imageResult = await handlePotentialImageRequest(
+            const imageResult = await handleImageRequest(
                 lastMessage.content,
                 imageContext,
                 model,
@@ -81,7 +81,7 @@ function shouldCheckForImageIntent(lastMessage, currentTask) {
 /**
  * Handles potential image generation requests
  */
-async function handlePotentialImageRequest(userMessage, imageContext, model, res) {
+async function handleImageRequest(userMessage, imageContext, model, res) {
     try {
         // Call the dedicated classification endpoint
         const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/api/chat/imageHandler`, {
@@ -89,7 +89,7 @@ async function handlePotentialImageRequest(userMessage, imageContext, model, res
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 action: 'classify', // or 'enhance'
-                userMessage,
+                userPrompt: userMessage,
                 hasImageContext: !!(imageContext?.lastPrompt)
             })
         });
@@ -119,12 +119,12 @@ async function handlePotentialImageRequest(userMessage, imageContext, model, res
 async function generateImage(userMessage, model, imageContext, intent, res) {
     try {
         // Call the dedicated enhancement endpoint
-        const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/api/imageHandler`, {
+        const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/api/chat/imageHandler`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 action: 'enhance',
-                userMessage,
+                userPrompt: userMessage,
                 hasImageContext: !!(imageContext?.lastPrompt)
             })
         });
