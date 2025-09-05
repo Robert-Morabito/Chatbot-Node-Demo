@@ -24,7 +24,7 @@ class ChatApp {
     // ===================================================================
     // CORE APPLICATION SETUP
     // ===================================================================
-    
+
     constructor() {
         // Core identifiers
         this.participantId = null;
@@ -68,6 +68,32 @@ class ChatApp {
             displayName: 'GPT-4'
         };
 
+        this.behaviorMetrics = {
+            backspaceCount: 0,
+            messageLengths: [],
+            messageCount: 0,
+            conversationCount: 0,
+            editCount: 0,
+            editDistances: [],
+            idleStartTime: Date.now(),
+            totalIdleTime: 0,
+            messageTimes: [],
+            conversationSwitches: 0,
+            responseTimesAfterBot: [],
+            lastBotMessageTime: null,
+            lastUserActivity: Date.now(),
+            typingPatterns: {
+                totalKeystrokes: 0,
+                typingStartTime: null,
+                typingDurations: []
+            },
+            taskMetrics: {
+                'image-generation': { conversations: 0, messages: 0, timeSpent: 0 },
+                'social-media': { conversations: 0, messages: 0, timeSpent: 0 },
+                'acronym-building': { conversations: 0, messages: 0, timeSpent: 0 }
+            }
+        };
+
         // Task configurations
         this.taskConfig = {
             'image-generation': {
@@ -76,13 +102,13 @@ class ChatApp {
                 description: 'Use this chat to generate images! Try typing "Make me an image of..."'
             },
             'social-media': {
-                name: 'Social Media Posts', 
+                name: 'Social Media Posts',
                 icon: '📱',
                 description: 'Use this chat to write a convincing outreach message!'
             },
             'acronym-building': {
                 name: 'Acronym Building',
-                icon: '🔤', 
+                icon: '🔤',
                 description: 'Use this chat to create some funny acronyms!'
             }
         };
@@ -97,7 +123,7 @@ class ChatApp {
 
     async initializeApp() {
         this.showWelcomeExperience();
-        
+
         try {
             await this.loadConfiguration();
             this.setupReleaseHandler();
@@ -120,6 +146,15 @@ class ChatApp {
 
             const data = await response.json();
 
+            console.log('📦 [Config] Assignment data parsed:', {
+                success: data.success,
+                sessionId: data.sessionId,
+                configurationId: data.configuration?.id,
+                displayedModel: data.configuration?.displayedModel,
+                actualModel: data.configuration?.actualModel,
+                fullResponse: data
+            });
+
             if (data.success) {
                 this.sessionId = data.sessionId;
                 this.configurationId = data.configuration.id;
@@ -128,25 +163,58 @@ class ChatApp {
                     trueModel: data.configuration.actualModel,
                     displayName: data.configuration.displayedModel
                 };
+
+                console.log('✅ [Config] Configuration successfully applied:', {
+                    sessionId: this.sessionId,
+                    configId: this.configurationId,
+                    displayedModel: this.config.givenModel,
+                    actualModel: this.config.trueModel,
+                    displayName: this.config.displayName
+                });
+
                 return true;
             }
 
             throw new Error('Failed to get configuration assignment');
 
         } catch (error) {
+            console.error('❌ [Config] Configuration loading failed:', {
+                error: error.message,
+                stack: error.stack,
+                timestamp: new Date().toISOString()
+            });
+
             // Fallback configuration
             this.sessionId = `fallback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
             this.configurationId = 1;
+
+            console.log('🔄 [Config] Using fallback configuration:', {
+                sessionId: this.sessionId,
+                configId: this.configurationId
+            });
+
             throw error;
         }
     }
 
     async registerSession() {
         if (!this.sessionId || !this.participantId || !this.configurationId) {
+            console.warn('⚠️ [Session] Registration skipped - missing required data:', {
+                hasSessionId: !!this.sessionId,
+                hasParticipantId: !!this.participantId,
+                hasConfigId: !!this.configurationId
+            });
             return;
         }
 
         try {
+            console.log('📝 [Session] Starting registration:', {
+                sessionId: this.sessionId,
+                participantId: this.participantId,
+                configurationId: this.configurationId,
+                timestamp: new Date().toISOString()
+            });
+
             const response = await fetch('/api/sessions/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -157,11 +225,23 @@ class ChatApp {
                 })
             });
 
+            console.log('📡 [Session] Registration response:', {
+                status: response.status,
+                statusText: response.statusText,
+                ok: response.ok
+            });
+
             if (!response.ok) {
-                console.warn('Session registration failed');
+                console.warn('⚠️ [Session] Registration failed but continuing...');
+            } else {
+                const result = await response.json();
+                console.log('✅ [Session] Registration successful:', result);
             }
         } catch (error) {
-            console.warn('Session registration error:', error.message);
+            console.warn('⚠️ [Session] Registration error (non-critical):', {
+                error: error.message,
+                participantId: this.participantId
+            });
         }
     }
 
@@ -191,7 +271,7 @@ class ChatApp {
         const panels = document.querySelectorAll('.content-panel');
         panels.forEach((panel, index) => {
             panel.classList.toggle('active', index === stepIndex);
-            
+
             // Handle special step logic
             if (index === stepIndex) {
                 if (stepIndex === 1) this.startModelComparison();
@@ -205,7 +285,7 @@ class ChatApp {
     startModelComparison() {
         this.welcomeState.isAnimating = true;
         const comparisonData = this.getModelComparisonData();
-        
+
         this.populateModelComparison(comparisonData);
         this.runComparisonAnimation(comparisonData);
     }
@@ -226,7 +306,7 @@ class ChatApp {
 
         const assignedModel = this.config?.trueModel || 'gpt-4-turbo';
         const family = assignedModel.includes('claude') ? 'claude' : 'openai';
-        
+
         return {
             family,
             models: modelFamilies[family],
@@ -257,7 +337,7 @@ class ChatApp {
     populateModelCard(model, index) {
         const nameEl = document.getElementById(`model-name-card-${index}`);
         const yearEl = document.getElementById(`model-year-card-${index}`);
-        
+
         if (nameEl) nameEl.textContent = model.name;
         if (yearEl) yearEl.textContent = model.year;
     }
@@ -276,7 +356,7 @@ class ChatApp {
             container.innerHTML = '';
             const iconType = iconTypes[typeIndex];
             const iconEmoji = { bulb: '💡', bolt: '⚡', brush: '🎨' }[iconType];
-            
+
             for (let i = 0; i < 4; i++) {
                 const icon = document.createElement('span');
                 icon.className = `capability-icon-item-inline ${iconType}`;
@@ -295,7 +375,7 @@ class ChatApp {
     updateCapabilityDetails(model) {
         const elements = {
             'strength-text': model.strengths || "Excellent capabilities for various tasks.",
-            'weakness-text': model.weaknesses || "May have slower response times for complex requests.", 
+            'weakness-text': model.weaknesses || "May have slower response times for complex requests.",
             'usecase-text': model.bestFor || "General purpose conversations and task completion.",
             'capability-model-name': model.name
         };
@@ -310,11 +390,11 @@ class ChatApp {
         const { assignedIndex } = comparisonData;
         const timeline = [
             () => this.animateModelCards(),
-            () => this.animateCardCapabilities(), 
+            () => this.animateCardCapabilities(),
             () => this.highlightAssignedModel(assignedIndex),
             () => this.showAssignmentPopup(assignedIndex)
         ];
-        
+
         const delays = [0, 1000, 4500, 5000];
         timeline.forEach((action, i) => setTimeout(action, delays[i]));
     }
@@ -327,11 +407,11 @@ class ChatApp {
     animateCardCapabilities() {
         document.querySelectorAll('.model-card').forEach((card, cardIndex) => {
             const baseDelay = cardIndex * 200;
-            
+
             card.querySelectorAll('.capability-item').forEach((item, itemIndex) => {
                 setTimeout(() => {
                     item.classList.add('show');
-                    
+
                     const litIcons = item.querySelectorAll('.capability-icon-item-inline.lit');
                     litIcons.forEach((icon, iconIndex) => {
                         setTimeout(() => icon.classList.add('animate-in'), iconIndex * 150);
@@ -363,7 +443,7 @@ class ChatApp {
 
     showCapabilityCardsSequence() {
         if (this.welcomeState.isTransitioning) return;
-        
+
         this.welcomeState.isTransitioning = true;
         this.clearWelcomeTransitions();
 
@@ -390,24 +470,24 @@ class ChatApp {
         const comparisonData = this.getModelComparisonData();
         const modelCards = document.querySelectorAll('.model-card');
         const modelContainer = document.getElementById('model-comparison-container');
-        
+
         if (!modelCards[comparisonData.assignedIndex] || !modelContainer) return;
 
         const assignedCard = modelCards[comparisonData.assignedIndex];
         const containerRect = modelContainer.getBoundingClientRect();
         const cardRect = assignedCard.getBoundingClientRect();
-        
+
         const cardCenterX = cardRect.left - containerRect.left + (cardRect.width / 2);
         const containerCenterX = containerRect.width / 2;
         const offsetX = cardCenterX - containerCenterX;
-        
+
         cardsWrapper.style.transform = `translateX(${offsetX}px)`;
     }
 
     startReadingCountdown() {
         const continueBtn = document.getElementById('nav-continue');
         let timeLeft = 10; // 10 second delay
-        
+
         const updateButton = () => {
             if (timeLeft > 0) {
                 continueBtn.innerHTML = 'Please read...';
@@ -423,7 +503,7 @@ class ChatApp {
                 continueBtn.onclick = () => this.renderWelcomeStep(2);
                 continueBtn.disabled = false;
                 continueBtn.style.opacity = '1';
-                
+
                 this.clearWelcomeTransitions();
             }
         };
@@ -520,7 +600,7 @@ class ChatApp {
         }
 
         // Handle continue button
-        if (this.welcomeState.isTransitioning || 
+        if (this.welcomeState.isTransitioning ||
             (this.welcomeState.currentStep === 1 && this.welcomeState.isAnimating)) {
             continueBtn.style.opacity = '0.6';
             continueBtn.disabled = true;
@@ -607,7 +687,7 @@ class ChatApp {
         models.forEach((model, index) => {
             this.populateHeaderModelCard(model, index);
             this.populateHeaderCapabilities(model, index);
-            
+
             // Mark current model
             const card = document.querySelector(`.mini-model-card[data-model="${index}"]`);
             if (card && index === assignedIndex) {
@@ -640,7 +720,7 @@ class ChatApp {
 
             container.innerHTML = '';
             const iconType = iconTypes[typeIndex];
-            
+
             for (let i = 0; i < 4; i++) {
                 const icon = document.createElement('span');
                 icon.className = `mini-capability-icon ${iconType}`;
@@ -687,7 +767,7 @@ class ChatApp {
         this.switchToConversation(conversationId);
         this.updateConversationList();
         this.showWelcomeMessage();
-        
+
         // Update behavior metrics
         this.behaviorMetrics.conversationCount++;
         this.behaviorMetrics.taskMetrics[this.currentTask].conversations++;
@@ -723,7 +803,7 @@ class ChatApp {
 
         const taskConversations = this.taskConversations[this.currentTask];
         const currentConv = taskConversations.get(this.currentConversationId);
-        
+
         if (currentConv) {
             currentConv.messages = [...this.currentChatlog];
             currentConv.imageContext = {
@@ -827,7 +907,7 @@ class ChatApp {
     async progressToNextTask() {
         this.completedTasks.push(this.currentTask);
         this.currentTaskIndex++;
-        
+
         if (this.currentTaskIndex < this.taskSequence.length) {
             // Reset conversation state for new task
             this.currentConversationId = null;
@@ -863,9 +943,21 @@ class ChatApp {
         const messageInput = document.getElementById('message-input');
         const message = messageInput.value.trim();
 
-        if (!message) return;
+        if (!message) {
+            console.log('⚠️ [Message] Empty message, skipping send');
+            return;
+        }
+
+        console.log('💬 [Message] Sending user message:', {
+            content: message.substring(0, 100) + (message.length > 100 ? '...' : ''),
+            length: message.length,
+            currentTask: this.currentTask,
+            conversationId: this.currentConversationId,
+            hasConversation: !!this.currentConversationId
+        });
 
         if (!this.currentConversationId) {
+            console.log('🔄 [Message] No active conversation, creating new one...');
             this.createNewConversation();
         }
 
@@ -879,6 +971,7 @@ class ChatApp {
         // Create and render user message
         const userMsg = this.createMessage('User', message);
         this.currentChatlog.push(userMsg);
+
         this.renderMessage(userMsg);
 
         // Clear input and update UI
@@ -887,7 +980,7 @@ class ChatApp {
 
         this.updateConversationTitle(message);
         this.showIndicator('typing');
-        
+
         setTimeout(() => this.getLLMResponse(), 500);
     }
 
@@ -958,7 +1051,7 @@ class ChatApp {
                 if (line.startsWith('data: ')) {
                     try {
                         const data = JSON.parse(line.slice(6));
-                        
+
                         switch (data.type) {
                             case 'error':
                                 throw new Error(data.error || 'Stream error occurred');
@@ -1023,7 +1116,7 @@ class ChatApp {
                 conversationHasImage: false
             };
         }
-        
+
         this.imageContext.lastPrompt = data.imagePrompt;
         this.imageContext.lastImageUrl = data.imageUrl;
         this.imageContext.conversationHasImage = true;
@@ -1051,7 +1144,7 @@ class ChatApp {
             this.setupImageClickHandlers(contentDiv);
         } else {
             contentDiv.textContent = msgInfo.content;
-            
+
             // Add edit button for user messages
             const editBtn = document.createElement('button');
             editBtn.className = 'edit-btn';
@@ -1076,10 +1169,10 @@ class ChatApp {
 
     getMessageIcon(sender) {
         if (sender === 'User') return 'images/user.png';
-        
+
         const displayedModel = this.config?.displayName || '';
-        return displayedModel.toLowerCase().includes('claude') 
-            ? 'images/claude.png' 
+        return displayedModel.toLowerCase().includes('claude')
+            ? 'images/claude.png'
             : 'images/gpt.png';
     }
 
@@ -1097,10 +1190,10 @@ class ChatApp {
         if (!widget) return;
 
         this.behaviorMetrics.editCount++;
-        
+
         // Calculate edit distance for metrics
         const currentMessages = Array.from(document.querySelectorAll('.message.user'));
-        const editMessageIndex = currentMessages.findIndex(msg => 
+        const editMessageIndex = currentMessages.findIndex(msg =>
             parseInt(msg.dataset.msgId) === msgId
         );
         const messagesBack = currentMessages.length - editMessageIndex - 1;
@@ -1198,7 +1291,7 @@ class ChatApp {
 
     showIndicator(type) {
         this.hideAllIndicators();
-        
+
         const messagesContainer = document.getElementById('messages');
         const indicatorDiv = document.createElement('div');
         indicatorDiv.className = 'typing-message';
@@ -1211,7 +1304,7 @@ class ChatApp {
 
         const contentDiv = document.createElement('div');
         contentDiv.className = 'typing-content';
-        
+
         if (type === 'typing') {
             contentDiv.innerHTML = '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
         } else if (type === 'image') {
@@ -1237,33 +1330,6 @@ class ChatApp {
     // ===================================================================
 
     initializeBehaviorTracking() {
-        // Initialize behavior metrics
-        this.behaviorMetrics = {
-            backspaceCount: 0,
-            messageLengths: [],
-            messageCount: 0,
-            conversationCount: 0,
-            editCount: 0,
-            editDistances: [],
-            idleStartTime: Date.now(),
-            totalIdleTime: 0,
-            messageTimes: [],
-            conversationSwitches: 0,
-            responseTimesAfterBot: [],
-            lastBotMessageTime: null,
-            lastUserActivity: Date.now(),
-            typingPatterns: {
-                totalKeystrokes: 0,
-                typingStartTime: null,
-                typingDurations: []
-            },
-            taskMetrics: {
-                'image-generation': { conversations: 0, messages: 0, timeSpent: 0 },
-                'social-media': { conversations: 0, messages: 0, timeSpent: 0 },
-                'acronym-building': { conversations: 0, messages: 0, timeSpent: 0 }
-            }
-        };
-
         this.setupBehaviorEventListeners();
         this.startIdleTracking();
     }
@@ -1273,11 +1339,11 @@ class ChatApp {
         document.addEventListener('keydown', (e) => {
             if (document.activeElement.id === 'message-input') {
                 this.updateActivity();
-                
+
                 if (e.key === 'Backspace') {
                     this.behaviorMetrics.backspaceCount++;
                 }
-                
+
                 if (!this.behaviorMetrics.typingPatterns.typingStartTime) {
                     this.behaviorMetrics.typingPatterns.typingStartTime = Date.now();
                 }
@@ -1321,7 +1387,7 @@ class ChatApp {
     updateIdleTime() {
         const idleDuration = Date.now() - this.behaviorMetrics.idleStartTime;
         const idleThreshold = 5000; // 5 seconds
-        
+
         if (idleDuration > idleThreshold) {
             this.behaviorMetrics.totalIdleTime += idleDuration;
         }
@@ -1330,10 +1396,10 @@ class ChatApp {
 
     startIdleTracking() {
         const idleThreshold = 5000; // 5 seconds
-        
+
         setInterval(() => {
             const timeSinceLastActivity = Date.now() - this.behaviorMetrics.lastUserActivity;
-            
+
             if (timeSinceLastActivity > idleThreshold) {
                 if (!this.behaviorMetrics.currentlyIdle) {
                     this.behaviorMetrics.currentlyIdle = true;
@@ -1350,7 +1416,7 @@ class ChatApp {
 
     calculateFinalMetrics() {
         const metrics = this.behaviorMetrics;
-        
+
         return {
             backspaceCount: metrics.backspaceCount,
             averageMessageLength: metrics.messageLengths.length > 0
@@ -1389,7 +1455,7 @@ class ChatApp {
     startSessionTimer() {
         this.sessionStartTime = Date.now();
         this.updateTimerDisplay();
-        
+
         this.timerInterval = setInterval(() => {
             this.updateTimerDisplay();
         }, 1000);
@@ -1405,7 +1471,7 @@ class ChatApp {
     updateTimerDisplay() {
         const elapsed = Date.now() - this.sessionStartTime;
         const formattedTime = this.formatElapsedTime(elapsed);
-        
+
         const timerDisplay = document.getElementById('timer-display');
         if (timerDisplay) {
             timerDisplay.textContent = formattedTime;
@@ -1549,13 +1615,13 @@ class ChatApp {
     async completeEntireStudy() {
         const finishBtn = document.getElementById('finish-btn');
         if (finishBtn.disabled) return;
-        
+
         finishBtn.disabled = true;
         this.showFinishLoadingIndicator();
 
         try {
             await this.saveCurrentTaskData();
-            
+
             const exportData = this.prepareExportData();
             await this.downloadConversationData(exportData);
             await this.saveToServer();
@@ -1574,7 +1640,7 @@ class ChatApp {
     prepareExportData() {
         const behaviorMetrics = this.calculateFinalMetrics();
         const organizedConversations = {};
-        
+
         for (const [taskId, conversations] of Object.entries(this.taskConversations)) {
             organizedConversations[taskId] = Object.fromEntries(conversations);
         }
@@ -1598,7 +1664,7 @@ class ChatApp {
     async saveToServer() {
         const behaviorMetrics = this.calculateFinalMetrics();
         const organizedConversations = {};
-        
+
         for (const [taskId, conversations] of Object.entries(this.taskConversations)) {
             organizedConversations[taskId] = Object.fromEntries(conversations);
         }
@@ -1997,7 +2063,7 @@ class ChatApp {
 
     replaceElementsToRemoveListeners() {
         const elements = [
-            'send-btn', 'message-input', 'new-chat-btn', 'save-chat-btn', 
+            'send-btn', 'message-input', 'new-chat-btn', 'save-chat-btn',
             'finish-btn', 'theme-switch', 'sidebar-toggle', 'mobile-sidebar-toggle'
         ];
 
