@@ -61,13 +61,6 @@ class ChatApp {
             countdownInterval: null
         };
 
-        // Configuration
-        this.config = {
-            givenModel: 'GPT-4',
-            trueModel: 'gpt-4-turbo',
-            displayName: 'GPT-4'
-        };
-
         this.behaviorMetrics = {
             backspaceCount: 0,
             messageLengths: [],
@@ -184,16 +177,7 @@ class ChatApp {
                 timestamp: new Date().toISOString()
             });
 
-            // Fallback configuration
-            this.sessionId = `fallback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            this.configurationId = 1;
-
-            console.log('🔄 [Config] Using fallback configuration:', {
-                sessionId: this.sessionId,
-                configId: this.configurationId
-            });
-
-            throw error;
+            throw new Error(`Configuration loading failed: ${error.message}`);
         }
     }
 
@@ -293,18 +277,60 @@ class ChatApp {
     getModelComparisonData() {
         const modelFamilies = {
             'openai': [
-                { name: 'GPT-3.5', year: '2022', capabilities: { reasoning: 1, speed: 2, creativity: 2, knowledge: 'Sept 2021' } },
-                { name: 'GPT-4', year: '2023', capabilities: { reasoning: 2, speed: 3, creativity: 3, knowledge: 'Dec 2023' } },
-                { name: 'GPT-5', year: '2025', capabilities: { reasoning: 4, speed: 3, creativity: 4, knowledge: 'Sept 2024' } }
+                {
+                    name: 'GPT-3.5',
+                    year: '2022',
+                    capabilities: { reasoning: 1, speed: 2, creativity: 2, knowledge: 'Sept 2021' },
+                    strengths: "Quick responses and good general knowledge for everyday tasks.",
+                    weaknesses: "Limited creativity and may struggle with complex reasoning tasks.",
+                    bestFor: "Quick questions, basic writing, and simple problem-solving tasks."
+                },
+                {
+                    name: 'GPT-4',
+                    year: '2023',
+                    capabilities: { reasoning: 2, speed: 3, creativity: 3, knowledge: 'Dec 2023' },
+                    strengths: "Good balance of creativity, accuracy, and professional communication.",
+                    weaknesses: "Slower response times compared to simpler models.",
+                    bestFor: "Professional writing, basic creative projects, and moderate reasoning tasks."
+                },
+                {
+                    name: 'GPT-5',
+                    year: '2025',
+                    capabilities: { reasoning: 4, speed: 3, creativity: 4, knowledge: 'Sept 2024' },
+                    strengths: "State of the art, exceptional reasoning abilities and highly creative problem-solving.",
+                    weaknesses: "May take more time to process requests to ensure the best accuracy.",
+                    bestFor: "Complex creative challenges, advanced reasoning, and innovative solutions."
+                }
             ],
             'claude': [
-                { name: 'Claude 3', year: '2024', capabilities: { reasoning: 1, speed: 3, creativity: 2, knowledge: 'Aug 2023' } },
-                { name: 'Claude 3.5', year: '2024', capabilities: { reasoning: 2, speed: 3, creativity: 3, knowledge: 'July 2024' } },
-                { name: 'Claude 4', year: '2025', capabilities: { reasoning: 4, speed: 2, creativity: 4, knowledge: 'Mar 2025' } }
+                {
+                    name: 'Claude 3',
+                    year: '2024',
+                    capabilities: { reasoning: 1, speed: 3, creativity: 2, knowledge: 'Aug 2023' },
+                    strengths: "Fast responses with decent accuracy for routine tasks.",
+                    weaknesses: "Limited depth in creative and complex analytical tasks.",
+                    bestFor: "Quick tasks, basic writing assistance, and straightforward questions."
+                },
+                {
+                    name: 'Claude 3.5',
+                    year: '2024',
+                    capabilities: { reasoning: 2, speed: 3, creativity: 3, knowledge: 'July 2024' },
+                    strengths: "Good professional communication and analytical capabilities.",
+                    weaknesses: "Slower response times compared to simpler models.",
+                    bestFor: "Professional writing, basic creative projects, and moderate reasoning tasks."
+                },
+                {
+                    name: 'Claude 4',
+                    year: '2025',
+                    capabilities: { reasoning: 4, speed: 2, creativity: 4, knowledge: 'Mar 2025' },
+                    strengths: "Cutting-edge reasoning with exceptional creativity.",
+                    weaknesses: "May process requests slower for best accuracy.",
+                    bestFor: "Advanced creative projects, complex reasoning, and detailed writing."
+                }
             ]
         };
 
-        const assignedModel = this.config?.trueModel || 'gpt-4-turbo';
+        const assignedModel = this.config?.trueModel;
         const family = assignedModel.includes('claude') ? 'claude' : 'openai';
 
         return {
@@ -315,7 +341,7 @@ class ChatApp {
     }
 
     getAssignedModelIndex(models) {
-        const assignedName = this.config?.displayName || 'GPT-4';
+        const assignedName = this.config?.displayName;
         return Math.max(0, models.findIndex(m => m.name === assignedName) || 1);
     }
 
