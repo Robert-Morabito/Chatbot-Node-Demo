@@ -1,58 +1,67 @@
 /**
  * ===================================================================
- * CHATBOT INTERFACE - MAIN APPLICATION CLASS
+ * CHATBOT INTERFACE - MAIN APPLICATION
  * ===================================================================
  * 
- * A comprehensive chatbot interface for research studies featuring:
- * - Multi-task conversation management
+ * Comprehensive chatbot interface for research studies featuring:
+ * - Multi-task conversation management with session tracking
  * - Sophisticated welcome experience with model comparison
- * - Behavioral metrics tracking
- * - Session management and data persistence
- * - Responsive design and error handling
+ * - Real-time behavioral metrics collection
+ * - Data persistence and session management
+ * - Responsive design with error handling
+ * 
+ * Architecture:
+ * - Core App Management
+ * - Configuration & Session Management  
+ * - Welcome Experience Controller
+ * - Task & Conversation Management
+ * - Message & Chat Handling
+ * - UI & Behavior Tracking
+ * - Data Persistence & Error Handling
  */
 
 class ChatApp {
+    // ===================================================================
+    // CORE APPLICATION SETUP
+    // ===================================================================
+    
     constructor() {
-        // ===================================================================
-        // CORE PROPERTIES
-        // ===================================================================
+        // Core identifiers
         this.participantId = null;
         this.sessionId = null;
         this.configurationId = null;
 
-        // Task-based conversation storage
+        // Task management
+        this.taskSequence = ['image-generation', 'social-media', 'acronym-building'];
+        this.currentTaskIndex = 0;
+        this.completedTasks = [];
         this.taskConversations = {
             'image-generation': new Map(),
             'social-media': new Map(),
             'acronym-building': new Map()
         };
-        this.taskSequence = ['image-generation', 'social-media', 'acronym-building'];
-        this.currentTaskIndex = 0;
-        this.currentTask = this.taskSequence[0];
-        this.completedTasks = [];
 
+        // Conversation state
         this.currentConversationId = null;
         this.currentChatlog = [];
         this.msgWidgets = {};
-
-        // UI State
-        this.currentTheme = 'dark';
-        this.autoSaveTimeout = null;
         this.messageIdCounter = 0;
-        this.sessionStartTime = Date.now();
+
+        // UI state
+        this.currentTheme = 'dark';
         this.isFinishing = false;
 
-        // Welcome Experience State
-        this.currentStepIndex = 0;
-        this.maxSteps = 3;
-        this.isAnimationPlaying = false;
-        this.isTransitioning = false; // ADD: Prevent spam clicking
-        this.transitionTimeout = null; // ADD: Track active timeouts
-        this.readingDelay = 10; // ADD: 10 second delay
+        // Welcome experience state
+        this.welcomeState = {
+            currentStep: 0,
+            maxSteps: 3,
+            isAnimating: false,
+            isTransitioning: false,
+            transitionTimeout: null,
+            countdownInterval: null
+        };
 
-        // ===================================================================
-        // CONFIGURATION
-        // ===================================================================
+        // Configuration
         this.config = {
             givenModel: 'GPT-4',
             trueModel: 'gpt-4-turbo',
@@ -64,98 +73,42 @@ class ChatApp {
             'image-generation': {
                 name: 'Image Generation',
                 icon: '🎨',
-                shortName: 'Images',
                 description: 'Use this chat to generate images! Try typing "Make me an image of..."'
             },
             'social-media': {
-                name: 'Social Media Posts',
+                name: 'Social Media Posts', 
                 icon: '📱',
-                shortName: 'Social',
                 description: 'Use this chat to write a convincing outreach message!'
             },
             'acronym-building': {
                 name: 'Acronym Building',
-                icon: '🔤',
-                shortName: 'Acronyms',
+                icon: '🔤', 
                 description: 'Use this chat to create some funny acronyms!'
             }
         };
 
-        // ===================================================================
-        // BEHAVIOR TRACKING
-        // ===================================================================
-        this.behaviorMetrics = {
-            backspaceCount: 0,
-            messageLengths: [],
-            messageCount: 0,
-            conversationCount: 0,
-            editCount: 0,
-            editDistances: [],
-            idleStartTime: Date.now(),
-            totalIdleTime: 0,
-            messageTimes: [],
-            conversationSwitches: 0,
-            responseTimesAfterBot: [],
-            lastBotMessageTime: null,
-            lastUserActivity: Date.now(),
-            typingPatterns: {
-                totalKeystrokes: 0,
-                typingStartTime: null,
-                typingDurations: []
-            },
-            taskMetrics: {
-                'image-generation': { conversations: 0, messages: 0, timeSpent: 0 },
-                'social-media': { conversations: 0, messages: 0, timeSpent: 0 },
-                'acronym-building': { conversations: 0, messages: 0, timeSpent: 0 }
-            }
-        };
-
-        // Idle tracking configuration
-        this.idleThreshold = 5000;
-        this.idleCheckInterval = null;
-
-        // Session timer
-        this.sessionTimer = {
-            startTime: null,
-            intervalId: null,
-            isRunning: false
-        };
-
-        // Initialize the application
+        // Initialize application
         this.initializeApp();
     }
 
     // ===================================================================
-    // INITIALIZATION & CONFIGURATION
+    // CONFIGURATION & SESSION MANAGEMENT
     // ===================================================================
 
-    /**
-     * Initialize the complete application
-     */
     async initializeApp() {
-        // Show welcome experience immediately, load config in background
-        this.initializeWelcomeExperience();
         this.showWelcomeExperience();
-
-        // Load configuration in the background
+        
         try {
             await this.loadConfiguration();
-            console.log('✅ Configuration loaded:', this.config);
             this.setupReleaseHandler();
-
         } catch (error) {
-            console.error('❌ Failed to load configuration:', error);
+            console.error('Configuration loading failed:', error.message);
             this.setupReleaseHandler();
         }
     }
 
-    /**
-     * Load model configuration from server
-     */
     async loadConfiguration() {
         try {
-            console.log('🔄 Loading configuration...');
-
             const response = await fetch('/api/sessions/assign', {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
@@ -170,37 +123,29 @@ class ChatApp {
             if (data.success) {
                 this.sessionId = data.sessionId;
                 this.configurationId = data.configuration.id;
-
                 this.config = {
                     givenModel: data.configuration.displayedModel,
                     trueModel: data.configuration.actualModel,
                     displayName: data.configuration.displayedModel
                 };
-
-                console.log('🎯 Configuration loaded:', {
-                    displayed: this.config.givenModel,
-                    actual: this.config.trueModel,
-                    configId: this.configurationId
-                });
-
                 return true;
-            } else {
-                throw new Error('Failed to get configuration assignment');
             }
-        } catch (error) {
-            console.error('❌ Error loading configuration:', error);
 
+            throw new Error('Failed to get configuration assignment');
+
+        } catch (error) {
             // Fallback configuration
             this.sessionId = `fallback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
             this.configurationId = 1;
-            return false;
+            throw error;
         }
     }
 
-    /**
-     * Register session with participant ID
-     */
     async registerSession() {
+        if (!this.sessionId || !this.participantId || !this.configurationId) {
+            return;
+        }
+
         try {
             const response = await fetch('/api/sessions/register', {
                 method: 'POST',
@@ -213,693 +158,194 @@ class ChatApp {
             });
 
             if (!response.ok) {
-                console.warn('Failed to register session');
+                console.warn('Session registration failed');
             }
         } catch (error) {
-            console.warn('Session registration error:', error);
+            console.warn('Session registration error:', error.message);
         }
     }
 
-    /**
-     * Set up page close handler for cleanup
-     */
     setupReleaseHandler() {
-        window.addEventListener('beforeunload', (e) => this.onClose(e));
-        console.log('🔓 Release handler set up for config:', this.configurationId);
-    }
-
-    /**
-     * Initialize main app after welcome completion
-     */
-    async init() {
-        this.setupEventListeners();
-        this.updateBotName();
-        this.updateFinishButton();
-        this.createNewConversation();
-        this.setupTextareaAutoResize();
-        this.setupAdvancedAnimations();
-        this.startSessionTimer();
-        this.initializeBehaviorTracking();
-        this.setupFinishButton();
-        this.initializeModelComparisonHeader();
+        window.addEventListener('beforeunload', (e) => this.handlePageClose(e));
     }
 
     // ===================================================================
-    // WELCOME EXPERIENCE
+    // WELCOME EXPERIENCE CONTROLLER
     // ===================================================================
 
-    /**
-     * Get model comparison data based on assigned configuration
-     */
-    getModelComparisonData() {
-        const modelFamilies = {
-            'openai': [
-                {
-                    name: 'GPT-3.5',
-                    year: '2022',
-                    capabilities: {
-                        reasoning: 1,
-                        speed: 2,
-                        creativity: 2,
-                        knowledge: 'Sept 2021'
-                    },
-                    strengths: "Quick responses and good general knowledge for everyday tasks.",
-                    weaknesses: "Limited creativity and may struggle with complex reasoning tasks.",
-                    bestFor: "Quick questions, basic writing, and simple problem-solving tasks."
-                },
-                {
-                    name: 'GPT-4',
-                    year: '2023',
-                    capabilities: {
-                        reasoning: 2,
-                        speed: 3,
-                        creativity: 3,
-                        knowledge: 'Dec 2023'
-                    },
-                    strengths: "Good balance of creativity, accuracy, and professional communication.",
-                    weaknesses: "Slower response times compared to simpler models.",
-                    bestFor: "Professional writing, basic creative projects, and moderate reasoning tasks."
-                },
-                {
-                    name: 'GPT-5',
-                    year: '2025',
-                    capabilities: {
-                        reasoning: 4,
-                        speed: 3,
-                        creativity: 4,
-                        knowledge: 'Sept 2024'
-                    },
-                    strengths: "State of the art, exceptional reasoning abilities and highly creative problem-solving.",
-                    weaknesses: "May take more time to process requests to ensure the best accuracy.",
-                    bestFor: "Complex creative challenges, advanced reasoning, and innovative solutions."
-                }
-            ],
-            'claude': [
-                {
-                    name: 'Claude 3',
-                    year: '2024',
-                    capabilities: {
-                        reasoning: 1,
-                        speed: 3,
-                        creativity: 2,
-                        knowledge: 'Aug 2023'
-                    },
-                    strengths: "Fast responses with decent accuracy for routine tasks.",
-                    weaknesses: "Limited depth in creative and complex analytical tasks.",
-                    bestFor: "Quick tasks, basic writing assistance, and straightforward questions."
-                },
-                {
-                    name: 'Claude 3.5',
-                    year: '2024',
-                    capabilities: {
-                        reasoning: 2,
-                        speed: 3,
-                        creativity: 3,
-                        knowledge: 'July 2024'
-                    },
-                    strengths: "Good professional communication and analytical capabilities.",
-                    weaknesses: "Slower response times compared to simpler models.",
-                    bestFor: "Professional writing, basic creative projects, and moderate reasoning tasks."
-                },
-                {
-                    name: 'Claude 4',
-                    year: '2025',
-                    capabilities: {
-                        reasoning: 4,
-                        speed: 2,
-                        creativity: 4,
-                        knowledge: 'Mar 2025'
-                    },
-                    strengths: "Cutting-edge reasoning with exceptional creativity.",
-                    weaknesses: "May process requests slower for best accuracy.",
-                    bestFor: "Advanced creative projects, complex reasoning, and detailed writing."
-                }
-            ]
-        };
-
-        // Determine family based on assigned model
-        const assignedModel = this.config?.trueModel || 'gpt-4-turbo';
-        let family = 'openai';
-
-        if (assignedModel.includes('claude')) {
-            family = 'claude';
-        }
-
-        return {
-            family: family,
-            models: modelFamilies[family],
-            assignedIndex: this.getAssignedModelIndex(modelFamilies[family])
-        };
-    }
-
-    /**
-     * Get assigned model index from display name
-     */
-    getAssignedModelIndex(models) {
-        const assignedDisplayName = this.config?.displayName || 'GPT-4';
-
-        for (let i = 0; i < models.length; i++) {
-            if (models[i].name === assignedDisplayName) {
-                return i;
-            }
-        }
-
-        return 1; // Default to middle model
-    }
-
-    /**
-     * Initialize welcome experience
-     */
-    initializeWelcomeExperience() {
-        this.currentStepIndex = 0;
-        this.maxSteps = 3;
-        this.isAnimationPlaying = false;
-    }
-
-    /**
-     * Show welcome experience overlay
-     */
     showWelcomeExperience() {
         const experience = document.getElementById('welcome-experience');
         experience.style.display = 'block';
-
         requestAnimationFrame(() => {
             experience.classList.add('active');
             this.renderWelcomeStep(0);
         });
     }
 
-    /**
-     * Render specific welcome step
-     */
     renderWelcomeStep(stepIndex) {
-        this.clearActiveTransitions();
+        this.clearWelcomeTransitions();
+        this.welcomeState.currentStep = stepIndex;
+        this.updateWelcomeProgress();
 
-        if (this.transitionTimeout) {
-            clearTimeout(this.transitionTimeout);
-            this.transitionTimeout = null;
-        }
-        this.isTransitioning = false;
-
-        this.currentStepIndex = stepIndex;
-        this.updateProgressIndicator();
-
+        // Show appropriate panel
         const panels = document.querySelectorAll('.content-panel');
         panels.forEach((panel, index) => {
+            panel.classList.toggle('active', index === stepIndex);
+            
+            // Handle special step logic
             if (index === stepIndex) {
-                panel.classList.add('active');
-
-                // Special handling for step 2 (comparison animation)
-                if (stepIndex === 1) {
-                    this.startComparisonAnimation();
-                }
-
-                // Special handling for step 3 (prolific ID validation)
-                if (stepIndex === 2) {
-                    setTimeout(() => {
-                        this.setupProlificValidation();
-                    }, 100);
-                }
-            } else {
-                panel.classList.remove('active');
+                if (stepIndex === 1) this.startModelComparison();
+                if (stepIndex === 2) setTimeout(() => this.setupProlificValidation(), 100);
             }
         });
 
-        this.updateNavigationButtons();
+        this.updateWelcomeNavigation();
     }
 
-    /**
-     * Update progress indicator
-     */
-    updateProgressIndicator() {
-        const progress = ((this.currentStepIndex + 1) / this.maxSteps) * 100;
-        const indicator = document.getElementById('progress-indicator');
-        const currentStep = document.getElementById('current-step');
-
-        indicator.style.width = `${progress}%`;
-        currentStep.textContent = this.currentStepIndex + 1;
-    }
-
-    /**
-     * Update navigation buttons to hide popup when continuing
-     */
-    updateNavigationButtons() {
-        const continueBtn = document.getElementById('nav-continue');
-        const backBtn = document.getElementById('nav-back');
-
-        // Handle back button visibility
-        if (this.currentStepIndex > 0) {
-            backBtn.style.display = 'flex';
-            backBtn.onclick = () => {
-                // Clear any active countdowns/transitions
-                this.clearActiveTransitions();
-                this.renderWelcomeStep(this.currentStepIndex - 1);
-            };
-        } else {
-            backBtn.style.display = 'none';
-        }
-
-        // Check if we're transitioning
-        if (this.isTransitioning) {
-            continueBtn.style.opacity = '0.6';
-            continueBtn.disabled = true;
-            return;
-        }
-
-        // Check if we're on step 2 (index 1) and animation is playing
-        if (this.currentStepIndex === 1 && this.isAnimationPlaying) {
-            continueBtn.style.opacity = '0';
-            continueBtn.disabled = true;
-            return;
-        }
-
-        continueBtn.style.opacity = '1';
-        continueBtn.style.visibility = 'visible';
-        continueBtn.style.display = 'flex';
-        continueBtn.disabled = false;
-
-        // Special handler for step 2 (comparison step) - currentStepIndex === 1
-        if (this.currentStepIndex === 1) {
-            continueBtn.innerHTML = `
-            See Details
-            <svg class="nav-icon" viewBox="0 0 24 24">
-                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-            </svg>
-        `;
-
-            continueBtn.onclick = () => {
-                this.showCapabilityCardsSequence();
-            };
-            return;
-        }
-
-        // Regular continue button for other steps
-        if (this.currentStepIndex === 2) {
-            continueBtn.innerHTML = `
-            Start Study
-            <svg class="nav-icon" viewBox="0 0 24 24">
-                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-            </svg>
-        `;
-        } else {
-            continueBtn.innerHTML = `
-            Continue
-            <svg class="nav-icon" viewBox="0 0 24 24">
-                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-            </svg>
-        `;
-        }
-
-        // Enable regular progression for other steps
-        continueBtn.onclick = () => {
-            if (this.currentStepIndex < this.maxSteps - 1) {
-                this.renderWelcomeStep(this.currentStepIndex + 1);
-            } else if (this.currentStepIndex === 2) {
-                this.handleProlificSubmission();
-            }
-        };
-    }
-
-    /**
- * Clear all active transitions and timers
- */
-    clearActiveTransitions() {
-        if (this.transitionTimeout) {
-            clearTimeout(this.transitionTimeout);
-            this.transitionTimeout = null;
-        }
-        if (this.countdownInterval) {
-            clearInterval(this.countdownInterval);
-            this.countdownInterval = null;
-        }
-        this.isTransitioning = false;
-    }
-
-    showCapabilityCardsSequence() {
-        // Prevent multiple simultaneous executions
-        if (this.isTransitioning) {
-            console.log('⚠️ Already transitioning, ignoring click');
-            return;
-        }
-
-        this.isTransitioning = true;
-
-        // Clear any existing timeouts/intervals
-        if (this.transitionTimeout) {
-            clearTimeout(this.transitionTimeout);
-            this.transitionTimeout = null;
-        }
-        if (this.countdownInterval) {
-            clearInterval(this.countdownInterval);
-            this.countdownInterval = null;
-        }
-
-        const comparisonContainer = document.querySelector('.comparison-container');
-        const modelContainer = document.getElementById('model-comparison-container');
-        const cardsWrapper = document.getElementById('capability-cards-wrapper');
-        const continueBtn = document.getElementById('nav-continue');
-
-        // Disable button during transition
-        continueBtn.disabled = true;
-        continueBtn.style.opacity = '0.6';
-
-        // Add showing-cards class and shrink models
-        comparisonContainer.classList.add('showing-cards');
-        modelContainer.classList.add('compact');
-
-        // Show capability cards after animation
-        setTimeout(() => {
-            if (cardsWrapper) {
-                this.positionCapabilityCards(cardsWrapper);
-                cardsWrapper.classList.add('show');
-            }
-
-            // Set final timeout for button update with reading delay
-            this.transitionTimeout = setTimeout(() => {
-                // Only update if we're still on step 1 (comparison step)
-                if (this.currentStepIndex === 1) {
-                    // Start 10-second countdown
-                    this.startReadingCountdown();
-                } else {
-                    // Clear transition state if we've moved on
-                    this.isTransitioning = false;
-                    this.transitionTimeout = null;
-                }
-            }, 500);
-        }, 500);
-    }
-
-    /**
- * Start 10-second reading countdown before enabling continue
- */
-    startReadingCountdown() {
-        const continueBtn = document.getElementById('nav-continue');
-        let timeLeft = this.readingDelay;
-
-        // Update button to show countdown
-        const updateCountdownButton = () => {
-            if (timeLeft > 0) {
-                continueBtn.innerHTML = `
-                Please read...
-            `;
-                continueBtn.disabled = true;
-                continueBtn.style.opacity = '0.6';
-            } else {
-                // Enable the button after countdown
-                continueBtn.innerHTML = `
-                Continue to ID Entry
-                <svg class="nav-icon" viewBox="0 0 24 24">
-                    <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-                </svg>
-            `;
-                continueBtn.onclick = () => {
-                    this.renderWelcomeStep(this.currentStepIndex + 1);
-                };
-                continueBtn.disabled = false;
-                continueBtn.style.opacity = '1';
-
-                // Clear intervals and transition state
-                if (this.countdownInterval) {
-                    clearInterval(this.countdownInterval);
-                    this.countdownInterval = null;
-                }
-                this.isTransitioning = false;
-
-                console.log('✅ Reading countdown completed, button enabled');
-            }
-        };
-
-        // Initial update
-        updateCountdownButton();
-
-        // Start countdown interval
-        this.countdownInterval = setInterval(() => {
-            timeLeft--;
-            updateCountdownButton();
-
-            if (timeLeft <= 0) {
-                clearInterval(this.countdownInterval);
-                this.countdownInterval = null;
-            }
-        }, 1000);
-    }
-
-    /**
- * Position capability cards under the assigned model
- */
-    positionCapabilityCards(cardsWrapper) {
+    startModelComparison() {
+        this.welcomeState.isAnimating = true;
         const comparisonData = this.getModelComparisonData();
-        const assignedIndex = comparisonData.assignedIndex;
-        const modelCards = document.querySelectorAll('.model-card');
-        const modelContainer = document.getElementById('model-comparison-container');
-
-        if (modelCards[assignedIndex] && modelContainer) {
-            const assignedCard = modelCards[assignedIndex];
-            const containerRect = modelContainer.getBoundingClientRect();
-            const cardRect = assignedCard.getBoundingClientRect();
-
-            // Calculate the center position of the assigned card relative to the container
-            const cardCenterX = cardRect.left - containerRect.left + (cardRect.width / 2);
-            const containerCenterX = containerRect.width / 2;
-
-            // Calculate offset needed to center cards under assigned model
-            const offsetX = cardCenterX - containerCenterX;
-
-            // Apply the offset
-            cardsWrapper.style.transform = `translateX(${offsetX}px)`;
-
-            console.log('📍 Positioned capability cards under model:', assignedIndex, 'offset:', offsetX);
-        }
-    }
-
-    /**
-     * Start model comparison animation sequence
-     */
-    startComparisonAnimation() {
-        this.isAnimationPlaying = true;
-        const comparisonData = this.getModelComparisonData();
-
+        
         this.populateModelComparison(comparisonData);
-        this.runAnimationSequence(comparisonData);
+        this.runComparisonAnimation(comparisonData);
     }
 
-    /**
-     * Populate model comparison cards with data
-     */
+    getModelComparisonData() {
+        const modelFamilies = {
+            'openai': [
+                { name: 'GPT-3.5', year: '2022', capabilities: { reasoning: 1, speed: 2, creativity: 2, knowledge: 'Sept 2021' } },
+                { name: 'GPT-4', year: '2023', capabilities: { reasoning: 2, speed: 3, creativity: 3, knowledge: 'Dec 2023' } },
+                { name: 'GPT-5', year: '2025', capabilities: { reasoning: 4, speed: 3, creativity: 4, knowledge: 'Sept 2024' } }
+            ],
+            'claude': [
+                { name: 'Claude 3', year: '2024', capabilities: { reasoning: 1, speed: 3, creativity: 2, knowledge: 'Aug 2023' } },
+                { name: 'Claude 3.5', year: '2024', capabilities: { reasoning: 2, speed: 3, creativity: 3, knowledge: 'July 2024' } },
+                { name: 'Claude 4', year: '2025', capabilities: { reasoning: 4, speed: 2, creativity: 4, knowledge: 'Mar 2025' } }
+            ]
+        };
+
+        const assignedModel = this.config?.trueModel || 'gpt-4-turbo';
+        const family = assignedModel.includes('claude') ? 'claude' : 'openai';
+        
+        return {
+            family,
+            models: modelFamilies[family],
+            assignedIndex: this.getAssignedModelIndex(modelFamilies[family])
+        };
+    }
+
+    getAssignedModelIndex(models) {
+        const assignedName = this.config?.displayName || 'GPT-4';
+        return Math.max(0, models.findIndex(m => m.name === assignedName) || 1);
+    }
+
     populateModelComparison(comparisonData) {
         const { models, assignedIndex } = comparisonData;
 
-        // Populate headers
+        // Populate model cards
         models.forEach((model, index) => {
-            const nameEl = document.getElementById(`model-name-card-${index}`);
-            const yearEl = document.getElementById(`model-year-card-${index}`);
-
-            if (nameEl) nameEl.textContent = model.name;
-            if (yearEl) yearEl.textContent = model.year;
+            this.populateModelCard(model, index);
+            this.populateCapabilityIcons(model, index);
         });
 
-        // Populate capability icons in each card with proper lit/unlit states
-        document.querySelectorAll('.model-card').forEach((card, modelIndex) => {
-            const model = models[modelIndex];
-
-            // Populate reasoning icons (always show 4 total, some lit based on capability)
-            const reasoningContainer = card.querySelector('[data-capability="reasoning"] .capability-icons-inline');
-            if (reasoningContainer) {
-                reasoningContainer.innerHTML = '';
-                for (let i = 0; i < 4; i++) { // Always show 4 bulbs total
-                    const icon = document.createElement('span');
-                    icon.className = 'capability-icon-item-inline bulb';
-                    if (i < model.capabilities.reasoning) {
-                        // This bulb should be lit
-                        icon.classList.add('lit');
-                    }
-                    icon.textContent = '💡';
-                    icon.style.animationDelay = `${i * 100}ms`;
-                    reasoningContainer.appendChild(icon);
-                }
-            }
-
-            // Populate speed icons (always show 4 total, some lit based on capability)  
-            const speedContainer = card.querySelector('[data-capability="speed"] .capability-icons-inline');
-            if (speedContainer) {
-                speedContainer.innerHTML = '';
-                for (let i = 0; i < 4; i++) { // Always show 4 bolts total
-                    const icon = document.createElement('span');
-                    icon.className = 'capability-icon-item-inline bolt';
-                    if (i < model.capabilities.speed) {
-                        // This bolt should be lit
-                        icon.classList.add('lit');
-                    }
-                    icon.textContent = '⚡';
-                    icon.style.animationDelay = `${i * 100}ms`;
-                    speedContainer.appendChild(icon);
-                }
-            }
-
-            // Populate creativity icons (always show 4 total, some lit based on capability)  
-            const creativityContainer = card.querySelector('[data-capability="creativity"] .capability-icons-inline');
-            if (creativityContainer) {
-                creativityContainer.innerHTML = '';
-                for (let i = 0; i < 4; i++) { // Always show 4 brushes total
-                    const icon = document.createElement('span');
-                    icon.className = 'capability-icon-item-inline brush';
-                    if (i < model.capabilities.creativity) {
-                        // This brush should be lit
-                        icon.classList.add('lit');
-                    }
-                    icon.textContent = '🎨';
-                    icon.style.animationDelay = `${i * 100}ms`;
-                    creativityContainer.appendChild(icon);
-                }
-            }
-
-            // Populate knowledge date
-            const knowledgeEl = card.querySelector('.knowledge-date-inline');
-            if (knowledgeEl) {
-                knowledgeEl.textContent = model.capabilities.knowledge;
-            }
-        });
-
+        // Update capability details for assigned model
         const assignedModel = models[assignedIndex];
-        const strengthEl = document.getElementById('strength-text');
-        const weaknessEl = document.getElementById('weakness-text');
-        const useCaseEl = document.getElementById('usecase-text');
-
-        if (strengthEl) strengthEl.textContent = assignedModel.strengths;
-        if (weaknessEl) weaknessEl.textContent = assignedModel.weaknesses;
-        if (useCaseEl) useCaseEl.textContent = assignedModel.bestFor;
-
-        // Update the capability cards header with the assigned model name
-        const modelNameEl = document.getElementById('capability-model-name');
-        if (modelNameEl) {
-            modelNameEl.textContent = assignedModel.name;
-        }
+        this.updateCapabilityDetails(assignedModel);
+        this.initializeModelComparisonHeader(comparisonData);
     }
 
-    /**
-     * Format number as ordinal (1st, 2nd, 3rd, etc.)
-     */
-    formatOrdinal(num) {
-        const suffixes = ["th", "st", "nd", "rd"];
-        const v = num % 100;
-        return num + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
+    populateModelCard(model, index) {
+        const nameEl = document.getElementById(`model-name-card-${index}`);
+        const yearEl = document.getElementById(`model-year-card-${index}`);
+        
+        if (nameEl) nameEl.textContent = model.name;
+        if (yearEl) yearEl.textContent = model.year;
     }
 
-    /**
-     * Animate capability icons with staggered timing
-     */
-    animateCapabilityIcons() {
-        const capabilityRows = document.querySelectorAll('.capability-row');
+    populateCapabilityIcons(model, cardIndex) {
+        const card = document.querySelector(`.model-card[data-model="${cardIndex}"]`);
+        if (!card) return;
 
-        capabilityRows.forEach((row, rowIndex) => {
-            const delay = rowIndex * 2000;
+        const capabilityTypes = ['reasoning', 'speed', 'creativity'];
+        const iconTypes = ['bulb', 'bolt', 'brush'];
 
-            setTimeout(() => {
-                const iconGroups = row.querySelectorAll('.capability-icons-group');
-                iconGroups.forEach((group, groupIndex) => {
-                    const groupDelay = groupIndex * 200;
+        capabilityTypes.forEach((capability, typeIndex) => {
+            const container = card.querySelector(`[data-capability="${capability}"] .capability-icons-inline`);
+            if (!container) return;
 
-                    setTimeout(() => {
-                        const icons = group.querySelectorAll('.capability-icon-item');
-                        icons.forEach((icon, iconIndex) => {
-                            const iconDelay = iconIndex * 300;
-
-                            setTimeout(() => {
-                                icon.classList.add('lit');
-                            }, iconDelay);
-                        });
-                    }, groupDelay);
-                });
-
-                // Animate knowledge dates for knowledge row
-                if (row.dataset.capability === 'knowledge') {
-                    const knowledgeDates = row.querySelectorAll('.knowledge-date');
-                    knowledgeDates.forEach((date, dateIndex) => {
-                        const dateDelay = dateIndex * 200;
-                        setTimeout(() => {
-                            date.classList.add('show');
-                        }, dateDelay);
-                    });
-                }
-            }, delay);
-        });
-    }
-
-    /**
-     * Run the complete animation sequence
-     */
-    runAnimationSequence(comparisonData) {
-        this.isAnimationPlaying = true;
-        const { assignedIndex } = comparisonData;
-
-        const timeline = [
-            // 0-1s: Cards appear
-            () => {
-                const container = document.getElementById('model-comparison-container');
-                container.style.animation = 'fadeInUp 2s ease-out forwards';
-            },
-
-            // 1-4s: Animate capabilities in each card
-            () => this.animateCardCapabilities(),
-
-            // 4.5s: Highlight assigned model
-            () => this.highlightAssignedModel(assignedIndex),
-
-            // 5s: Show popup and enable continue button
-            () => {
-                this.showAssignmentPopup(assignedIndex);
-                this.isAnimationPlaying = false;
-                this.updateNavigationButtons();
+            container.innerHTML = '';
+            const iconType = iconTypes[typeIndex];
+            const iconEmoji = { bulb: '💡', bolt: '⚡', brush: '🎨' }[iconType];
+            
+            for (let i = 0; i < 4; i++) {
+                const icon = document.createElement('span');
+                icon.className = `capability-icon-item-inline ${iconType}`;
+                if (i < model.capabilities[capability]) icon.classList.add('lit');
+                icon.textContent = iconEmoji;
+                icon.style.animationDelay = `${i * 100}ms`;
+                container.appendChild(icon);
             }
-        ];
+        });
 
-        const delays = [0, 1000, 4500, 5000];
+        // Update knowledge date
+        const knowledgeEl = card.querySelector('.knowledge-date-inline');
+        if (knowledgeEl) knowledgeEl.textContent = model.capabilities.knowledge;
+    }
 
-        timeline.forEach((action, index) => {
-            setTimeout(action, delays[index]);
+    updateCapabilityDetails(model) {
+        const elements = {
+            'strength-text': model.strengths || "Excellent capabilities for various tasks.",
+            'weakness-text': model.weaknesses || "May have slower response times for complex requests.", 
+            'usecase-text': model.bestFor || "General purpose conversations and task completion.",
+            'capability-model-name': model.name
+        };
+
+        Object.entries(elements).forEach(([id, text]) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = text;
         });
     }
 
-    /**
-     * Animate capabilities within each card
-     */
+    runComparisonAnimation(comparisonData) {
+        const { assignedIndex } = comparisonData;
+        const timeline = [
+            () => this.animateModelCards(),
+            () => this.animateCardCapabilities(), 
+            () => this.highlightAssignedModel(assignedIndex),
+            () => this.showAssignmentPopup(assignedIndex)
+        ];
+        
+        const delays = [0, 1000, 4500, 5000];
+        timeline.forEach((action, i) => setTimeout(action, delays[i]));
+    }
+
+    animateModelCards() {
+        const container = document.getElementById('model-comparison-container');
+        if (container) container.style.animation = 'fadeInUp 2s ease-out forwards';
+    }
+
     animateCardCapabilities() {
         document.querySelectorAll('.model-card').forEach((card, cardIndex) => {
-            const baseDelay = cardIndex * 200; // Stagger between cards
-
-            // Animate capability items
+            const baseDelay = cardIndex * 200;
+            
             card.querySelectorAll('.capability-item').forEach((item, itemIndex) => {
-                const itemDelay = baseDelay + (itemIndex * 300);
-
                 setTimeout(() => {
                     item.classList.add('show');
-
-                    // Animate only the lit icons within the item
+                    
                     const litIcons = item.querySelectorAll('.capability-icon-item-inline.lit');
                     litIcons.forEach((icon, iconIndex) => {
-                        setTimeout(() => {
-                            // Add a special animation class for the lit icons
-                            icon.classList.add('animate-in');
-                        }, iconIndex * 150);
+                        setTimeout(() => icon.classList.add('animate-in'), iconIndex * 150);
                     });
-                }, itemDelay);
+                }, baseDelay + (itemIndex * 300));
             });
         });
     }
 
-    /**
-     * Highlight the assigned model
-     */
     highlightAssignedModel(assignedIndex) {
         const modelCard = document.querySelector(`.model-card[data-model="${assignedIndex}"]`);
-        if (modelCard) {
-            modelCard.classList.add('highlighted');
-        }
+        if (modelCard) modelCard.classList.add('highlighted');
     }
 
-    /**
-     * Show assignment popup above the assigned model (persistent)
-     */
     showAssignmentPopup(assignedIndex) {
         const popup = document.getElementById('assignment-popup');
         const assignedCard = document.querySelector(`.model-card[data-model="${assignedIndex}"]`);
@@ -907,33 +353,92 @@ class ChatApp {
         if (popup && assignedCard) {
             const rect = assignedCard.getBoundingClientRect();
             const containerRect = document.querySelector('.comparison-container').getBoundingClientRect();
-
             popup.style.left = `${rect.left - containerRect.left + (rect.width / 2)}px`;
             popup.classList.add('show', 'persistent');
         }
+
+        this.welcomeState.isAnimating = false;
+        this.updateWelcomeNavigation();
     }
 
-    /**
-     * Show capability cards and header
-     */
-    showCapabilityCards() {
-        const header = document.getElementById('capability-cards-header');
-        const cards = document.getElementById('capability-cards');
+    showCapabilityCardsSequence() {
+        if (this.welcomeState.isTransitioning) return;
+        
+        this.welcomeState.isTransitioning = true;
+        this.clearWelcomeTransitions();
 
-        if (header) {
-            header.classList.add('show');
-        }
+        const elements = {
+            container: document.querySelector('.comparison-container'),
+            modelContainer: document.getElementById('model-comparison-container'),
+            cardsWrapper: document.getElementById('capability-cards-wrapper')
+        };
 
-        if (cards) {
-            setTimeout(() => {
-                cards.classList.add('show');
-            }, 300);
-        }
+        // Shrink models and show cards
+        elements.container.classList.add('showing-cards');
+        elements.modelContainer.classList.add('compact');
+
+        setTimeout(() => {
+            if (elements.cardsWrapper) {
+                this.positionCapabilityCards(elements.cardsWrapper);
+                elements.cardsWrapper.classList.add('show');
+            }
+            this.startReadingCountdown();
+        }, 500);
     }
 
-    /**
-     * Set up Prolific ID validation
-     */
+    positionCapabilityCards(cardsWrapper) {
+        const comparisonData = this.getModelComparisonData();
+        const modelCards = document.querySelectorAll('.model-card');
+        const modelContainer = document.getElementById('model-comparison-container');
+        
+        if (!modelCards[comparisonData.assignedIndex] || !modelContainer) return;
+
+        const assignedCard = modelCards[comparisonData.assignedIndex];
+        const containerRect = modelContainer.getBoundingClientRect();
+        const cardRect = assignedCard.getBoundingClientRect();
+        
+        const cardCenterX = cardRect.left - containerRect.left + (cardRect.width / 2);
+        const containerCenterX = containerRect.width / 2;
+        const offsetX = cardCenterX - containerCenterX;
+        
+        cardsWrapper.style.transform = `translateX(${offsetX}px)`;
+    }
+
+    startReadingCountdown() {
+        const continueBtn = document.getElementById('nav-continue');
+        let timeLeft = 10; // 10 second delay
+        
+        const updateButton = () => {
+            if (timeLeft > 0) {
+                continueBtn.innerHTML = 'Please read...';
+                continueBtn.disabled = true;
+                continueBtn.style.opacity = '0.6';
+            } else {
+                continueBtn.innerHTML = `
+                    Continue to ID Entry
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                    </svg>
+                `;
+                continueBtn.onclick = () => this.renderWelcomeStep(2);
+                continueBtn.disabled = false;
+                continueBtn.style.opacity = '1';
+                
+                this.clearWelcomeTransitions();
+            }
+        };
+
+        updateButton();
+        this.welcomeState.countdownInterval = setInterval(() => {
+            timeLeft--;
+            updateButton();
+            if (timeLeft <= 0) {
+                clearInterval(this.welcomeState.countdownInterval);
+                this.welcomeState.countdownInterval = null;
+            }
+        }, 1000);
+    }
+
     setupProlificValidation() {
         const input = document.getElementById('prolific-input');
         const continueBtn = document.getElementById('nav-continue');
@@ -972,9 +477,6 @@ class ChatApp {
         validateInput();
     }
 
-    /**
-     * Handle Prolific ID submission
-     */
     async handleProlificSubmission() {
         const input = document.getElementById('prolific-input');
         const prolificId = input.value.trim();
@@ -983,209 +485,189 @@ class ChatApp {
 
         const continueBtn = document.getElementById('nav-continue');
         const originalContent = continueBtn.innerHTML;
-        continueBtn.innerHTML = `
-            <div class="loading-dots">
-                <div class="loading-dot"></div>
-                <div class="loading-dot"></div>
-                <div class="loading-dot"></div>
-            </div>
-            Starting...
-        `;
+        continueBtn.innerHTML = 'Starting...';
         continueBtn.disabled = true;
 
         this.participantId = prolificId;
 
         try {
             await this.registerSession();
-
-            setTimeout(() => {
-                this.hideWelcomeExperience();
-            }, 800);
-
+            setTimeout(() => this.hideWelcomeExperience(), 800);
         } catch (error) {
-            console.error('Session registration failed:', error);
+            console.error('Session registration failed:', error.message);
             continueBtn.innerHTML = originalContent;
             continueBtn.disabled = false;
         }
     }
 
-    /**
-     * Hide welcome experience and start main app
-     */
+    updateWelcomeProgress() {
+        const progress = ((this.welcomeState.currentStep + 1) / this.welcomeState.maxSteps) * 100;
+        const indicator = document.getElementById('progress-indicator');
+        const currentStep = document.getElementById('current-step');
+
+        if (indicator) indicator.style.width = `${progress}%`;
+        if (currentStep) currentStep.textContent = this.welcomeState.currentStep + 1;
+    }
+
+    updateWelcomeNavigation() {
+        const continueBtn = document.getElementById('nav-continue');
+        const backBtn = document.getElementById('nav-back');
+
+        // Handle back button
+        backBtn.style.display = this.welcomeState.currentStep > 0 ? 'flex' : 'none';
+        if (this.welcomeState.currentStep > 0) {
+            backBtn.onclick = () => this.renderWelcomeStep(this.welcomeState.currentStep - 1);
+        }
+
+        // Handle continue button
+        if (this.welcomeState.isTransitioning || 
+            (this.welcomeState.currentStep === 1 && this.welcomeState.isAnimating)) {
+            continueBtn.style.opacity = '0.6';
+            continueBtn.disabled = true;
+            return;
+        }
+
+        continueBtn.style.opacity = '1';
+        continueBtn.disabled = false;
+
+        // Set button content and action based on step
+        if (this.welcomeState.currentStep === 1) {
+            continueBtn.innerHTML = 'See Details <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
+            continueBtn.onclick = () => this.showCapabilityCardsSequence();
+        } else if (this.welcomeState.currentStep === 2) {
+            continueBtn.innerHTML = 'Start Study <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
+            continueBtn.onclick = () => this.handleProlificSubmission();
+        } else {
+            continueBtn.innerHTML = 'Continue <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
+            continueBtn.onclick = () => this.renderWelcomeStep(this.welcomeState.currentStep + 1);
+        }
+    }
+
+    clearWelcomeTransitions() {
+        if (this.welcomeState.transitionTimeout) {
+            clearTimeout(this.welcomeState.transitionTimeout);
+            this.welcomeState.transitionTimeout = null;
+        }
+        if (this.welcomeState.countdownInterval) {
+            clearInterval(this.welcomeState.countdownInterval);
+            this.welcomeState.countdownInterval = null;
+        }
+        this.welcomeState.isTransitioning = false;
+    }
+
     hideWelcomeExperience() {
         const experience = document.getElementById('welcome-experience');
         experience.classList.remove('active');
 
         setTimeout(() => {
             experience.style.display = 'none';
-            const appContainer = document.querySelector('.app-container');
-            appContainer.classList.add('ready');
-            this.init();
+            document.querySelector('.app-container').classList.add('ready');
+            this.initializeMainApp();
         }, 600);
     }
 
     // ===================================================================
-    // TASK AND CONVERSATION MANAGEMENT
+    // MAIN APPLICATION INITIALIZATION
     // ===================================================================
 
-    /**
-     * Get current task configuration
-     */
+    async initializeMainApp() {
+        this.setupEventListeners();
+        this.updateUI();
+        this.createNewConversation();
+        this.setupTextareaAutoResize();
+        this.startSessionTimer();
+        this.initializeBehaviorTracking();
+    }
+
+    updateUI() {
+        this.updateBotName();
+        this.updateFinishButton();
+        this.initializeModelComparisonHeader();
+    }
+
+    updateBotName() {
+        const elements = {
+            'bot-name': `Currently Chatting with ${this.config.displayName}`,
+            'header-participant-id': this.participantId,
+            'welcome-model-name': this.config.displayName
+        };
+
+        Object.entries(elements).forEach(([id, text]) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = text;
+        });
+
+        document.title = `${this.config.displayName} - Study ${this.participantId}`;
+    }
+
+    initializeModelComparisonHeader() {
+        const comparisonData = this.getModelComparisonData();
+        const { models, assignedIndex } = comparisonData;
+
+        models.forEach((model, index) => {
+            this.populateHeaderModelCard(model, index);
+            this.populateHeaderCapabilities(model, index);
+            
+            // Mark current model
+            const card = document.querySelector(`.mini-model-card[data-model="${index}"]`);
+            if (card && index === assignedIndex) {
+                card.classList.add('current');
+            }
+        });
+    }
+
+    populateHeaderModelCard(model, index) {
+        const nameEl = document.getElementById(`mini-model-name-${index}`);
+        const yearEl = document.getElementById(`mini-model-year-${index}`);
+        const knowledgeEl = document.getElementById(`mini-knowledge-${index}`);
+
+        if (nameEl) nameEl.textContent = model.name;
+        if (yearEl) yearEl.textContent = model.year;
+        if (knowledgeEl) knowledgeEl.textContent = model.capabilities.knowledge;
+    }
+
+    populateHeaderCapabilities(model, index) {
+        const card = document.querySelector(`.mini-model-card[data-model="${index}"]`);
+        if (!card) return;
+
+        const capabilityTypes = ['reasoning', 'speed', 'creativity'];
+        const iconTypes = ['bulb', 'bolt', 'brush'];
+        const iconEmojis = { bulb: '💡', bolt: '⚡', brush: '🎨' };
+
+        capabilityTypes.forEach((capability, typeIndex) => {
+            const container = card.querySelector(`[data-capability="${capability}"]`);
+            if (!container) return;
+
+            container.innerHTML = '';
+            const iconType = iconTypes[typeIndex];
+            
+            for (let i = 0; i < 4; i++) {
+                const icon = document.createElement('span');
+                icon.className = `mini-capability-icon ${iconType}`;
+                if (i < model.capabilities[capability]) icon.classList.add('lit');
+                icon.textContent = iconEmojis[iconType];
+                container.appendChild(icon);
+            }
+        });
+    }
+
+    // ===================================================================
+    // TASK & CONVERSATION MANAGEMENT  
+    // ===================================================================
+
+    get currentTask() {
+        return this.taskSequence[this.currentTaskIndex];
+    }
+
     getCurrentTaskConfig() {
         return this.taskConfig[this.currentTask];
     }
 
-    /**
-     * Check if this is the final task
-     */
     isFinalTask() {
         return this.currentTaskIndex >= this.taskSequence.length - 1;
     }
 
-    /**
-     * Get next task in sequence
-     */
-    getNextTask() {
-        const nextIndex = this.currentTaskIndex + 1;
-        return nextIndex < this.taskSequence.length ? this.taskSequence[nextIndex] : null;
-    }
-
-    /**
-     * Progress to next task
-     */
-    async progressToNextTask() {
-        // Mark current task as completed
-        this.completedTasks.push(this.currentTask);
-
-        // Move to next task
-        this.currentTaskIndex++;
-        if (this.currentTaskIndex < this.taskSequence.length) {
-            this.currentTask = this.taskSequence[this.currentTaskIndex];
-
-            // Reset conversation state for new task
-            this.currentConversationId = null;
-            this.currentChatlog = [];
-
-            // Update UI for new task
-            this.updateFinishButton();
-
-            // AUTO-CREATE new chat for the new task (ADD this line)
-            this.createNewConversation();
-        }
-    }
-
-    /**
-     * Handle task completion
-     */
-    async handleTaskCompletion() {
-        const taskConfig = this.getCurrentTaskConfig();
-        const isLastTask = this.isFinalTask();
-
-        // Show confirmation dialog
-        const confirmed = await this.showTaskCompletionDialog(taskConfig.name, isLastTask);
-        if (!confirmed) return;
-
-        try {
-            // Save current task's conversations
-            await this.saveCurrentTaskData();
-
-            if (isLastTask) {
-                // This is the final task - complete the study
-                await this.completeEntireStudy();
-            } else {
-                // Progress to next task
-                await this.progressToNextTask();
-            }
-
-        } catch (error) {
-            console.error('❌ Task completion error:', error);
-            alert('Error completing task. Please try again.');
-        }
-    }
-
-    /**
-     * Show task completion confirmation dialog
-     */
-    showTaskCompletionDialog(taskName, isLastTask) {
-        return new Promise((resolve) => {
-            const modal = document.getElementById('finish-confirmation-modal');
-            const titleEl = modal.querySelector('h3');
-            const bodyEl = modal.querySelector('p');
-
-            if (isLastTask) {
-                titleEl.textContent = 'Complete Study';
-                bodyEl.textContent = `You are about to complete the final task (${taskName}) and finish the entire study. This will download your data and close the interface. Please make sure you have finished everything before continuing.`;
-            } else {
-                titleEl.textContent = `Complete ${taskName} Task?`;
-                bodyEl.textContent = `Continuting will finish the ${taskName} task and move to the next task. You won't be able to return.`;
-            }
-
-            modal.style.display = 'flex';
-            this.taskCompletionResolve = resolve;
-        });
-    }
-
-    /**
-     * Hide task completion dialog
-     */
-    hideTaskCompletionDialog(confirmed) {
-        const modal = document.getElementById('finish-confirmation-modal');
-        modal.style.display = 'none';
-
-        if (this.taskCompletionResolve) {
-            this.taskCompletionResolve(confirmed);
-            this.taskCompletionResolve = null;
-        }
-    }
-
-    /**
-     * Save current task's conversation data
-     */
-    async saveCurrentTaskData() {
-        // Save current conversation if any
-        if (this.currentConversationId) {
-            const taskConversations = this.taskConversations[this.currentTask];
-            const currentConv = taskConversations.get(this.currentConversationId);
-            if (currentConv) {
-                currentConv.messages = [...this.currentChatlog];
-                currentConv.lastMessageAt = new Date();
-            }
-        }
-    }
-
-    /**
-     * Update finish button based on current task
-     */
-    updateFinishButton() {
-        const finishBtn = document.getElementById('finish-btn');
-        if (!finishBtn) return;
-
-        finishBtn.classList.add('has-custom-content');
-
-        const isLastTask = this.isFinalTask();
-
-        if (isLastTask) {
-            finishBtn.innerHTML = '🏁 Finish Study';
-            finishBtn.title = 'Complete study and download data';
-            finishBtn.classList.add('final-task'); // ADD: red styling for final task
-        } else {
-            const nextTask = this.getNextTask();
-            const nextTaskConfig = nextTask ? this.taskConfig[nextTask] : null;
-            finishBtn.innerHTML = `📋 Complete Task`;
-            finishBtn.title = nextTaskConfig ?
-                `Finish current task and move to ${nextTaskConfig.name}` :
-                'Complete current task';
-            finishBtn.classList.remove('final-task'); // ADD: ensure blue styling for tasks
-        }
-    }
-
-    /**
-     * Create new conversation for current task
-     */
     createNewConversation() {
-        this.behaviorMetrics.conversationCount++;
-        this.behaviorMetrics.taskMetrics[this.currentTask].conversations++;
-
         const conversationId = `${this.currentTask}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const conversation = {
             id: conversationId,
@@ -1194,7 +676,6 @@ class ChatApp {
             messages: [],
             createdAt: new Date(),
             lastMessageAt: new Date(),
-            // Initialize empty image context for new conversation
             imageContext: {
                 lastPrompt: null,
                 lastImageUrl: null,
@@ -1206,38 +687,27 @@ class ChatApp {
         this.switchToConversation(conversationId);
         this.updateConversationList();
         this.showWelcomeMessage();
+        
+        // Update behavior metrics
+        this.behaviorMetrics.conversationCount++;
+        this.behaviorMetrics.taskMetrics[this.currentTask].conversations++;
     }
 
-    /**
-     * Switch to specific conversation
-     */
     switchToConversation(conversationId) {
         if (this.currentConversationId && this.currentConversationId !== conversationId) {
             this.behaviorMetrics.conversationSwitches++;
         }
 
-        // Save current conversation state INCLUDING image context
-        if (this.currentConversationId) {
-            const currentTaskConversations = this.taskConversations[this.currentTask];
-            const currentConv = currentTaskConversations.get(this.currentConversationId);
-            if (currentConv) {
-                currentConv.messages = [...this.currentChatlog];
-                // Save image context per conversation
-                currentConv.imageContext = {
-                    lastPrompt: this.imageContext?.lastPrompt || null,
-                    lastImageUrl: this.imageContext?.lastImageUrl || null,
-                    conversationHasImage: this.imageContext?.conversationHasImage || false
-                };
-            }
-        }
+        // Save current conversation state
+        this.saveCurrentConversationState();
 
+        // Switch to new conversation
         this.currentConversationId = conversationId;
         const taskConversations = this.taskConversations[this.currentTask];
         const conversation = taskConversations.get(conversationId);
 
         if (conversation) {
             this.currentChatlog = [...conversation.messages];
-            // Restore image context for this conversation
             this.imageContext = conversation.imageContext || {
                 lastPrompt: null,
                 lastImageUrl: null,
@@ -1248,10 +718,22 @@ class ChatApp {
         }
     }
 
+    saveCurrentConversationState() {
+        if (!this.currentConversationId) return;
 
-    /**
-     * Render current conversation
-     */
+        const taskConversations = this.taskConversations[this.currentTask];
+        const currentConv = taskConversations.get(this.currentConversationId);
+        
+        if (currentConv) {
+            currentConv.messages = [...this.currentChatlog];
+            currentConv.imageContext = {
+                lastPrompt: this.imageContext?.lastPrompt || null,
+                lastImageUrl: this.imageContext?.lastImageUrl || null,
+                conversationHasImage: this.imageContext?.conversationHasImage || false
+            };
+        }
+    }
+
     renderConversation() {
         const messagesContainer = document.getElementById('messages');
         messagesContainer.innerHTML = '';
@@ -1260,19 +742,14 @@ class ChatApp {
         if (this.currentChatlog.length === 0) {
             this.showWelcomeMessage();
         } else {
-            this.currentChatlog.forEach(msg => {
-                this.renderMessage(msg, false);
-            });
+            this.currentChatlog.forEach(msg => this.renderMessage(msg, false));
             this.scrollToBottom();
         }
     }
 
-    /**
-     * Show welcome message for current task
-     */
     showWelcomeMessage() {
         const messagesContainer = document.getElementById('messages');
-        const config = this.taskConfig[this.currentTask];
+        const config = this.getCurrentTaskConfig();
 
         messagesContainer.innerHTML = `
             <div class="welcome-message">
@@ -1285,136 +762,152 @@ class ChatApp {
         `;
     }
 
-    /**
-     * Update conversation list display
-     */
     updateConversationList() {
         const conversationList = document.getElementById('conversation-list');
         const taskConversations = this.taskConversations[this.currentTask];
 
-        // Get existing items to avoid re-animating them
-        const existingItems = new Set();
-        conversationList.querySelectorAll('.conversation-item').forEach(item => {
-            const convId = item.dataset.conversationId;
-            if (convId) existingItems.add(convId);
-        });
+        if (taskConversations.size === 0) {
+            this.showEmptyConversationState(conversationList);
+            return;
+        }
 
         const sortedConversations = Array.from(taskConversations.values())
             .sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
 
         conversationList.innerHTML = '';
-
-        if (sortedConversations.length === 0) {
-            const emptyState = document.createElement('div');
-            emptyState.className = 'empty-task-state';
-            emptyState.innerHTML = `
-                <div class="empty-icon">${this.taskConfig[this.currentTask].icon}</div>
-                <p>No conversations yet</p>
-                <p>Click "New Chat" to get started</p>
-            `;
-            conversationList.appendChild(emptyState);
-            return;
-        }
-
         sortedConversations.forEach((conversation, index) => {
-            const conversationItem = document.createElement('div');
-            conversationItem.className = 'conversation-item';
-            conversationItem.dataset.conversationId = conversation.id;
-            conversationItem.dataset.task = conversation.task;
-
-            const isExisting = existingItems.has(conversation.id);
-            if (!isExisting) {
-                conversationItem.style.animationDelay = `${index * 0.1}s`;
-            } else {
-                conversationItem.style.opacity = '1';
-                conversationItem.style.transform = 'translateX(0)';
-                conversationItem.style.animation = 'none';
-            }
-
-            if (conversation.id === this.currentConversationId) {
-                conversationItem.classList.add('active');
-                conversationItem.style.opacity = '1';
-                conversationItem.style.transform = 'translateX(0)';
-                conversationItem.style.animation = 'none';
-            }
-
-            const title = document.createElement('div');
-            title.className = 'conversation-title';
-            title.textContent = conversation.title;
-
-            const preview = document.createElement('div');
-            preview.className = 'conversation-preview';
-            const lastMessage = conversation.messages[conversation.messages.length - 1];
-            preview.textContent = lastMessage
-                ? `${lastMessage.sender}: ${lastMessage.content.substring(0, 50)}${lastMessage.content.length > 50 ? '...' : ''}`
-                : 'No messages yet';
-
-            conversationItem.appendChild(title);
-            conversationItem.appendChild(preview);
-            conversationItem.onclick = () => this.switchToConversation(conversation.id);
-            conversationList.appendChild(conversationItem);
+            const item = this.createConversationItem(conversation, index);
+            conversationList.appendChild(item);
         });
     }
 
+    showEmptyConversationState(container) {
+        const config = this.getCurrentTaskConfig();
+        container.innerHTML = `
+            <div class="empty-task-state">
+                <div class="empty-icon">${config.icon}</div>
+                <p>No conversations yet</p>
+                <p>Click "New Chat" to get started</p>
+            </div>
+        `;
+    }
+
+    createConversationItem(conversation, index) {
+        const conversationItem = document.createElement('div');
+        conversationItem.className = 'conversation-item';
+        conversationItem.dataset.conversationId = conversation.id;
+        conversationItem.dataset.task = conversation.task;
+        conversationItem.style.animationDelay = `${index * 0.1}s`;
+
+        if (conversation.id === this.currentConversationId) {
+            conversationItem.classList.add('active');
+            conversationItem.style.opacity = '1';
+            conversationItem.style.transform = 'translateX(0)';
+            conversationItem.style.animation = 'none';
+        }
+
+        const title = document.createElement('div');
+        title.className = 'conversation-title';
+        title.textContent = conversation.title;
+
+        const preview = document.createElement('div');
+        preview.className = 'conversation-preview';
+        const lastMessage = conversation.messages[conversation.messages.length - 1];
+        preview.textContent = lastMessage
+            ? `${lastMessage.sender}: ${lastMessage.content.substring(0, 50)}${lastMessage.content.length > 50 ? '...' : ''}`
+            : 'No messages yet';
+
+        conversationItem.appendChild(title);
+        conversationItem.appendChild(preview);
+        conversationItem.onclick = () => this.switchToConversation(conversation.id);
+
+        return conversationItem;
+    }
+
+    async progressToNextTask() {
+        this.completedTasks.push(this.currentTask);
+        this.currentTaskIndex++;
+        
+        if (this.currentTaskIndex < this.taskSequence.length) {
+            // Reset conversation state for new task
+            this.currentConversationId = null;
+            this.currentChatlog = [];
+            this.updateFinishButton();
+            this.createNewConversation();
+        }
+    }
+
+    updateFinishButton() {
+        const finishBtn = document.getElementById('finish-btn');
+        if (!finishBtn) return;
+
+        finishBtn.classList.add('has-custom-content');
+        const isLastTask = this.isFinalTask();
+
+        if (isLastTask) {
+            finishBtn.innerHTML = '🏁 Finish Study';
+            finishBtn.title = 'Complete study and download data';
+            finishBtn.classList.add('final-task');
+        } else {
+            finishBtn.innerHTML = '📋 Complete Task';
+            finishBtn.title = 'Finish current task and move to next';
+            finishBtn.classList.remove('final-task');
+        }
+    }
+
     // ===================================================================
-    // MESSAGE HANDLING
+    // MESSAGE & CHAT HANDLING
     // ===================================================================
 
-    /**
-     * Send user message
-     */
     sendMessage() {
         const messageInput = document.getElementById('message-input');
         const message = messageInput.value.trim();
 
-        if (!message) {
-            console.log('❌ Empty message, returning');
-            return;
-        }
-
-        console.log('💬 Sending message:', message);
+        if (!message) return;
 
         if (!this.currentConversationId) {
             this.createNewConversation();
         }
 
-        // Track metrics
-        this.behaviorMetrics.taskMetrics[this.currentTask].messages++;
-        this.behaviorMetrics.messageLengths.push(message.length);
-        this.behaviorMetrics.messageCount++;
-        this.behaviorMetrics.messageTimes.push(new Date().toISOString());
+        // Update behavior metrics
+        this.updateBehaviorMetrics(message);
 
-        // Remove welcome message
+        // Remove welcome message if present
         const welcomeMsg = document.querySelector('.welcome-message');
-        if (welcomeMsg) {
-            welcomeMsg.remove();
-        }
+        if (welcomeMsg) welcomeMsg.remove();
 
-        // Create user message
-        const msgId = ++this.messageIdCounter;
-        const userMsg = {
-            msg_id: msgId,
-            sender: 'User',
-            content: message,
-            timestamp: new Date(),
-            task: this.currentTask
-        };
-
+        // Create and render user message
+        const userMsg = this.createMessage('User', message);
         this.currentChatlog.push(userMsg);
         this.renderMessage(userMsg);
 
-        // Clear input
+        // Clear input and update UI
         messageInput.value = '';
         messageInput.style.height = 'auto';
 
         this.updateConversationTitle(message);
-        this.showTypingIndicator();
+        this.showIndicator('typing');
+        
         setTimeout(() => this.getLLMResponse(), 500);
     }
 
-    /**
-     * Get response from LLM
-     */
+    createMessage(sender, content) {
+        return {
+            msg_id: ++this.messageIdCounter,
+            sender,
+            content,
+            timestamp: new Date(),
+            task: this.currentTask
+        };
+    }
+
+    updateBehaviorMetrics(message) {
+        this.behaviorMetrics.taskMetrics[this.currentTask].messages++;
+        this.behaviorMetrics.messageLengths.push(message.length);
+        this.behaviorMetrics.messageCount++;
+        this.behaviorMetrics.messageTimes.push(new Date().toISOString());
+    }
+
     async getLLMResponse() {
         try {
             const requestData = {
@@ -1425,75 +918,61 @@ class ChatApp {
                 imageContext: this.imageContext
             };
 
-            console.log('🟦 DEBUG: Request data prepared:', {
-                messageCount: requestData.messages.length,
-                model: requestData.model,
-                lastMessage: requestData.messages[requestData.messages.length - 1]?.content?.substring(0, 50) + '...',
-                hasImageContext: !!requestData.imageContext?.lastPrompt
-            });
-
             const response = await fetch('/api/chat/stream', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestData)
             });
 
-            console.log('📡 Response status:', response.status);
-
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('🔴 DEBUG: Stream response error:', response.status, errorText);
-                const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
-                error.status = response.status;
-                error.responseText = errorText;
-                throw error;
+                throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
             }
 
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
+            await this.handleStreamResponse(response);
 
-            let botMsg = null;
-            let botMsgId = null;
-            let fullResponse = '';
-            let isImageGeneration = false;
+        } catch (error) {
+            console.error('LLM response failed:', error.message);
+            this.hideAllIndicators();
+            this.showErrorModal(error, 'chat');
+        }
+    }
 
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
+    async handleStreamResponse(response) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
 
-                const chunk = decoder.decode(value, { stream: true });
-                const lines = chunk.split('\n');
+        let botMsg = null;
+        let botMsgId = null;
+        let fullResponse = '';
+        let isImageGeneration = false;
 
-                for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                        try {
-                            const data = JSON.parse(line.slice(6));
-                            if (data.type === 'error') {
-                                const error = new Error(data.error || 'Stream error occurred');
-                                error.context = 'stream';
-                                throw error;
-                            }
-                            if (data.type === 'image_request_detected') {
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    try {
+                        const data = JSON.parse(line.slice(6));
+                        
+                        switch (data.type) {
+                            case 'error':
+                                throw new Error(data.error || 'Stream error occurred');
+
+                            case 'image_request_detected':
                                 isImageGeneration = true;
-                                this.hideTypingIndicator();
-                                this.showImageGenerationIndicator();
-                            } else if (data.type === 'error') {
-                                const error = new Error(data.error || 'Stream error occurred');
-                                error.context = 'stream';
-                                throw error;
-                            } else if (data.type === 'content') {
-                                if (!botMsg && !isImageGeneration) {
-                                    this.hideTypingIndicator();
+                                this.showIndicator('image');
+                                break;
 
-                                    botMsgId = ++this.messageIdCounter;
-                                    botMsg = {
-                                        msg_id: botMsgId,
-                                        sender: 'Bot',
-                                        content: '',
-                                        timestamp: new Date()
-                                    };
+                            case 'content':
+                                if (!botMsg && !isImageGeneration) {
+                                    this.hideAllIndicators();
+                                    botMsg = this.createMessage('Bot', '');
+                                    botMsgId = botMsg.msg_id;
                                     this.currentChatlog.push(botMsg);
                                     this.renderMessage(botMsg);
                                 }
@@ -1501,201 +980,79 @@ class ChatApp {
                                 if (botMsg && !isImageGeneration) {
                                     fullResponse = data.fullContent;
                                     botMsg.content = fullResponse;
-
-                                    const botElement = this.msgWidgets[botMsgId].element.querySelector('.message-content');
-                                    if (botElement) {
-                                        botElement.innerHTML = marked.parse(fullResponse, {
-                                            breaks: true,
-                                            gfm: true,
-                                            sanitize: false
-                                        });
-                                        this.setupImageClickHandlers(botElement);
-                                    }
-                                    this.scrollToBottom();
+                                    this.updateBotMessage(botMsgId, fullResponse);
                                 } else if (isImageGeneration) {
-                                    this.hideImageGenerationIndicator();
-
-                                    botMsgId = ++this.messageIdCounter;
-                                    botMsg = {
-                                        msg_id: botMsgId,
-                                        sender: 'Bot',
-                                        content: data.fullContent,
-                                        timestamp: new Date()
-                                    };
+                                    this.hideAllIndicators();
+                                    botMsg = this.createMessage('Bot', data.fullContent);
+                                    botMsgId = botMsg.msg_id;
                                     this.currentChatlog.push(botMsg);
                                     this.renderMessage(botMsg);
 
                                     if (data.imageUrl) {
-                                        console.log('🟨 DEBUG: Updating image context with:', data.imageUrl);
-                                        // Make sure imageContext exists
-                                        if (!this.imageContext) {
-                                            this.imageContext = {
-                                                lastPrompt: null,
-                                                lastImageUrl: null,
-                                                conversationHasImage: false
-                                            };
-                                        }
-                                        this.imageContext.lastPrompt = data.imagePrompt;
-                                        this.imageContext.lastImageUrl = data.imageUrl;
-                                        this.imageContext.conversationHasImage = true;
-                                    } else {
-                                        console.log('🔴 DEBUG: No imageUrl in response data!');
+                                        this.updateImageContext(data);
                                     }
                                 }
-
-                            } else if (data.type === 'done') {
-                                this.hideImageGenerationIndicator();
-                                this.hideTypingIndicator();
                                 break;
-                            }
-                        } catch (parseError) {
-                            console.error('❌ JSON parse error:', parseError);
+
+                            case 'done':
+                                this.hideAllIndicators();
+                                return;
                         }
+                    } catch (parseError) {
+                        console.error('Stream parse error:', parseError.message);
                     }
                 }
             }
-        } catch (error) {
-            console.error('❌ getLLMResponse error:', error);
-            this.hideTypingIndicator();
-            this.hideImageGenerationIndicator();
-            this.showErrorModal(error, 'chat');
         }
     }
 
-    /**
-     * Show typing indicator
-     */
-    showTypingIndicator() {
-        const messagesContainer = document.getElementById('messages');
-
-        const existing = document.getElementById('typing-indicator');
-        if (existing) existing.remove();
-
-        const typingDiv = document.createElement('div');
-        typingDiv.className = 'typing-message';
-        typingDiv.id = 'typing-indicator';
-
-        const iconImg = document.createElement('img');
-        iconImg.className = 'message-icon';
-        iconImg.alt = 'Bot';
-
-        const displayedModel = this.config?.displayName || '';
-
-        if (displayedModel.toLowerCase().includes('claude')) {
-            iconImg.src = 'images/claude.png';
-        } else {
-            iconImg.src = 'images/gpt.png';
-        }
-
-        const typingContent = document.createElement('div');
-        typingContent.className = 'typing-content';
-        typingContent.innerHTML = '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
-
-        typingDiv.appendChild(iconImg);
-        typingDiv.appendChild(typingContent);
-        messagesContainer.appendChild(typingDiv);
-
-        this.scrollToBottom();
-    }
-
-    /**
-     * Hide typing indicator
-     */
-    hideTypingIndicator() {
-        const typingIndicator = document.getElementById('typing-indicator');
-        if (typingIndicator) {
-            typingIndicator.remove();
+    updateBotMessage(msgId, content) {
+        const botElement = this.msgWidgets[msgId]?.element?.querySelector('.message-content');
+        if (botElement) {
+            botElement.innerHTML = marked.parse(content, { breaks: true, gfm: true });
+            this.setupImageClickHandlers(botElement);
+            this.scrollToBottom();
         }
     }
 
-    /**
-     * Show image generation indicator
-     */
-    showImageGenerationIndicator() {
-        const messagesContainer = document.getElementById('messages');
-
-        const existingTyping = document.getElementById('typing-indicator');
-        const existingImageGen = document.getElementById('image-generation-indicator');
-        if (existingTyping) existingTyping.remove();
-        if (existingImageGen) existingImageGen.remove();
-
-        const imageGenDiv = document.createElement('div');
-        imageGenDiv.className = 'typing-message';
-        imageGenDiv.id = 'image-generation-indicator';
-
-        const iconImg = document.createElement('img');
-        iconImg.className = 'message-icon';
-        iconImg.alt = 'Bot';
-
-        const displayedModel = this.config?.displayName || '';
-        if (displayedModel.toLowerCase().includes('claude')) {
-            iconImg.src = 'images/claude.png';
-        } else {
-            iconImg.src = 'images/gpt.png';
+    updateImageContext(data) {
+        if (!this.imageContext) {
+            this.imageContext = {
+                lastPrompt: null,
+                lastImageUrl: null,
+                conversationHasImage: false
+            };
         }
-
-        const generatingContent = document.createElement('div');
-        generatingContent.className = 'typing-content';
-        generatingContent.innerHTML = '<div class="image-generating-text"><em>Generating image...</em></div>';
-
-        imageGenDiv.appendChild(iconImg);
-        imageGenDiv.appendChild(generatingContent);
-        messagesContainer.appendChild(imageGenDiv);
-
-        this.scrollToBottom();
+        
+        this.imageContext.lastPrompt = data.imagePrompt;
+        this.imageContext.lastImageUrl = data.imageUrl;
+        this.imageContext.conversationHasImage = true;
     }
 
-    /**
-     * Hide image generation indicator
-     */
-    hideImageGenerationIndicator() {
-        const imageGenIndicator = document.getElementById('image-generation-indicator');
-        if (imageGenIndicator) {
-            imageGenIndicator.remove();
-        }
-    }
-
-    /**
-     * Render message in chat
-     */
     renderMessage(msgInfo, autoScroll = true) {
         const messagesContainer = document.getElementById('messages');
-
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${msgInfo.sender.toLowerCase()}`;
         messageDiv.dataset.msgId = msgInfo.msg_id;
 
+        // Create message icon
         const iconImg = document.createElement('img');
         iconImg.className = 'message-icon';
         iconImg.alt = msgInfo.sender;
+        iconImg.src = this.getMessageIcon(msgInfo.sender);
 
-        if (msgInfo.sender === 'User') {
-            iconImg.src = 'images/user.png';
-        } else {
-            const displayedModel = this.config?.displayName || '';
-
-            if (displayedModel.toLowerCase().includes('claude')) {
-                iconImg.src = 'images/claude.png';
-            } else {
-                iconImg.src = 'images/gpt.png';
-            }
-        }
-
+        // Create message content
         const contentDiv = document.createElement('div');
         contentDiv.className = 'message-content';
         contentDiv.style.position = 'relative';
 
         if (msgInfo.sender === 'Bot') {
-            contentDiv.innerHTML = marked.parse(msgInfo.content, {
-                breaks: true,
-                gfm: true,
-                sanitize: false
-            });
-
+            contentDiv.innerHTML = marked.parse(msgInfo.content, { breaks: true, gfm: true });
             this.setupImageClickHandlers(contentDiv);
         } else {
             contentDiv.textContent = msgInfo.content;
-
+            
+            // Add edit button for user messages
             const editBtn = document.createElement('button');
             editBtn.className = 'edit-btn';
             editBtn.textContent = '✎';
@@ -1708,19 +1065,24 @@ class ChatApp {
         messageDiv.appendChild(contentDiv);
         messagesContainer.appendChild(messageDiv);
 
+        // Store widget reference
         this.msgWidgets[msgInfo.msg_id] = {
             element: messageDiv,
             info: msgInfo
         };
 
-        if (autoScroll) {
-            this.scrollToBottom();
-        }
+        if (autoScroll) this.scrollToBottom();
     }
 
-    /**
-     * Set up image click handlers for modal viewing
-     */
+    getMessageIcon(sender) {
+        if (sender === 'User') return 'images/user.png';
+        
+        const displayedModel = this.config?.displayName || '';
+        return displayedModel.toLowerCase().includes('claude') 
+            ? 'images/claude.png' 
+            : 'images/gpt.png';
+    }
+
     setupImageClickHandlers(contentDiv) {
         const images = contentDiv.querySelectorAll('img');
         images.forEach(img => {
@@ -1730,14 +1092,691 @@ class ChatApp {
         });
     }
 
-    /**
-     * Show image in modal
-     */
+    editMessage(msgId) {
+        const widget = this.msgWidgets[msgId];
+        if (!widget) return;
+
+        this.behaviorMetrics.editCount++;
+        
+        // Calculate edit distance for metrics
+        const currentMessages = Array.from(document.querySelectorAll('.message.user'));
+        const editMessageIndex = currentMessages.findIndex(msg => 
+            parseInt(msg.dataset.msgId) === msgId
+        );
+        const messagesBack = currentMessages.length - editMessageIndex - 1;
+        this.behaviorMetrics.editDistances.push(messagesBack);
+
+        const contentDiv = widget.element.querySelector('.message-content');
+        const originalText = widget.info.content;
+
+        if (contentDiv.querySelector('.edit-mode')) return;
+
+        // Create edit interface
+        const editContainer = this.createEditInterface(originalText, msgId);
+        contentDiv.appendChild(editContainer);
+    }
+
+    createEditInterface(originalText, msgId) {
+        const editContainer = document.createElement('div');
+        editContainer.className = 'edit-mode';
+
+        const editTextarea = document.createElement('textarea');
+        editTextarea.className = 'edit-input';
+        editTextarea.value = originalText;
+        editTextarea.rows = Math.min(Math.ceil(originalText.length / 50), 10);
+
+        const buttonsDiv = document.createElement('div');
+        buttonsDiv.className = 'edit-buttons';
+
+        const confirmBtn = document.createElement('button');
+        confirmBtn.className = 'edit-confirm';
+        confirmBtn.textContent = 'Send';
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'edit-cancel';
+        cancelBtn.textContent = 'Cancel';
+
+        const handleConfirm = () => {
+            const newText = editTextarea.value.trim();
+            if (newText) {
+                this.deleteMessagesFrom(msgId);
+                document.getElementById('message-input').value = newText;
+                this.sendMessage();
+            }
+        };
+
+        const handleCancel = () => editContainer.remove();
+
+        confirmBtn.onclick = handleConfirm;
+        cancelBtn.onclick = handleCancel;
+        editTextarea.onkeydown = (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) handleConfirm();
+            if (e.key === 'Escape') handleCancel();
+        };
+
+        buttonsDiv.appendChild(confirmBtn);
+        buttonsDiv.appendChild(cancelBtn);
+        editContainer.appendChild(editTextarea);
+        editContainer.appendChild(buttonsDiv);
+
+        editTextarea.focus();
+        editTextarea.select();
+
+        return editContainer;
+    }
+
+    deleteMessagesFrom(fromMsgId) {
+        Object.keys(this.msgWidgets).forEach(msgId => {
+            const id = parseInt(msgId);
+            if (id >= fromMsgId) {
+                this.msgWidgets[id].element.remove();
+                delete this.msgWidgets[id];
+            }
+        });
+
+        this.currentChatlog = this.currentChatlog.filter(msg => msg.msg_id < fromMsgId);
+        this.autoSaveConversation();
+    }
+
+    updateConversationTitle(firstMessage) {
+        if (!this.currentConversationId) return;
+
+        const taskConversations = this.taskConversations[this.currentTask];
+        const conversation = taskConversations.get(this.currentConversationId);
+
+        if (conversation && conversation.title === 'New Chat') {
+            conversation.title = firstMessage.length > 50
+                ? firstMessage.substring(0, 50) + '...'
+                : firstMessage;
+            this.updateConversationList();
+        }
+    }
+
+    // ===================================================================
+    // UI INDICATOR MANAGEMENT
+    // ===================================================================
+
+    showIndicator(type) {
+        this.hideAllIndicators();
+        
+        const messagesContainer = document.getElementById('messages');
+        const indicatorDiv = document.createElement('div');
+        indicatorDiv.className = 'typing-message';
+        indicatorDiv.id = `${type}-indicator`;
+
+        const iconImg = document.createElement('img');
+        iconImg.className = 'message-icon';
+        iconImg.alt = 'Bot';
+        iconImg.src = this.getMessageIcon('Bot');
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'typing-content';
+        
+        if (type === 'typing') {
+            contentDiv.innerHTML = '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+        } else if (type === 'image') {
+            contentDiv.innerHTML = '<div class="image-generating-text"><em>Generating image...</em></div>';
+        }
+
+        indicatorDiv.appendChild(iconImg);
+        indicatorDiv.appendChild(contentDiv);
+        messagesContainer.appendChild(indicatorDiv);
+        this.scrollToBottom();
+    }
+
+    hideAllIndicators() {
+        const indicators = ['typing-indicator', 'image-generation-indicator'];
+        indicators.forEach(id => {
+            const indicator = document.getElementById(id);
+            if (indicator) indicator.remove();
+        });
+    }
+
+    // ===================================================================
+    // BEHAVIOR TRACKING SYSTEM
+    // ===================================================================
+
+    initializeBehaviorTracking() {
+        // Initialize behavior metrics
+        this.behaviorMetrics = {
+            backspaceCount: 0,
+            messageLengths: [],
+            messageCount: 0,
+            conversationCount: 0,
+            editCount: 0,
+            editDistances: [],
+            idleStartTime: Date.now(),
+            totalIdleTime: 0,
+            messageTimes: [],
+            conversationSwitches: 0,
+            responseTimesAfterBot: [],
+            lastBotMessageTime: null,
+            lastUserActivity: Date.now(),
+            typingPatterns: {
+                totalKeystrokes: 0,
+                typingStartTime: null,
+                typingDurations: []
+            },
+            taskMetrics: {
+                'image-generation': { conversations: 0, messages: 0, timeSpent: 0 },
+                'social-media': { conversations: 0, messages: 0, timeSpent: 0 },
+                'acronym-building': { conversations: 0, messages: 0, timeSpent: 0 }
+            }
+        };
+
+        this.setupBehaviorEventListeners();
+        this.startIdleTracking();
+    }
+
+    setupBehaviorEventListeners() {
+        // Keyboard tracking
+        document.addEventListener('keydown', (e) => {
+            if (document.activeElement.id === 'message-input') {
+                this.updateActivity();
+                
+                if (e.key === 'Backspace') {
+                    this.behaviorMetrics.backspaceCount++;
+                }
+                
+                if (!this.behaviorMetrics.typingPatterns.typingStartTime) {
+                    this.behaviorMetrics.typingPatterns.typingStartTime = Date.now();
+                }
+                this.behaviorMetrics.typingPatterns.totalKeystrokes++;
+            }
+        });
+
+        // Disable copy/paste for study integrity
+        const messageInput = document.getElementById('message-input');
+        ['paste', 'copy'].forEach(event => {
+            messageInput.addEventListener(event, (e) => {
+                e.preventDefault();
+                this.showNotification(`${event.charAt(0).toUpperCase() + event.slice(1)} is disabled for this study`, 'warning');
+            });
+        });
+
+        messageInput.addEventListener('contextmenu', (e) => e.preventDefault());
+
+        // Visibility change tracking
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                this.behaviorMetrics.idleStartTime = Date.now();
+            } else {
+                this.updateIdleTime();
+            }
+        });
+    }
+
+    updateActivity() {
+        const now = Date.now();
+        const timeSinceLastActivity = now - this.behaviorMetrics.lastUserActivity;
+        const idleThreshold = 5000; // 5 seconds
+
+        if (timeSinceLastActivity > idleThreshold) {
+            this.behaviorMetrics.totalIdleTime += timeSinceLastActivity;
+        }
+
+        this.behaviorMetrics.lastUserActivity = now;
+    }
+
+    updateIdleTime() {
+        const idleDuration = Date.now() - this.behaviorMetrics.idleStartTime;
+        const idleThreshold = 5000; // 5 seconds
+        
+        if (idleDuration > idleThreshold) {
+            this.behaviorMetrics.totalIdleTime += idleDuration;
+        }
+        this.behaviorMetrics.idleStartTime = Date.now();
+    }
+
+    startIdleTracking() {
+        const idleThreshold = 5000; // 5 seconds
+        
+        setInterval(() => {
+            const timeSinceLastActivity = Date.now() - this.behaviorMetrics.lastUserActivity;
+            
+            if (timeSinceLastActivity > idleThreshold) {
+                if (!this.behaviorMetrics.currentlyIdle) {
+                    this.behaviorMetrics.currentlyIdle = true;
+                    this.behaviorMetrics.idleStartTime = this.behaviorMetrics.lastUserActivity;
+                }
+            } else {
+                if (this.behaviorMetrics.currentlyIdle) {
+                    this.behaviorMetrics.currentlyIdle = false;
+                    this.updateIdleTime();
+                }
+            }
+        }, 1000);
+    }
+
+    calculateFinalMetrics() {
+        const metrics = this.behaviorMetrics;
+        
+        return {
+            backspaceCount: metrics.backspaceCount,
+            averageMessageLength: metrics.messageLengths.length > 0
+                ? metrics.messageLengths.reduce((a, b) => a + b, 0) / metrics.messageLengths.length
+                : 0,
+            totalMessages: metrics.messageCount,
+            messagesPerConversation: metrics.conversationCount > 0
+                ? metrics.messageCount / metrics.conversationCount
+                : 0,
+            conversationCount: metrics.conversationCount,
+            editCount: metrics.editCount,
+            averageEditDistance: metrics.editDistances.length > 0
+                ? metrics.editDistances.reduce((a, b) => a + b, 0) / metrics.editDistances.length
+                : 0,
+            totalIdleTime: metrics.totalIdleTime,
+            messageTimes: metrics.messageTimes,
+            conversationSwitches: metrics.conversationSwitches,
+            averageResponseTimeAfterBot: metrics.responseTimesAfterBot.length > 0
+                ? metrics.responseTimesAfterBot.reduce((a, b) => a + b, 0) / metrics.responseTimesAfterBot.length
+                : 0,
+            totalKeystrokes: metrics.typingPatterns.totalKeystrokes,
+            averageTypingDuration: metrics.typingPatterns.typingDurations.length > 0
+                ? metrics.typingPatterns.typingDurations.reduce((a, b) => a + b, 0) / metrics.typingPatterns.typingDurations.length
+                : 0,
+            sessionDuration: Date.now() - this.sessionStartTime,
+            keystrokesPerMessage: metrics.messageCount > 0
+                ? metrics.typingPatterns.totalKeystrokes / metrics.messageCount
+                : 0
+        };
+    }
+
+    // ===================================================================
+    // SESSION TIMER MANAGEMENT
+    // ===================================================================
+
+    startSessionTimer() {
+        this.sessionStartTime = Date.now();
+        this.updateTimerDisplay();
+        
+        this.timerInterval = setInterval(() => {
+            this.updateTimerDisplay();
+        }, 1000);
+    }
+
+    stopSessionTimer() {
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+    }
+
+    updateTimerDisplay() {
+        const elapsed = Date.now() - this.sessionStartTime;
+        const formattedTime = this.formatElapsedTime(elapsed);
+        
+        const timerDisplay = document.getElementById('timer-display');
+        if (timerDisplay) {
+            timerDisplay.textContent = formattedTime;
+        }
+    }
+
+    formatElapsedTime(milliseconds) {
+        const totalSeconds = Math.floor(milliseconds / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    // ===================================================================
+    // DATA PERSISTENCE & TASK COMPLETION
+    // ===================================================================
+
+    autoSaveConversation() {
+        if (this.autoSaveTimeout) {
+            clearTimeout(this.autoSaveTimeout);
+        }
+
+        this.autoSaveTimeout = setTimeout(() => {
+            const taskConversations = this.taskConversations[this.currentTask];
+            const conversation = taskConversations.get(this.currentConversationId);
+            if (conversation) {
+                conversation.messages = [...this.currentChatlog];
+                conversation.lastMessageAt = new Date();
+                this.updateConversationList();
+                this.showAutoSaveIndicator();
+            }
+        }, 1000);
+    }
+
+    showAutoSaveIndicator() {
+        let indicator = document.getElementById('auto-save-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'auto-save-indicator';
+            indicator.className = 'auto-save-indicator';
+            document.body.appendChild(indicator);
+        }
+
+        indicator.innerHTML = '<span>💾</span> Auto-saved';
+        indicator.classList.add('show');
+
+        setTimeout(() => indicator.classList.remove('show'), 2000);
+    }
+
+    async manualSave() {
+        if (this.currentChatlog.length === 0) {
+            alert('No messages to save!');
+            return;
+        }
+
+        this.autoSaveConversation();
+
+        try {
+            await this.saveToServer();
+            this.showSaveSuccessIndicator();
+        } catch (error) {
+            alert('Error saving chat. Please try again.');
+        }
+    }
+
+    showSaveSuccessIndicator() {
+        const indicator = document.createElement('div');
+        indicator.style.cssText = `
+            position: fixed; top: 20px; right: 20px; background: #10b981; color: white;
+            padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000; font-weight: 500; max-width: 300px;
+        `;
+        indicator.innerHTML = `💾 Chat saved!<br><small>Participant ID: ${this.participantId}</small>`;
+        document.body.appendChild(indicator);
+
+        setTimeout(() => indicator.remove(), 4000);
+    }
+
+    async handleTaskCompletion() {
+        const taskConfig = this.getCurrentTaskConfig();
+        const isLastTask = this.isFinalTask();
+
+        const confirmed = await this.showTaskCompletionDialog(taskConfig.name, isLastTask);
+        if (!confirmed) return;
+
+        try {
+            await this.saveCurrentTaskData();
+
+            if (isLastTask) {
+                await this.completeEntireStudy();
+            } else {
+                await this.progressToNextTask();
+            }
+        } catch (error) {
+            console.error('Task completion failed:', error.message);
+            alert('Error completing task. Please try again.');
+        }
+    }
+
+    showTaskCompletionDialog(taskName, isLastTask) {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('finish-confirmation-modal');
+            const titleEl = modal.querySelector('h3');
+            const bodyEl = modal.querySelector('p');
+
+            if (isLastTask) {
+                titleEl.textContent = 'Complete Study';
+                bodyEl.textContent = `You are about to complete the final task (${taskName}) and finish the entire study. This will download your data and close the interface.`;
+            } else {
+                titleEl.textContent = `Complete ${taskName} Task?`;
+                bodyEl.textContent = `Continuing will finish the ${taskName} task and move to the next task. You won't be able to return.`;
+            }
+
+            modal.style.display = 'flex';
+            this.taskCompletionResolve = resolve;
+        });
+    }
+
+    hideTaskCompletionDialog(confirmed) {
+        const modal = document.getElementById('finish-confirmation-modal');
+        modal.style.display = 'none';
+
+        if (this.taskCompletionResolve) {
+            this.taskCompletionResolve(confirmed);
+            this.taskCompletionResolve = null;
+        }
+    }
+
+    async saveCurrentTaskData() {
+        if (this.currentConversationId && this.currentChatlog.length > 0) {
+            const taskConversations = this.taskConversations[this.currentTask];
+            const conversation = taskConversations.get(this.currentConversationId);
+            if (conversation) {
+                conversation.messages = [...this.currentChatlog];
+            }
+        }
+    }
+
+    async completeEntireStudy() {
+        const finishBtn = document.getElementById('finish-btn');
+        if (finishBtn.disabled) return;
+        
+        finishBtn.disabled = true;
+        this.showFinishLoadingIndicator();
+
+        try {
+            await this.saveCurrentTaskData();
+            
+            const exportData = this.prepareExportData();
+            await this.downloadConversationData(exportData);
+            await this.saveToServer();
+            await this.markSessionCompleted();
+
+            this.closeApplication();
+
+        } catch (error) {
+            console.error('Study completion failed:', error.message);
+            alert('There was an error completing the study. Please try again or contact support.');
+            this.hideFinishLoadingIndicator();
+            finishBtn.disabled = false;
+        }
+    }
+
+    prepareExportData() {
+        const behaviorMetrics = this.calculateFinalMetrics();
+        const organizedConversations = {};
+        
+        for (const [taskId, conversations] of Object.entries(this.taskConversations)) {
+            organizedConversations[taskId] = Object.fromEntries(conversations);
+        }
+
+        return {
+            participantId: this.participantId,
+            sessionId: this.sessionId,
+            completedAt: new Date().toISOString(),
+            modelConfig: {
+                displayedModel: this.config.givenModel,
+                actualModel: this.config.trueModel,
+                configurationId: this.configurationId
+            },
+            conversations: organizedConversations,
+            behaviorMetrics: behaviorMetrics,
+            completedTasks: this.completedTasks,
+            studyVersion: "2.0"
+        };
+    }
+
+    async saveToServer() {
+        const behaviorMetrics = this.calculateFinalMetrics();
+        const organizedConversations = {};
+        
+        for (const [taskId, conversations] of Object.entries(this.taskConversations)) {
+            organizedConversations[taskId] = Object.fromEntries(conversations);
+        }
+
+        const saveData = {
+            participantId: this.participantId,
+            conversations: organizedConversations,
+            sessionId: this.sessionId,
+            completedAt: new Date().toISOString(),
+            modelConfig: {
+                displayedModel: this.config.givenModel,
+                actualModel: this.config.trueModel,
+                configurationId: this.configurationId
+            },
+            behaviorMetrics: behaviorMetrics,
+            taskMetrics: this.behaviorMetrics.taskMetrics,
+            completedTasks: this.completedTasks,
+            currentTaskIndex: this.currentTaskIndex
+        };
+
+        const response = await fetch('/api/chat/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(saveData)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            const error = new Error(result.error || 'Save failed');
+            error.status = response.status;
+            throw error;
+        }
+
+        return result;
+    }
+
+    async downloadConversationData(data) {
+        const jsonContent = JSON.stringify(data, null, 2);
+        const filename = `study-data-${this.participantId}-${Date.now()}.json`;
+
+        const blob = new Blob([jsonContent], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.style.display = 'none';
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    async markSessionCompleted() {
+        try {
+            const response = await fetch('/api/sessions/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'complete',
+                    sessionId: this.sessionId,
+                    participantId: this.participantId
+                })
+            });
+
+            if (!response.ok) {
+                const responseText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${responseText}`);
+            }
+
+            return await response.json();
+
+        } catch (error) {
+            console.error('Session completion failed:', error.message);
+            throw error;
+        }
+    }
+
+    showFinishLoadingIndicator() {
+        const indicator = document.getElementById('finish-loading-indicator');
+        if (indicator) indicator.style.display = 'block';
+    }
+
+    hideFinishLoadingIndicator() {
+        const indicator = document.getElementById('finish-loading-indicator');
+        if (indicator) indicator.style.display = 'none';
+    }
+
+    closeApplication() {
+        this.stopSessionTimer();
+        this.isFinishing = true;
+
+        const finishBtn = document.getElementById('finish-btn');
+        if (finishBtn) finishBtn.style.display = 'none';
+
+        this.hideFinishLoadingIndicator();
+
+        document.body.innerHTML = `
+            <div style="display: flex; justify-content: center; align-items: center; height: 100vh;
+                        background: var(--main-bg-dark); color: var(--text-dark); text-align: center;
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;">
+                <div>
+                    <h1 style="color: #10b981; margin-bottom: 20px;">✅ Study Completed!</h1>
+                    <p style="font-size: 18px; margin-bottom: 15px;">
+                        Thank you for participating. Your data has been downloaded.
+                    </p>
+                    <p style="color: #9ca3af;">
+                        Please upload the downloaded file to the Tally survey to complete your submission.
+                    </p>
+                    <p style="color: #9ca3af; margin-top: 30px; font-size: 14px;">
+                        This window will remain open. You may close it when you're ready.
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+
+    // ===================================================================
+    // UI UTILITY METHODS
+    // ===================================================================
+
+    scrollToBottom() {
+        const chatContainer = document.getElementById('chat-container');
+        if (chatContainer) {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    }
+
+    toggleTheme() {
+        document.body.classList.toggle('light-theme');
+        this.currentTheme = document.body.classList.contains('light-theme') ? 'light' : 'dark';
+    }
+
+    toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.classList.toggle('collapsed');
+    }
+
+    toggleMobileSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = this.getOrCreateBackdrop();
+
+        if (sidebar.classList.contains('open')) {
+            sidebar.classList.remove('open');
+            backdrop.classList.remove('show');
+        } else {
+            sidebar.classList.add('open');
+            backdrop.classList.add('show');
+        }
+    }
+
+    getOrCreateBackdrop() {
+        let backdrop = document.querySelector('.sidebar-backdrop');
+        if (!backdrop) {
+            backdrop = document.createElement('div');
+            backdrop.className = 'sidebar-backdrop';
+            backdrop.onclick = () => this.toggleMobileSidebar();
+            document.body.appendChild(backdrop);
+        }
+        return backdrop;
+    }
+
+    setupTextareaAutoResize() {
+        const textarea = document.getElementById('message-input');
+        if (textarea) {
+            textarea.addEventListener('input', () => {
+                textarea.style.height = 'auto';
+                textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+            });
+        }
+    }
+
     showImageModal(imageSrc, altText) {
         const existingModal = document.querySelector('.image-modal');
-        if (existingModal) {
-            existingModal.remove();
-        }
+        if (existingModal) existingModal.remove();
 
         const modal = document.createElement('div');
         modal.className = 'image-modal';
@@ -1776,614 +1815,43 @@ class ChatApp {
         document.addEventListener('keydown', handleKeydown);
     }
 
-    /**
-     * Edit message functionality
-     */
-    editMessage(msgId) {
-        const widget = this.msgWidgets[msgId];
-        if (!widget) return;
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: ${type === 'warning' ? '#ef4444' : '#10b981'}; color: white;
+            padding: 12px 24px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 2000; animation: slideIn 0.3s ease-out;
+        `;
 
-        this.behaviorMetrics.editCount++;
-
-        const currentMessages = Array.from(document.querySelectorAll('.message.user'));
-        const editMessageIndex = currentMessages.findIndex(msg =>
-            parseInt(msg.dataset.msgId) === msgId
-        );
-        const messagesBack = currentMessages.length - editMessageIndex - 1;
-        this.behaviorMetrics.editDistances.push(messagesBack);
-
-        const contentDiv = widget.element.querySelector('.message-content');
-        const originalText = widget.info.content;
-
-        if (contentDiv.querySelector('.edit-mode')) {
-            return;
-        }
-
-        const editContainer = document.createElement('div');
-        editContainer.className = 'edit-mode';
-
-        const editTextarea = document.createElement('textarea');
-        editTextarea.className = 'edit-input';
-        editTextarea.value = originalText;
-        editTextarea.rows = Math.min(Math.ceil(originalText.length / 50), 10);
-
-        const buttonsDiv = document.createElement('div');
-        buttonsDiv.className = 'edit-buttons';
-
-        const confirmBtn = document.createElement('button');
-        confirmBtn.className = 'edit-confirm';
-        confirmBtn.textContent = 'Send';
-
-        const cancelBtn = document.createElement('button');
-        cancelBtn.className = 'edit-cancel';
-        cancelBtn.textContent = 'Cancel';
-
-        const onConfirm = () => {
-            const newText = editTextarea.value.trim();
-            if (newText) {
-                this.deleteMessages(msgId);
-                document.getElementById('message-input').value = newText;
-                this.sendMessage();
-            }
-        };
-
-        const onCancel = () => {
-            editContainer.remove();
-        };
-
-        confirmBtn.onclick = onConfirm;
-        cancelBtn.onclick = onCancel;
-        editTextarea.onkeydown = (e) => {
-            if (e.key === 'Enter' && e.ctrlKey) onConfirm();
-            if (e.key === 'Escape') onCancel();
-        };
-
-        buttonsDiv.appendChild(confirmBtn);
-        buttonsDiv.appendChild(cancelBtn);
-        editContainer.appendChild(editTextarea);
-        editContainer.appendChild(buttonsDiv);
-        contentDiv.appendChild(editContainer);
-
-        editTextarea.focus();
-        editTextarea.select();
-    }
-
-    /**
-     * Delete messages from a certain point
-     */
-    deleteMessages(fromMsgId) {
-        Object.keys(this.msgWidgets).forEach(msgId => {
-            const id = parseInt(msgId);
-            if (id >= fromMsgId) {
-                this.msgWidgets[id].element.remove();
-                delete this.msgWidgets[id];
-            }
-        });
-
-        this.currentChatlog = this.currentChatlog.filter(msg => msg.msg_id < fromMsgId);
-        this.autoSaveConversation();
-    }
-
-    /**
-     * Update conversation title from first message
-     */
-    updateConversationTitle(firstMessage) {
-        if (!this.currentConversationId) return;
-
-        const taskConversations = this.taskConversations[this.currentTask];
-        const conversation = taskConversations.get(this.currentConversationId);
-
-        if (conversation && conversation.title === 'New Chat') {
-            conversation.title = firstMessage.length > 50
-                ? firstMessage.substring(0, 50) + '...'
-                : firstMessage;
-            this.updateConversationList();
-        }
-    }
-
-    /**
-     * Auto-save conversation with debouncing
-     */
-    autoSaveConversation() {
-        if (!this.currentConversationId) return;
-
-        if (this.autoSaveTimeout) {
-            clearTimeout(this.autoSaveTimeout);
-        }
-
-        this.autoSaveTimeout = setTimeout(() => {
-            const taskConversations = this.taskConversations[this.currentTask];
-            const conversation = taskConversations.get(this.currentConversationId);
-            if (conversation) {
-                conversation.messages = [...this.currentChatlog];
-                conversation.lastMessageAt = new Date();
-                this.updateConversationList();
-                this.showAutoSaveIndicator();
-            }
-        }, 1000);
-    }
-
-    /**
-     * Show auto-save indicator
-     */
-    showAutoSaveIndicator() {
-        let indicator = document.getElementById('auto-save-indicator');
-        if (!indicator) {
-            indicator = document.createElement('div');
-            indicator.id = 'auto-save-indicator';
-            indicator.className = 'auto-save-indicator';
-            document.body.appendChild(indicator);
-        }
-
-        indicator.innerHTML = '<span>💾</span> Auto-saved';
-        indicator.classList.add('show');
+        document.body.appendChild(notification);
 
         setTimeout(() => {
-            indicator.classList.remove('show');
-        }, 2000);
-    }
-
-    // ===================================================================
-    // UI MANAGEMENT
-    // ===================================================================
-    /**
-     * Initialize and populate the model comparison header
-     */
-    initializeModelComparisonHeader() {
-        const comparisonData = this.getModelComparisonData();
-        const { models, assignedIndex } = comparisonData;
-
-        console.log('🎯 Initializing model comparison header with assigned index:', assignedIndex);
-
-        // Populate each mini model card
-        models.forEach((model, index) => {
-            // Update names and years
-            const nameEl = document.getElementById(`mini-model-name-${index}`);
-            const yearEl = document.getElementById(`mini-model-year-${index}`);
-            const knowledgeEl = document.getElementById(`mini-knowledge-${index}`);
-
-            if (nameEl) nameEl.textContent = model.name;
-            if (yearEl) yearEl.textContent = model.year;
-            if (knowledgeEl) knowledgeEl.textContent = model.capabilities.knowledge;
-
-            // Populate capability icons
-            const card = document.querySelector(`.mini-model-card[data-model="${index}"]`);
-            if (card) {
-                // Reasoning icons
-                const reasoningContainer = card.querySelector('[data-capability="reasoning"]');
-                if (reasoningContainer) {
-                    reasoningContainer.innerHTML = '';
-                    for (let i = 0; i < 4; i++) {
-                        const icon = document.createElement('span');
-                        icon.className = 'mini-capability-icon bulb';
-                        if (i < model.capabilities.reasoning) {
-                            icon.classList.add('lit');
-                        }
-                        icon.textContent = '💡';
-                        reasoningContainer.appendChild(icon);
-                    }
-                }
-
-                // Speed icons
-                const speedContainer = card.querySelector('[data-capability="speed"]');
-                if (speedContainer) {
-                    speedContainer.innerHTML = '';
-                    for (let i = 0; i < 4; i++) {
-                        const icon = document.createElement('span');
-                        icon.className = 'mini-capability-icon bolt';
-                        if (i < model.capabilities.speed) {
-                            icon.classList.add('lit');
-                        }
-                        icon.textContent = '⚡';
-                        speedContainer.appendChild(icon);
-                    }
-                }
-
-                // Creativity icons
-                const createContainer = card.querySelector('[data-capability="creativity"]');
-                if (createContainer) {
-                    createContainer.innerHTML = '';
-                    for (let i = 0; i < 4; i++) {
-                        const icon = document.createElement('span');
-                        icon.className = 'mini-capability-icon brush';
-                        if (i < model.capabilities.creativity) {
-                            icon.classList.add('lit');
-                        }
-                        icon.textContent = '🎨';
-                        createContainer.appendChild(icon);
-                    }
-                }
-
-                // Mark current model
-                if (index === assignedIndex) {
-                    card.classList.add('current');
-                }
-            }
-        });
-
-        console.log('✅ Model comparison header initialized');
-    }
-
-    /**
-     * Update bot name display
-     */
-    updateBotName() {
-        document.getElementById('bot-name').textContent = `Currently Chatting with ${this.config.displayName}`;
-        document.getElementById('header-participant-id').textContent = this.participantId;
-        document.getElementById('welcome-model-name').textContent = this.config.displayName;
-        document.title = `${this.config.displayName} - Study ${this.participantId}`;
-    }
-
-    /**
-     * Scroll to bottom of chat
-     */
-    scrollToBottom() {
-        const chatContainer = document.getElementById('chat-container');
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    /**
-     * Toggle theme
-     */
-    toggleTheme() {
-        document.body.classList.toggle('light-theme');
-        this.currentTheme = document.body.classList.contains('light-theme') ? 'light' : 'dark';
-    }
-
-    /**
-     * Toggle sidebar
-     */
-    toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        sidebar.classList.toggle('collapsed');
-    }
-
-    /**
-     * Toggle mobile sidebar
-     */
-    toggleMobileSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        const backdrop = this.getOrCreateBackdrop();
-
-        if (sidebar.classList.contains('open')) {
-            sidebar.classList.remove('open');
-            backdrop.classList.remove('show');
-        } else {
-            sidebar.classList.add('open');
-            backdrop.classList.add('show');
-        }
-    }
-
-    /**
-     * Get or create sidebar backdrop
-     */
-    getOrCreateBackdrop() {
-        let backdrop = document.querySelector('.sidebar-backdrop');
-        if (!backdrop) {
-            backdrop = document.createElement('div');
-            backdrop.className = 'sidebar-backdrop';
-            backdrop.onclick = () => this.toggleMobileSidebar();
-            document.body.appendChild(backdrop);
-        }
-        return backdrop;
-    }
-
-    /**
-     * Handle outside clicks for mobile
-     */
-    handleOutsideClick(e) {
-        const sidebar = document.getElementById('sidebar');
-        const toggle = document.getElementById('mobile-sidebar-toggle');
-
-        if (window.innerWidth <= 768 &&
-            sidebar.classList.contains('open') &&
-            !sidebar.contains(e.target) &&
-            !toggle.contains(e.target)) {
-            this.toggleMobileSidebar();
-        }
-    }
-
-    /**
-     * Set up textarea auto-resize
-     */
-    setupTextareaAutoResize() {
-        const textarea = document.getElementById('message-input');
-        textarea.addEventListener('input', () => {
-            textarea.style.height = 'auto';
-            textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
-        });
-    }
-
-    /**
-     * Set up advanced UI animations
-     */
-    setupAdvancedAnimations() {
-        document.querySelectorAll('.new-chat-btn, .save-btn, .send-btn').forEach(button => {
-            button.addEventListener('click', function (e) {
-                const ripple = document.createElement('span');
-                const rect = this.getBoundingClientRect();
-                const size = Math.max(rect.width, rect.height);
-                const x = e.clientX - rect.left - size / 2;
-                const y = e.clientY - rect.top - size / 2;
-
-                ripple.style.cssText = `
-                    position: absolute;
-                    border-radius: 50%;
-                    background: rgba(255,255,255,0.4);
-                    transform: scale(0);
-                    animation: ripple 0.6s linear;
-                    left: ${x}px;
-                    top: ${y}px;
-                    width: ${size}px;
-                    height: ${size}px;
-                    pointer-events: none;
-                `;
-
-                this.appendChild(ripple);
-                setTimeout(() => ripple.remove(), 600);
-            });
-        });
-
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes ripple {
-                to { transform: scale(2); opacity: 0; }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-
-    /**
-     * Set up finish button
-     */
-    setupFinishButton() {
-        const finishBtn = document.getElementById('finish-btn');
-        if (finishBtn) {
-            finishBtn.style.display = 'flex';
-        }
-    }
-
-    // ===================================================================
-    // SESSION MANAGEMENT
-    // ===================================================================
-
-    /**
-     * Start session timer
-     */
-    startSessionTimer() {
-        console.log('⏱️ Starting session timer');
-
-        if (this.sessionTimer.isRunning) {
-            console.log('⏱️ Timer already running');
-            return;
-        }
-
-        this.sessionTimer.startTime = Date.now();
-        this.sessionTimer.isRunning = true;
-
-        this.updateTimerDisplay();
-
-        this.sessionTimer.intervalId = setInterval(() => {
-            this.updateTimerDisplay();
-        }, 1000);
-    }
-
-    /**
-     * Stop session timer
-     */
-    stopSessionTimer() {
-        console.log('⏱️ Stopping session timer');
-
-        if (this.sessionTimer.intervalId) {
-            clearInterval(this.sessionTimer.intervalId);
-            this.sessionTimer.intervalId = null;
-        }
-
-        this.sessionTimer.isRunning = false;
-    }
-
-    /**
-     * Update timer display
-     */
-    updateTimerDisplay() {
-        if (!this.sessionTimer.startTime) return;
-
-        const elapsed = Date.now() - this.sessionTimer.startTime;
-        const formattedTime = this.formatElapsedTime(elapsed);
-
-        const timerDisplay = document.getElementById('timer-display');
-        if (timerDisplay) {
-            timerDisplay.textContent = formattedTime;
-        }
-    }
-
-    /**
-     * Format elapsed time as HH:MM:SS
-     */
-    formatElapsedTime(milliseconds) {
-        const totalSeconds = Math.floor(milliseconds / 1000);
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
-
-        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }
-
-    /**
-     * Get elapsed time in milliseconds
-     */
-    getElapsedTime() {
-        if (!this.sessionTimer.startTime) return 0;
-        return Date.now() - this.sessionTimer.startTime;
-    }
-
-    // ===================================================================
-    // BEHAVIOR TRACKING
-    // ===================================================================
-
-    /**
-     * Initialize behavior tracking
-     */
-    initializeBehaviorTracking() {
-        // Track backspaces and keystrokes
-        document.addEventListener('keydown', (e) => {
-            if (document.activeElement.id === 'message-input') {
-                this.updateActivity();
-
-                if (e.key === 'Backspace') {
-                    this.behaviorMetrics.backspaceCount++;
-                }
-
-                if (!this.behaviorMetrics.typingPatterns.typingStartTime) {
-                    this.behaviorMetrics.typingPatterns.typingStartTime = Date.now();
-                }
-                this.behaviorMetrics.typingPatterns.totalKeystrokes++;
-            }
-        });
-
-        // Disable copy/paste
-        document.addEventListener('paste', (e) => {
-            if (document.activeElement.id === 'message-input') {
-                e.preventDefault();
-                this.showNotification('Paste is disabled for this study', 'warning');
-                return false;
-            }
-        });
-
-        document.addEventListener('copy', (e) => {
-            if (document.activeElement.id === 'message-input' &&
-                window.getSelection().toString().length > 0) {
-                e.preventDefault();
-                this.showNotification('Copy is disabled for this study', 'warning');
-                return false;
-            }
-        });
-
-        document.getElementById('message-input').addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            return false;
-        });
-
-        this.startIdleTracking();
-
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                this.behaviorMetrics.idleStartTime = Date.now();
-            } else {
-                this.updateIdleTime();
-            }
-        });
-    }
-
-    /**
-     * Update user activity timestamp
-     */
-    updateActivity() {
-        const now = Date.now();
-        const timeSinceLastActivity = now - this.behaviorMetrics.lastUserActivity;
-
-        if (timeSinceLastActivity > this.idleThreshold) {
-            this.behaviorMetrics.totalIdleTime += timeSinceLastActivity;
-        }
-
-        this.behaviorMetrics.lastUserActivity = now;
-    }
-
-    /**
-     * Update idle time calculation
-     */
-    updateIdleTime() {
-        const idleDuration = Date.now() - this.behaviorMetrics.idleStartTime;
-        if (idleDuration > this.idleThreshold) {
-            this.behaviorMetrics.totalIdleTime += idleDuration;
-        }
-        this.behaviorMetrics.idleStartTime = Date.now();
-    }
-
-    /**
-     * Start idle time tracking
-     */
-    startIdleTracking() {
-        this.idleCheckInterval = setInterval(() => {
-            const timeSinceLastActivity = Date.now() - this.behaviorMetrics.lastUserActivity;
-            if (timeSinceLastActivity > this.idleThreshold) {
-                if (!this.behaviorMetrics.currentlyIdle) {
-                    this.behaviorMetrics.currentlyIdle = true;
-                    this.behaviorMetrics.idleStartTime = this.behaviorMetrics.lastUserActivity;
-                }
-            } else {
-                if (this.behaviorMetrics.currentlyIdle) {
-                    this.behaviorMetrics.currentlyIdle = false;
-                    this.updateIdleTime();
-                }
-            }
-        }, 1000);
-    }
-
-    /**
-     * Calculate final behavior metrics
-     */
-    calculateFinalMetrics() {
-        const metrics = {
-            backspaceCount: this.behaviorMetrics.backspaceCount,
-            averageMessageLength: this.behaviorMetrics.messageLengths.length > 0
-                ? this.behaviorMetrics.messageLengths.reduce((a, b) => a + b, 0) / this.behaviorMetrics.messageLengths.length
-                : 0,
-            totalMessages: this.behaviorMetrics.messageCount,
-            messagesPerConversation: this.behaviorMetrics.conversationCount > 0
-                ? this.behaviorMetrics.messageCount / this.behaviorMetrics.conversationCount
-                : 0,
-            conversationCount: this.behaviorMetrics.conversationCount,
-            editCount: this.behaviorMetrics.editCount,
-            averageEditDistance: this.behaviorMetrics.editDistances.length > 0
-                ? this.behaviorMetrics.editDistances.reduce((a, b) => a + b, 0) / this.behaviorMetrics.editDistances.length
-                : 0,
-            totalIdleTime: this.behaviorMetrics.totalIdleTime,
-            messageTimes: this.behaviorMetrics.messageTimes,
-            conversationSwitches: this.behaviorMetrics.conversationSwitches,
-            averageResponseTimeAfterBot: this.behaviorMetrics.responseTimesAfterBot.length > 0
-                ? this.behaviorMetrics.responseTimesAfterBot.reduce((a, b) => a + b, 0) / this.behaviorMetrics.responseTimesAfterBot.length
-                : 0,
-            totalKeystrokes: this.behaviorMetrics.typingPatterns.totalKeystrokes,
-            averageTypingDuration: this.behaviorMetrics.typingPatterns.typingDurations.length > 0
-                ? this.behaviorMetrics.typingPatterns.typingDurations.reduce((a, b) => a + b, 0) / this.behaviorMetrics.typingPatterns.typingDurations.length
-                : 0,
-            sessionDuration: Date.now() - this.sessionStartTime,
-            keystrokesPerMessage: this.behaviorMetrics.messageCount > 0
-                ? this.behaviorMetrics.typingPatterns.totalKeystrokes / this.behaviorMetrics.messageCount
-                : 0
-        };
-
-        return metrics;
+            notification.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
     }
 
     // ===================================================================
     // ERROR HANDLING
     // ===================================================================
 
-    /**
-     * Show error modal
-     */
     showErrorModal(error, context = 'chat') {
-        console.error('🚨 Showing error modal:', error);
-
         const modal = document.getElementById('error-modal');
         const errorCodeSpan = document.getElementById('error-code');
         const participantIdSpan = document.getElementById('error-participant-id');
 
+        // Generate error code
         let errorCode = 'UNKNOWN';
         if (error.status) {
             errorCode = `HTTP_${error.status}`;
         } else if (error.message) {
-            if (error.message.includes('fetch')) {
-                errorCode = 'NETWORK_ERROR';
-            } else if (error.message.includes('JSON')) {
-                errorCode = 'PARSE_ERROR';
-            } else if (error.message.includes('timeout')) {
-                errorCode = 'TIMEOUT_ERROR';
-            } else {
-                errorCode = 'API_ERROR';
-            }
+            if (error.message.includes('fetch')) errorCode = 'NETWORK_ERROR';
+            else if (error.message.includes('JSON')) errorCode = 'PARSE_ERROR';
+            else if (error.message.includes('timeout')) errorCode = 'TIMEOUT_ERROR';
+            else errorCode = 'API_ERROR';
         }
 
         const timestamp = new Date().toISOString().substring(0, 19).replace('T', '_');
@@ -2396,421 +1864,42 @@ class ChatApp {
         this.setupErrorModalListeners();
     }
 
-    /**
-     * Hide error modal
-     */
-    hideErrorModal() {
-        const modal = document.getElementById('error-modal');
-        modal.style.display = 'none';
-    }
-
-    /**
-     * Set up error modal event listeners
-     */
     setupErrorModalListeners() {
         const closeBtn = document.getElementById('error-modal-close');
         const closeBtn2 = document.getElementById('error-close');
         const tryAgainBtn = document.getElementById('error-try-again');
 
-        closeBtn.onclick = null;
-        closeBtn2.onclick = null;
-        tryAgainBtn.onclick = null;
+        const closeModal = () => {
+            const modal = document.getElementById('error-modal');
+            modal.style.display = 'none';
+        };
 
-        closeBtn.onclick = () => this.hideErrorModal();
-        closeBtn2.onclick = () => this.hideErrorModal();
-        tryAgainBtn.onclick = () => {
-            this.hideErrorModal();
+        const tryAgain = () => {
+            closeModal();
             if (this.currentChatlog.length > 0) {
                 const lastMessage = this.currentChatlog[this.currentChatlog.length - 1];
                 if (lastMessage.sender === 'User') {
-                    this.showTypingIndicator();
+                    this.showIndicator('typing');
                     setTimeout(() => this.getLLMResponse(), 500);
                 }
             }
         };
 
+        closeBtn.onclick = closeModal;
+        closeBtn2.onclick = closeModal;
+        tryAgainBtn.onclick = tryAgain;
+
         const modal = document.getElementById('error-modal');
         modal.onclick = (e) => {
-            if (e.target === modal) {
-                this.hideErrorModal();
-            }
+            if (e.target === modal) closeModal();
         };
     }
 
-    /**
-     * Show notification
-     */
-    showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.textContent = message;
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: ${type === 'warning' ? '#ef4444' : '#10b981'};
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            z-index: 2000;
-            animation: slideIn 0.3s ease-out;
-        `;
-
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease-out';
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
-    }
-
     // ===================================================================
-    // SAVE AND FINISH FUNCTIONALITY
+    // PAGE LIFECYCLE MANAGEMENT
     // ===================================================================
 
-    /**
-     * Save data to server
-     */
-    async saveToServer() {
-        try {
-            console.log('🔵 Starting save to server...');
-
-            const behaviorMetrics = this.calculateFinalMetrics();
-
-            const organizedConversations = {};
-            for (const [taskId, conversations] of Object.entries(this.taskConversations)) {
-                organizedConversations[taskId] = Object.fromEntries(conversations);
-            }
-
-            const saveData = {
-                participantId: this.participantId,
-                conversations: organizedConversations,
-                sessionId: this.sessionId,
-                completedAt: new Date().toISOString(),
-                modelConfig: {
-                    displayedModel: this.config.givenModel,
-                    actualModel: this.config.trueModel,
-                    configurationId: this.configurationId
-                },
-                behaviorMetrics: behaviorMetrics,
-                taskMetrics: this.behaviorMetrics.taskMetrics,
-                completedTasks: this.completedTasks, // ADD this line
-                currentTaskIndex: this.currentTaskIndex // ADD this line
-            };
-
-            const response = await fetch('/api/chat/save', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(saveData)
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                console.log('✅ Save successful:', result);
-                return result;
-            } else {
-                const error = new Error(result.error || 'Save failed');
-                error.status = response.status;
-                throw error;
-            }
-        } catch (error) {
-            console.error('❌ Error saving to server:', error);
-            this.showErrorModal(error, 'save');
-            throw error;
-        }
-    }
-
-    /**
-     * Manual save function
-     */
-    manualSave() {
-        if (this.currentChatlog.length === 0) {
-            alert('No messages to save!');
-            return;
-        }
-
-        this.autoSaveConversation();
-
-        this.saveToServer().then(result => {
-            const indicator = document.createElement('div');
-            indicator.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #10b981;
-                color: white;
-                padding: 12px 20px;
-                border-radius: 8px;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-                z-index: 1000;
-                font-weight: 500;
-                max-width: 300px;
-            `;
-            indicator.innerHTML = `
-                💾 Chat saved!<br>
-                <small>Participant ID: ${this.participantId}</small>
-            `;
-            document.body.appendChild(indicator);
-
-            setTimeout(() => {
-                indicator.remove();
-            }, 4000);
-        }).catch(error => {
-            alert('Error saving chat. Please try again.');
-        });
-    }
-
-    /**
-     * Handle finish study
-     */
-    async completeEntireStudy() {
-        console.log('🏁 Completing entire study...');
-
-        const finishBtn = document.getElementById('finish-btn');
-        if (finishBtn.disabled) return;
-        finishBtn.disabled = true;
-
-        try {
-            this.showFinishLoadingIndicator();
-
-            // Save any remaining conversation data  
-            if (this.currentConversationId && this.currentChatlog.length > 0) {
-                const taskConversations = this.taskConversations[this.currentTask]; // CHANGE: use current task
-                const conversation = taskConversations.get(this.currentConversationId);
-                if (conversation) {
-                    conversation.messages = [...this.currentChatlog];
-                }
-            }
-
-            const behaviorMetrics = this.calculateFinalMetrics();
-
-            // CHANGE: Organize conversations by task (instead of single conversations map)
-            const organizedConversations = {};
-            for (const [taskId, conversations] of Object.entries(this.taskConversations)) {
-                organizedConversations[taskId] = Object.fromEntries(conversations);
-            }
-
-            const exportData = {
-                participantId: this.participantId,
-                sessionId: this.sessionId,
-                completedAt: new Date().toISOString(),
-                modelConfig: {
-                    displayedModel: this.config.givenModel,
-                    actualModel: this.config.trueModel,
-                    configurationId: this.configurationId
-                },
-                conversations: organizedConversations, // CHANGE: use organized conversations
-                behaviorMetrics: behaviorMetrics,
-                completedTasks: this.completedTasks, // ADD: track completed tasks
-                studyVersion: "2.0" // CHANGE: update version
-            };
-
-            console.log('📦 Export data prepared:', exportData);
-
-            await this.downloadConversationData(exportData);
-            await this.saveToServer();
-            await this.markSessionCompleted();
-
-            this.closeApplication();
-
-        } catch (error) {
-            console.error('Error finishing study:', error);
-            alert('There was an error completing the study. Please try again or contact support.');
-            this.hideFinishLoadingIndicator();
-            finishBtn.disabled = false;
-        }
-    }
-
-    /**
-     * Handle task completion - this is the NEW method that the finish button calls
-     */
-    async handleTaskCompletion() {
-        const taskConfig = this.getCurrentTaskConfig();
-        const isLastTask = this.isFinalTask();
-
-        // Show confirmation dialog
-        const confirmed = await this.showTaskCompletionDialog(taskConfig.name, isLastTask);
-        if (!confirmed) return;
-
-        try {
-            // Save current task's conversations
-            await this.saveCurrentTaskData();
-
-            if (isLastTask) {
-                // This is the final task - complete the entire study
-                await this.completeEntireStudy();
-            } else {
-                // Progress to next task
-                await this.progressToNextTask();
-            }
-
-        } catch (error) {
-            console.error('❌ Task completion error:', error);
-            alert('Error completing task. Please try again.');
-        }
-    }
-
-    /**
-     * Show finish confirmation dialog
-     */
-    showFinishConfirmationDialog() {
-        return new Promise((resolve) => {
-            const modal = document.getElementById('finish-confirmation-modal');
-            modal.style.display = 'flex';
-            this.finishDialogResolve = resolve;
-        });
-    }
-
-    /**
-     * Hide finish confirmation dialog
-     */
-    hideFinishConfirmationDialog(confirmed) {
-        const modal = document.getElementById('finish-confirmation-modal');
-        modal.style.display = 'none';
-
-        if (this.finishDialogResolve) {
-            this.finishDialogResolve(confirmed);
-            this.finishDialogResolve = null;
-        }
-    }
-
-    /**
-     * Show finish loading indicator
-     */
-    showFinishLoadingIndicator() {
-        const indicator = document.getElementById('finish-loading-indicator');
-        indicator.style.display = 'block';
-    }
-
-    /**
-     * Hide finish loading indicator
-     */
-    hideFinishLoadingIndicator() {
-        const indicator = document.getElementById('finish-loading-indicator');
-        indicator.style.display = 'none';
-    }
-
-    /**
-     * Download conversation data as JSON
-     */
-    async downloadConversationData(data) {
-        try {
-            const jsonContent = JSON.stringify(data, null, 2);
-            const filename = `study-data-${this.participantId}-${Date.now()}.json`;
-
-            console.log('💾 Creating download:', filename);
-
-            const blob = new Blob([jsonContent], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            link.style.display = 'none';
-
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-        } catch (error) {
-            console.error('Error creating download:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Mark session as completed on server
-     */
-    async markSessionCompleted() {
-        try {
-            console.log('🏁 Marking session as completed...', {
-                sessionId: this.sessionId,
-                participantId: this.participantId,
-                configurationId: this.configurationId
-            });
-
-            const response = await fetch('/api/sessions/update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'complete',
-                    sessionId: this.sessionId,
-                    participantId: this.participantId
-                })
-            });
-
-
-            const responseText = await response.text();
-            console.log('📡 Session completion response:', response.status, responseText);
-
-            if (!response.ok) {
-                console.error('❌ Failed to mark session as completed:', response.status, responseText);
-                throw new Error(`HTTP ${response.status}: ${responseText}`);
-            }
-
-            const result = JSON.parse(responseText);
-            console.log('✅ Session marked as completed:', result);
-
-            return result;
-        } catch (error) {
-            console.error('❌ Error marking session complete:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Close application
-     */
-    closeApplication() {
-        this.stopSessionTimer();
-        this.isFinishing = true;
-
-        const finishBtn = document.getElementById('finish-btn');
-        if (finishBtn) finishBtn.style.display = 'none';
-
-        this.hideFinishLoadingIndicator();
-
-        document.body.innerHTML = `
-            <div style="
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-                background: var(--main-bg-dark);
-                color: var(--text-dark);
-                text-align: center;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            ">
-                <div>
-                    <h1 style="color: #10b981; margin-bottom: 20px;">✅ Study Completed!</h1>
-                    <p style="font-size: 18px; margin-bottom: 15px;">
-                        Thank you for participating. Your data has been downloaded.
-                    </p>
-                    <p style="color: #9ca3af;">
-                        Please upload the downloaded file to the Tally survey to complete your submission.
-                    </p>
-                    <p style="color: #9ca3af; margin-top: 30px; font-size: 14px;">
-                        This window will remain open. You may close it when you're ready.
-                    </p>
-                </div>
-            </div>
-        `;
-
-        console.log('Study completed. Window will remain open.');
-    }
-
-    // ===================================================================
-    // CLEANUP AND EVENT HANDLERS
-    // ===================================================================
-
-    /**
-     * Handle page close event
-     */
-    async onClose(event) {
+    async handlePageClose(event) {
         this.stopSessionTimer();
 
         if (this.isFinishing) return;
@@ -2829,59 +1918,24 @@ class ChatApp {
             return;
         }
 
+        // Auto-save on close
         if (this.currentConversationId && this.currentChatlog.length > 0) {
-            const conversation = this.conversations.get(this.currentConversationId);
-            if (conversation) {
-                conversation.messages = [...this.currentChatlog];
-            }
-
             try {
-                const behaviorMetrics = this.calculateFinalMetrics();
-                const saveData = {
-                    participantId: this.participantId,
-                    conversations: organizedConversations,
-                    sessionId: this.sessionId,
-                    completedAt: new Date().toISOString(),
-                    modelConfig: {
-                        displayedModel: this.config.givenModel,
-                        actualModel: this.config.trueModel,
-                        configurationId: this.configurationId
-                    },
-                    behaviorMetrics: behaviorMetrics,
-                    taskMetrics: this.behaviorMetrics.taskMetrics,
-                    completedTasks: this.completedTasks, // ADD this line
-                    currentTaskIndex: this.currentTaskIndex // ADD this line
-                };
-
-                const blob = new Blob([JSON.stringify(saveData)], { type: 'application/json' });
+                const exportData = this.prepareExportData();
+                const blob = new Blob([JSON.stringify(exportData)], { type: 'application/json' });
                 navigator.sendBeacon('/api/chat/save', blob);
             } catch (error) {
-                console.error('Error saving on close:', error);
-                event.preventDefault();
-                event.returnValue = 'Your data may not be saved. Are you sure you want to leave?';
-                return event.returnValue;
+                console.error('Auto-save on close failed:', error.message);
             }
         }
     }
 
-    /**
-     * Show saving indicator
-     */
     showSavingIndicator() {
         const overlay = document.createElement('div');
         overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0,0,0,0.8);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            z-index: 99999;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.8); color: white; display: flex;
+            align-items: center; justify-content: center; font-size: 18px; z-index: 99999;
         `;
         overlay.innerHTML = `
             <div>
@@ -2892,9 +1946,6 @@ class ChatApp {
         document.body.appendChild(overlay);
     }
 
-    /**
-     * Release reservation
-     */
     async releaseReservation() {
         try {
             const response = await fetch('/api/sessions/update', {
@@ -2906,54 +1957,22 @@ class ChatApp {
                 })
             });
 
-            if (response.ok) {
-                console.log('✅ Reservation released successfully');
-            } else {
-                console.warn('⚠️ Release request failed:', response.status);
-            }
-
             return response.ok;
         } catch (error) {
-            console.error('❌ Release request error:', error);
+            console.error('Release request failed:', error.message);
             return false;
         }
     }
 
-    /**
-     * Set up all event listeners
-     */
+    // ===================================================================
+    // EVENT LISTENER SETUP
+    // ===================================================================
+
     setupEventListeners() {
-        // Remove existing listeners to prevent duplicates
-        const sendBtn = document.getElementById('send-btn');
-        const messageInput = document.getElementById('message-input');
-        const newChatBtn = document.getElementById('new-chat-btn');
-        const saveChatBtn = document.getElementById('save-chat-btn');
-        const finishBtn = document.getElementById('finish-btn');
-        const themeSwitch = document.getElementById('theme-switch');
-        const sidebarToggle = document.getElementById('sidebar-toggle');
-        const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
+        // Remove any existing listeners by replacing elements
+        this.replaceElementsToRemoveListeners();
 
-        // Clone nodes to remove all event listeners
-        const newSendBtn = sendBtn.cloneNode(true);
-        const newMessageInput = messageInput.cloneNode(true);
-        const newNewChatBtn = newChatBtn.cloneNode(true);
-        const newSaveChatBtn = saveChatBtn.cloneNode(true);
-        const newFinishBtn = finishBtn.cloneNode(true);
-        const newThemeSwitch = themeSwitch.cloneNode(true);
-        const newSidebarToggle = sidebarToggle.cloneNode(true);
-        const newMobileSidebarToggle = mobileSidebarToggle.cloneNode(true);
-
-        // Replace elements
-        sendBtn.parentNode.replaceChild(newSendBtn, sendBtn);
-        messageInput.parentNode.replaceChild(newMessageInput, messageInput);
-        newChatBtn.parentNode.replaceChild(newNewChatBtn, newChatBtn);
-        saveChatBtn.parentNode.replaceChild(newSaveChatBtn, saveChatBtn);
-        finishBtn.parentNode.replaceChild(newFinishBtn, finishBtn);
-        themeSwitch.parentNode.replaceChild(newThemeSwitch, themeSwitch);
-        sidebarToggle.parentNode.replaceChild(newSidebarToggle, sidebarToggle);
-        mobileSidebarToggle.parentNode.replaceChild(newMobileSidebarToggle, mobileSidebarToggle);
-
-        // Add event listeners to new elements
+        // Set up new event listeners
         document.getElementById('send-btn').addEventListener('click', () => this.sendMessage());
         document.getElementById('message-input').addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -2975,15 +1994,39 @@ class ChatApp {
 
         document.addEventListener('click', (e) => this.handleOutsideClick(e));
     }
+
+    replaceElementsToRemoveListeners() {
+        const elements = [
+            'send-btn', 'message-input', 'new-chat-btn', 'save-chat-btn', 
+            'finish-btn', 'theme-switch', 'sidebar-toggle', 'mobile-sidebar-toggle'
+        ];
+
+        elements.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                const newElement = element.cloneNode(true);
+                element.parentNode.replaceChild(newElement, element);
+            }
+        });
+    }
+
+    handleOutsideClick(e) {
+        const sidebar = document.getElementById('sidebar');
+        const toggle = document.getElementById('mobile-sidebar-toggle');
+
+        if (window.innerWidth <= 768 &&
+            sidebar && sidebar.classList.contains('open') &&
+            !sidebar.contains(e.target) &&
+            toggle && !toggle.contains(e.target)) {
+            this.toggleMobileSidebar();
+        }
+    }
 }
 
 // ===================================================================
-// INITIALIZE APPLICATION
+// APPLICATION INITIALIZATION
 // ===================================================================
 
-/**
- * Initialize the ChatApp when page loads
- */
 document.addEventListener('DOMContentLoaded', () => {
     window.chatApp = new ChatApp();
 });
