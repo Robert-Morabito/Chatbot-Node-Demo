@@ -2500,7 +2500,7 @@ class ChatApp {
                 currentTaskIndex: this.currentTaskIndex // ADD this line
             };
 
-            const response = await fetch('/api/save', {
+            const response = await fetch('/api/chat/save', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(saveData)
@@ -2854,7 +2854,7 @@ class ChatApp {
                 };
 
                 const blob = new Blob([JSON.stringify(saveData)], { type: 'application/json' });
-                navigator.sendBeacon('/api/save', blob);
+                navigator.sendBeacon('/api/chat/save', blob);
             } catch (error) {
                 console.error('Error saving on close:', error);
                 event.preventDefault();
