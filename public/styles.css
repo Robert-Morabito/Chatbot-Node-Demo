@@ -3236,10 +3236,6 @@ body.light-theme {
     opacity: 0;
     transform: translateY(-10px);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    padding: 0.5rem;
-    background: rgba(239, 68, 68, 0.1);
-    border-radius: 4px;
-    border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 .input-error.show {
@@ -5314,7 +5310,7 @@ body.light-theme {
     .navigation-system {
         gap: 0.75rem;
     }
-
+    
     .nav-button {
         padding: 0.75rem 1.25rem;
         font-size: 0.875rem;

@@ -116,7 +116,14 @@ class ChatApp {
 
     async initializeApp() {
         this.showWelcomeExperience();
-        this.setupReleaseHandler();
+
+        try {
+            await this.loadConfiguration();
+            this.setupReleaseHandler();
+        } catch (error) {
+            console.error('Configuration loading failed:', error.message);
+            this.setupReleaseHandler();
+        }
     }
 
     async loadConfiguration() {
@@ -507,7 +514,7 @@ class ChatApp {
 
     startReadingCountdown() {
         const continueBtn = document.getElementById('nav-continue');
-        let timeLeft = 10;
+        let timeLeft = 10; // 10 second delay
 
         const updateButton = () => {
             if (timeLeft > 0) {
@@ -522,22 +529,11 @@ class ChatApp {
                 </svg>
             `;
                 continueBtn.onclick = async () => {
-                    continueBtn.innerHTML = 'Starting Study...';
-                    continueBtn.disabled = true;
-
                     try {
-                        // Only try to register session if we have sessionId
-                        if (this.sessionId) {
-                            await this.registerSession();
-                        } else {
-                            console.warn('⚠️ No session ID available - skipping registration');
-                        }
-
+                        await this.registerSession();
                         setTimeout(() => this.hideWelcomeExperience(), 800);
                     } catch (error) {
                         console.error('Session registration failed:', error.message);
-                        // Continue anyway - don't block the user
-                        setTimeout(() => this.hideWelcomeExperience(), 800);
                     }
                 };
                 continueBtn.disabled = false;
@@ -604,40 +600,23 @@ class ChatApp {
 
         const continueBtn = document.getElementById('nav-continue');
         const originalContent = continueBtn.innerHTML;
-        continueBtn.innerHTML = 'Loading Configuration...';
+        continueBtn.innerHTML = 'Validating...';
         continueBtn.disabled = true;
 
-        // Store participant ID first
+        // Store participant ID
         this.participantId = prolificId;
 
         try {
-            // NOW load the configuration after we have the participant ID
-            console.log('🔄 Loading configuration for participant:', prolificId);
-            await this.loadConfiguration();
-
-            continueBtn.innerHTML = 'Configuration Loaded!';
-
-            // Continue to model comparison step
+            // Continue to model comparison step instead of ending welcome
             setTimeout(() => {
                 continueBtn.innerHTML = originalContent;
                 continueBtn.disabled = false;
                 this.renderWelcomeStep(2); // Move to model comparison step
-            }, 1000);
-
+            }, 500);
         } catch (error) {
-            console.error('Configuration loading failed:', error.message);
-
-            // Show error and allow retry
-            continueBtn.innerHTML = 'Configuration Failed - Retry';
+            console.error('ID validation failed:', error.message);
+            continueBtn.innerHTML = originalContent;
             continueBtn.disabled = false;
-
-            // Show user-friendly error
-            const errorDiv = document.getElementById('input-error');
-            errorDiv.textContent = 'Unable to load study configuration. Please try again.';
-            errorDiv.classList.add('show');
-
-            // Allow them to try again
-            continueBtn.onclick = () => this.handleProlificSubmission();
         }
     }
 
@@ -662,7 +641,7 @@ class ChatApp {
 
         // Handle continue button
         if (this.welcomeState.isTransitioning ||
-            (this.welcomeState.currentStep === 2 && this.welcomeState.isAnimating)) {
+            (this.welcomeState.currentStep === 2 && this.welcomeState.isAnimating)) { // Updated step check
             continueBtn.style.opacity = '0.6';
             continueBtn.disabled = true;
             return;
@@ -673,11 +652,11 @@ class ChatApp {
 
         // Set button content and action based on step
         if (this.welcomeState.currentStep === 1) {
-            // Prolific ID step - this should always work
-            continueBtn.innerHTML = 'Load Study Configuration <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
+            // Prolific ID step
+            continueBtn.innerHTML = 'Continue <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
             continueBtn.onclick = () => this.handleProlificSubmission();
         } else if (this.welcomeState.currentStep === 2) {
-            // Model comparison step - only if config is loaded
+            // Model comparison step  
             continueBtn.innerHTML = 'See Details <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
             continueBtn.onclick = () => this.showCapabilityCardsSequence();
         } else {
