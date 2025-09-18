@@ -258,8 +258,8 @@ class ChatApp {
 
             // Handle special step logic
             if (index === stepIndex) {
-                if (stepIndex === 1) this.startModelComparison();
-                if (stepIndex === 2) setTimeout(() => this.setupProlificValidation(), 100);
+                if (stepIndex === 1) this.setupProlificValidation();
+                if (stepIndex === 2) this.startModelComparison();
             }
         });
 
@@ -523,12 +523,19 @@ class ChatApp {
                 continueBtn.style.opacity = '0.6';
             } else {
                 continueBtn.innerHTML = `
-                    Continue to ID Entry
-                    <svg class="nav-icon" viewBox="0 0 24 24">
-                        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-                    </svg>
-                `;
-                continueBtn.onclick = () => this.renderWelcomeStep(2);
+                Start Study
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                </svg>
+            `;
+                continueBtn.onclick = async () => {
+                    try {
+                        await this.registerSession();
+                        setTimeout(() => this.hideWelcomeExperience(), 800);
+                    } catch (error) {
+                        console.error('Session registration failed:', error.message);
+                    }
+                };
                 continueBtn.disabled = false;
                 continueBtn.style.opacity = '1';
 
@@ -593,16 +600,21 @@ class ChatApp {
 
         const continueBtn = document.getElementById('nav-continue');
         const originalContent = continueBtn.innerHTML;
-        continueBtn.innerHTML = 'Starting...';
+        continueBtn.innerHTML = 'Validating...';
         continueBtn.disabled = true;
 
+        // Store participant ID
         this.participantId = prolificId;
 
         try {
-            await this.registerSession();
-            setTimeout(() => this.hideWelcomeExperience(), 800);
+            // Continue to model comparison step instead of ending welcome
+            setTimeout(() => {
+                continueBtn.innerHTML = originalContent;
+                continueBtn.disabled = false;
+                this.renderWelcomeStep(2); // Move to model comparison step
+            }, 500);
         } catch (error) {
-            console.error('Session registration failed:', error.message);
+            console.error('ID validation failed:', error.message);
             continueBtn.innerHTML = originalContent;
             continueBtn.disabled = false;
         }
@@ -629,7 +641,7 @@ class ChatApp {
 
         // Handle continue button
         if (this.welcomeState.isTransitioning ||
-            (this.welcomeState.currentStep === 1 && this.welcomeState.isAnimating)) {
+            (this.welcomeState.currentStep === 2 && this.welcomeState.isAnimating)) { // Updated step check
             continueBtn.style.opacity = '0.6';
             continueBtn.disabled = true;
             return;
@@ -640,12 +652,15 @@ class ChatApp {
 
         // Set button content and action based on step
         if (this.welcomeState.currentStep === 1) {
+            // Prolific ID step
+            continueBtn.innerHTML = 'Continue <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
+            continueBtn.onclick = () => this.handleProlificSubmission();
+        } else if (this.welcomeState.currentStep === 2) {
+            // Model comparison step  
             continueBtn.innerHTML = 'See Details <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
             continueBtn.onclick = () => this.showCapabilityCardsSequence();
-        } else if (this.welcomeState.currentStep === 2) {
-            continueBtn.innerHTML = 'Start Study <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
-            continueBtn.onclick = () => this.handleProlificSubmission();
         } else {
+            // Welcome step
             continueBtn.innerHTML = 'Continue <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
             continueBtn.onclick = () => this.renderWelcomeStep(this.welcomeState.currentStep + 1);
         }
