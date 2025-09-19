@@ -1264,6 +1264,154 @@ body.light-theme {
     background: var(--hover-light);
 }
 
+/* Simple Error Display */
+.simple-error {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    backdrop-filter: blur(4px);
+}
+
+.error-content {
+    background: var(--main-bg-dark);
+    border: 2px solid #ef4444;
+    border-radius: 12px;
+    max-width: 500px;
+    width: 90%;
+    margin: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.light-theme .error-content {
+    background: var(--main-bg-light);
+}
+
+.error-header {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.error-icon {
+    font-size: 1.5rem;
+}
+
+.error-title {
+    flex: 1;
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.error-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.error-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.error-body {
+    padding: 1.5rem;
+    color: var(--text-dark);
+}
+
+.light-theme .error-body {
+    color: var(--text-light);
+}
+
+.error-code-box {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin: 1rem 0;
+    font-family: monospace;
+    font-size: 0.875rem;
+}
+
+.error-instruction {
+    font-size: 0.875rem;
+    color: var(--text-secondary-dark);
+    font-style: italic;
+}
+
+.light-theme .error-instruction {
+    color: var(--text-secondary-light);
+}
+
+.error-actions {
+    background: var(--hover-dark);
+    padding: 1rem 1.5rem;
+    display: flex;
+    gap: 1rem;
+}
+
+.light-theme .error-actions {
+    background: var(--hover-light);
+}
+
+.error-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.error-primary {
+    background: #ef4444;
+    color: white;
+}
+
+.error-primary:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+.error-secondary {
+    background: transparent;
+    color: var(--text-dark);
+    border: 1px solid var(--border-dark);
+}
+
+.light-theme .error-secondary {
+    color: var(--text-light);
+    border-color: var(--border-light);
+}
+
+.error-secondary:hover {
+    background: var(--hover-dark);
+    transform: translateY(-1px);
+}
+
+.light-theme .error-secondary:hover {
+    background: var(--hover-light);
+}
+
 @keyframes errorModalSlideIn {
     from {
         opacity: 0;

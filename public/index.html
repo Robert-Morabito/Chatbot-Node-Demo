@@ -444,6 +444,28 @@
         </div>
     </div>
 
+    <!-- Simple Error Display -->
+    <div id="simple-error-display" class="simple-error" style="display: none;">
+        <div class="error-content">
+            <div class="error-header">
+                <span class="error-icon">⚠️</span>
+                <span class="error-title" id="error-title">Connection Error</span>
+                <button class="error-close" id="simple-error-close">×</button>
+            </div>
+            <div class="error-body">
+                <p id="error-message">Unable to connect to the study system.</p>
+                <div class="error-code-box">
+                    <strong>Error Code:</strong> <span id="error-code-display">UNKNOWN</span>
+                </div>
+                <p class="error-instruction">Please screenshot this error and report it to the researchers.</p>
+            </div>
+            <div class="error-actions">
+                <button id="error-retry" class="error-btn error-primary">Try Again</button>
+                <button id="error-report" class="error-btn error-secondary">How to Report</button>
+            </div>
+        </div>
+    </div>
+
     <script src="chat.js"></script>
 </body>
 
