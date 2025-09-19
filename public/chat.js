@@ -1684,23 +1684,7 @@ class ChatApp {
             body: JSON.stringify(saveData)
         });
 
-        // Handle 204 No Content response (no JSON body)
-        if (!response.ok) {
-            let errorMessage = 'Session completion failed';
-            try {
-                const errorData = await response.json();
-                errorMessage = errorData.error || errorMessage;
-            } catch {
-                errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-            }
-
-            const error = new Error(errorMessage);
-            error.status = response.status;
-            throw error;
-        }
-
-        console.log('✅ Session marked as completed successfully');
-        return { success: true }; // Return success object for compatibility
+        const result = await response.json();
 
         if (!response.ok) {
             const error = new Error(result.error || 'Save failed');
