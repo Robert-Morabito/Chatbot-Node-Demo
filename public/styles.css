@@ -812,22 +812,26 @@ body.light-theme {
     text-align: center;
     margin: 15px 0;
     transition: border-color 0.3s ease;
+    z-index: 9999 !important;
 }
 
 .light-theme .prolific-id-input {
     border-color: var(--border-light);
     background-color: var(--main-bg-light);
     color: var(--text-light);
+    z-index: 9999 !important;
 }
 
 .prolific-id-input:focus {
     outline: none;
     border-color: var(--user-msg-bg-dark);
+    z-index: 9999 !important;
 }
 
 .prolific-id-input.error {
     border-color: #ef4444;
     background-color: rgba(239, 68, 68, 0.05);
+    z-index: 9999 !important;
 }
 
 .error-message {
@@ -2649,24 +2653,6 @@ body.light-theme {
 /* ===================================================================
    SOPHISTICATED WELCOME EXPERIENCE
    ================================================================= */
-/* Fix input field layering - proper solution */
-.welcome-panel .input-field {
-    position: relative;
-    z-index: 100;
-    background: rgba(249, 250, 251, 0.08);
-    border: 1px solid rgba(229, 231, 235, 0.2);
-}
-
-.welcome-panel .input-group {
-    position: relative;
-    z-index: 100;
-}
-
-.welcome-panel .content-card {
-    position: relative;
-    z-index: 50;
-}
-
 .welcome-experience {
     position: fixed;
     top: 0;
