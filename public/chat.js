@@ -136,7 +136,7 @@ class ChatApp {
 
         const continueBtn = document.getElementById('nav-continue');
         const originalContent = continueBtn.innerHTML;
-        
+
         try {
             // Show loading state
             continueBtn.innerHTML = '⏳ Assigning Configuration...';
@@ -159,7 +159,7 @@ class ChatApp {
             if (response.ok) {
                 // Configuration assigned successfully
                 this.handleConfigAssignmentSuccess(data);
-                
+
                 // Move to next step to show assigned model
                 setTimeout(() => {
                     this.welcomeState.configAssignmentLoading = false;
@@ -233,7 +233,7 @@ class ChatApp {
 
         try {
             console.log('🔄 [Database] Releasing configuration for user:', this.participantId);
-            
+
             const response = await fetch('/api/database/release', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -263,7 +263,7 @@ class ChatApp {
 
         try {
             console.log('✅ [Database] Confirming study completion for user:', this.participantId);
-            
+
             const response = await fetch('/api/database/confirm', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -313,7 +313,7 @@ class ChatApp {
         });
 
         // Handle special step logic
-        switch(stepIndex) {
+        switch (stepIndex) {
             case 0: // Intro
                 // No special setup needed
                 break;
@@ -342,7 +342,7 @@ class ChatApp {
         // Show the model comparison with assigned model highlighted
         this.populateModelComparison(comparisonData);
         this.animateModelCards();
-        
+
         setTimeout(() => {
             this.highlightAssignedModel(assignedIndex);
             this.showAssignmentPopup(assignedIndex);
@@ -703,14 +703,18 @@ class ChatApp {
         continueBtn.disabled = false;
 
         // Set button content and action based on step
-        if (this.welcomeState.currentStep === 0) {
-            continueBtn.innerHTML = 'Continue <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
-            continueBtn.onclick = () => this.renderWelcomeStep(1);
-        } else if (this.welcomeState.currentStep === 1) {
-            continueBtn.innerHTML = 'Get Configuration <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
-            continueBtn.onclick = () => this.handleProlificSubmission();
+        switch (this.welcomeState.currentStep) {
+            case 0: // Intro
+                continueBtn.innerHTML = 'Continue <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
+                continueBtn.onclick = () => this.renderWelcomeStep(1);
+                break;
+            case 1: // ID Entry
+                continueBtn.innerHTML = 'Continue <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
+                continueBtn.onclick = () => this.handleProlificSubmission();
+                break;
+            case 2: // Model Display - handled by countdown system
+                break;
         }
-        // Step 2 button is handled by the countdown system
     }
 
     /**
@@ -719,11 +723,11 @@ class ChatApp {
     showInputError(message) {
         const errorDiv = document.getElementById('input-error');
         const input = document.getElementById('prolific-input');
-        
+
         input.classList.add('error');
         errorDiv.textContent = message;
         errorDiv.classList.add('show');
-        
+
         // Clear error after a few seconds
         setTimeout(() => {
             input.classList.remove('error');
@@ -739,19 +743,19 @@ class ChatApp {
         const titleEl = modal.querySelector('.error-modal-header h3');
         const bodyEl = modal.querySelector('.error-modal-body > p');
         const errorCodeSpan = document.getElementById('error-code');
-        
+
         titleEl.textContent = '📋 Study Complete';
         bodyEl.innerHTML = `
             This study has reached capacity and is no longer accepting new participants.<br><br>
             <strong>Thank you for your interest!</strong> Please return this study on Prolific so others can participate.
         `;
-        
+
         errorCodeSpan.textContent = `${errorData.code}_${Date.now()}`;
-        
+
         // Hide try again button for this error type
         const tryAgainBtn = document.getElementById('error-try-again');
         if (tryAgainBtn) tryAgainBtn.style.display = 'none';
-        
+
         modal.style.display = 'flex';
     }
 
@@ -764,19 +768,19 @@ class ChatApp {
         const bodyEl = modal.querySelector('.error-modal-body > p');
         const errorCodeSpan = document.getElementById('error-code');
         const participantIdSpan = document.getElementById('error-participant-id');
-        
+
         titleEl.textContent = '⚠️ Technical Issue';
         bodyEl.textContent = errorData.userMessage || 'We\'re experiencing technical difficulties. Please report this error.';
-        
+
         errorCodeSpan.textContent = `${errorData.code}_${Date.now()}`;
         participantIdSpan.textContent = this.participantId || 'Not Set';
-        
+
         // Show try again button for retryable errors
         const tryAgainBtn = document.getElementById('error-try-again');
         if (tryAgainBtn) {
             tryAgainBtn.style.display = errorData.code === 'NETWORK_ERROR' ? 'block' : 'none';
         }
-        
+
         modal.style.display = 'flex';
     }
 
@@ -1781,10 +1785,10 @@ class ChatApp {
 
             const exportData = this.prepareExportData();
             await this.downloadConversationData(exportData);
-            
+
             // Save to GitHub (keeping existing functionality)
             await this.saveToServer();
-            
+
             // NEW: Confirm completion in database
             await this.confirmStudyCompletion();
 
