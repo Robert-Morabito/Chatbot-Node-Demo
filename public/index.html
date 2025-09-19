@@ -29,18 +29,45 @@
 
             <!-- Content Container -->
             <div class="content-stage" id="content-stage">
-                <!-- Step 1: Welcome Message -->
+                <!-- Step 1: Welcome Message (unchanged) -->
                 <div class="content-panel welcome-panel">
                     <div class="content-card">
                         <h1 class="content-title">Exploring Human-LLM Interaction for Task Completion</h1>
+                        <p class="content-subtitle">Welcome to our research study exploring how people interact with
+                            different AI chatbots to complete various tasks.</p>
+                        <div class="info-grid">
+                            <div class="info-item info-item-large">
+                                <p>You'll work with an AI chatbot to complete three different types of tasks. We're
+                                    studying how people naturally interact with AI systems to understand communication
+                                    patterns and preferences.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Step 2: Model Comparison Animation -->
+                <!-- Step 2: ID Entry + Configuration Assignment (MOVED FROM STEP 3) -->
+                <div class="content-panel id-panel">
+                    <div class="content-card">
+                        <h1 class="content-title">Enter Your Prolific ID</h1>
+                        <p class="content-subtitle">We'll use this to assign you a chatbot configuration and connect
+                            your responses with the study</p>
+                        <div class="id-input-system">
+                            <div class="input-group">
+                                <input type="text" id="prolific-input" class="input-field"
+                                    placeholder="24-character Prolific ID" maxlength="24" autocomplete="off">
+                                <div id="input-error" class="input-error"></div>
+                                <div class="input-hint">Your ID should contain exactly 24 letters and numbers</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Model Display (MOVED FROM STEP 2, shows assigned model) -->
                 <div class="content-panel comparison-panel">
                     <div class="comparison-container">
                         <div class="comparison-title">
                             <h2>Meet Your Chatbot</h2>
+                            <p>Based on your assignment, here's the AI model you'll be working with today</p>
                         </div>
 
                         <!-- Model Cards Container -->
@@ -106,7 +133,7 @@
                                     <div class="capability-item-label">
                                         <span>Creativity</span>
                                     </div>
-                                    <div class="capability-icons-inline" data-count="2"></div>
+                                    <div class="capability-icons-inline" data-count="3"></div>
                                 </div>
 
                                 <div class="capability-item" data-capability="knowledge" data-delay="400">
@@ -121,7 +148,7 @@
                             <div class="model-card" data-model="2">
                                 <div class="model-header-card">
                                     <h3 class="model-name-card" id="model-name-card-2">GPT-5</h3>
-                                    <p class="model-year-card" id="model-year-card-2">2024</p>
+                                    <p class="model-year-card" id="model-year-card-2">2025</p>
                                 </div>
 
                                 <div class="capability-item" data-capability="reasoning" data-delay="0">
@@ -142,7 +169,7 @@
                                     <div class="capability-item-label">
                                         <span>Creativity</span>
                                     </div>
-                                    <div class="capability-icons-inline" data-count="2"></div>
+                                    <div class="capability-icons-inline" data-count="4"></div>
                                 </div>
 
                                 <div class="capability-item" data-capability="knowledge" data-delay="400">
@@ -163,7 +190,7 @@
 
                         <!-- Capability Cards (appear after cards shrink) -->
                         <div class="capability-cards-wrapper" id="capability-cards-wrapper">
-                            <!-- ADD: Arrow pointing to assigned model -->
+                            <!-- Arrow pointing to assigned model -->
                             <div class="capability-arrow" id="capability-arrow">
                                 <div class="arrow-head">▲</div>
                             </div>
@@ -188,22 +215,6 @@
                                     <p id="usecase-text">Creative writing, professional communication, and complex
                                         analysis.</p>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 3: Prolific ID Entry -->
-                <div class="content-panel id-panel">
-                    <div class="content-card">
-                        <h1 class="content-title">Enter Your ID</h1>
-                        <p class="content-subtitle">We'll use this to connect your responses with the study</p>
-                        <div class="id-input-system">
-                            <div class="input-group">
-                                <input type="text" id="prolific-input" class="input-field"
-                                    placeholder="24-character Prolific ID" maxlength="24" autocomplete="off">
-                                <div id="input-error" class="input-error"></div>
-                                <div class="input-hint">Your ID should contain exactly 24 letters and numbers</div>
                             </div>
                         </div>
                     </div>
