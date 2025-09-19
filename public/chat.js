@@ -500,57 +500,46 @@ class ChatApp {
         const continueBtn = document.getElementById('nav-continue');
         const errorDiv = document.getElementById('input-error');
 
-        if (!input || !continueBtn) {
-            console.error('Prolific validation elements not found');
+        if (!input) {
+            console.error('❌ Input field not found');
             return;
         }
 
-        console.log('Setting up prolific validation'); // Debug
+        console.log('✅ Setting up validation, input found:', input);
+
+        // Test if input is clickable
+        input.onclick = () => console.log('✅ Input clicked!');
+        input.onfocus = () => console.log('✅ Input focused!');
 
         const validateInput = () => {
             const value = input.value.trim();
             const isValid = /^[a-zA-Z0-9]{24}$/.test(value);
 
-            console.log('Validating input:', value, 'Valid:', isValid); // Debug
+            console.log('Validating:', value, 'Valid:', isValid);
 
-            input.classList.remove('error', 'success');
-            errorDiv.classList.remove('show');
-
-            if (value.length === 0) {
-                continueBtn.disabled = true;
-                return;
+            if (continueBtn) {
+                continueBtn.disabled = !isValid;
             }
 
-            if (isValid) {
-                input.classList.add('success');
-                continueBtn.disabled = false;
-            } else {
-                input.classList.add('error');
-                errorDiv.textContent = 'Please enter a valid 24-character Prolific ID';
-                errorDiv.classList.add('show');
-                continueBtn.disabled = true;
+            if (errorDiv) {
+                if (value.length > 0 && !isValid) {
+                    errorDiv.textContent = 'Please enter a valid 24-character Prolific ID';
+                    errorDiv.classList.add('show');
+                } else {
+                    errorDiv.classList.remove('show');
+                }
             }
         };
 
-        // Clear any existing event listeners and add new ones
-        input.removeEventListener('input', validateInput);
+        // Simple event binding
         input.addEventListener('input', validateInput);
-
-        input.removeEventListener('keydown', handleKeydown);
-        function handleKeydown(e) {
-            if (e.key === 'Enter' && !continueBtn.disabled) {
-                e.preventDefault();
-                e.stopPropagation();
-                this.handleProlificSubmission();
-            }
-        }
-        input.addEventListener('keydown', handleKeydown.bind(this));
-
-        // Initial validation
         validateInput();
 
-        // Focus the input
-        setTimeout(() => input.focus(), 200);
+        // Force focus
+        setTimeout(() => {
+            input.focus();
+            console.log('✅ Input should be focused now');
+        }, 100);
     }
 
     async handleProlificSubmission() {
