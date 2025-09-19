@@ -1716,6 +1716,8 @@ class ChatApp {
 
     async markSessionCompleted() {
         try {
+            console.log('✅ Marking allocation as completed for:', this.participantId);
+
             const response = await fetch('/api/allocation/confirm', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1723,14 +1725,20 @@ class ChatApp {
             });
 
             if (!response.ok) {
-                const responseText = await response.text();
-                throw new Error(`HTTP ${response.status}: ${responseText}`);
+                const error = await response.json();
+                throw new Error(`Confirm failed: ${error.error || response.statusText}`);
             }
 
-            return await response.json();
+            // 204 No Content - don't try to parse JSON from empty response
+            console.log('✅ Allocation marked as completed successfully');
+
+            return {
+                success: true,
+                message: 'Session marked as completed'
+            };
 
         } catch (error) {
-            console.error('Session completion failed:', error.message);
+            console.error('❌ Session completion failed:', error.message);
             throw error;
         }
     }
