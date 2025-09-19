@@ -10,12 +10,11 @@
 </head>
 
 <body>
-    <!-- Sophisticated Welcome Experience -->
-    <!-- In index.html, replace the existing welcome experience content -->
+    <!-- Updated Welcome Experience -->
     <div id="welcome-experience" class="welcome-experience">
         <div class="welcome-backdrop"></div>
         <div class="welcome-container">
-            <!-- Simplified Progress System -->
+            <!-- Progress System -->
             <div class="progress-system">
                 <div class="progress-track">
                     <div class="progress-indicator" id="progress-indicator"></div>
@@ -23,56 +22,58 @@
                 <div class="progress-counter">
                     <span id="current-step">1</span>
                     <span class="step-separator">/</span>
-                    <span>3</span>
+                    <span>2</span> <!-- Changed from 3 to 2 steps -->
                 </div>
             </div>
 
             <!-- Content Container -->
             <div class="content-stage" id="content-stage">
-                <!-- Step 1: Welcome Message -->
+                <!-- Step 1: Welcome + Prolific ID Entry -->
                 <div class="content-panel welcome-panel">
                     <div class="content-card">
                         <h1 class="content-title">Exploring Human-LLM Interaction for Task Completion</h1>
+                        <p class="content-subtitle">Welcome to our research study</p>
+
+                        <!-- Combined ID Entry -->
+                        <div class="id-input-system" style="margin-top: 2rem;">
+                            <div class="input-group">
+                                <input type="text" id="prolific-input" class="input-field"
+                                    placeholder="24-character Prolific ID" maxlength="24" autocomplete="off">
+                                <div id="input-error" class="input-error"></div>
+                                <div class="input-hint">Enter your Prolific participant ID to begin</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Step 2: Model Comparison Animation -->
+                <!-- Step 2: Model Comparison (shows assigned model) -->
                 <div class="content-panel comparison-panel">
+                    <!-- Keep existing model comparison content exactly as is -->
                     <div class="comparison-container">
                         <div class="comparison-title">
                             <h2>Meet Your Chatbot</h2>
                         </div>
-
-                        <!-- Model Cards Container -->
+                        <!-- ... rest of model comparison content stays the same ... -->
                         <div class="model-comparison-container" id="model-comparison-container">
+                            <!-- Keep all existing model cards -->
                             <!-- Model Card 1 -->
                             <div class="model-card" data-model="0">
                                 <div class="model-header-card">
                                     <h3 class="model-name-card" id="model-name-card-0">GPT-3.5</h3>
                                     <p class="model-year-card" id="model-year-card-0">2022</p>
                                 </div>
-
                                 <div class="capability-item" data-capability="reasoning" data-delay="0">
-                                    <div class="capability-item-label">
-                                        <span>Reasoning</span>
-                                    </div>
+                                    <div class="capability-item-label"><span>Reasoning</span></div>
                                     <div class="capability-icons-inline" data-count="1"></div>
                                 </div>
-
                                 <div class="capability-item" data-capability="speed" data-delay="200">
-                                    <div class="capability-item-label">
-                                        <span>Speed</span>
-                                    </div>
+                                    <div class="capability-item-label"><span>Speed</span></div>
                                     <div class="capability-icons-inline" data-count="2"></div>
                                 </div>
-
                                 <div class="capability-item" data-capability="creativity" data-delay="400">
-                                    <div class="capability-item-label">
-                                        <span>Creativity</span>
-                                    </div>
+                                    <div class="capability-item-label"><span>Creativity</span></div>
                                     <div class="capability-icons-inline" data-count="2"></div>
                                 </div>
-
                                 <div class="capability-item" data-capability="knowledge" data-delay="400">
                                     <div class="capability-item-label">
                                         <p><span>Knows about</span><br>events up until</p>
@@ -87,28 +88,18 @@
                                     <h3 class="model-name-card" id="model-name-card-1">GPT-4</h3>
                                     <p class="model-year-card" id="model-year-card-1">2023</p>
                                 </div>
-
                                 <div class="capability-item" data-capability="reasoning" data-delay="0">
-                                    <div class="capability-item-label">
-                                        <span>Reasoning</span>
-                                    </div>
+                                    <div class="capability-item-label"><span>Reasoning</span></div>
                                     <div class="capability-icons-inline" data-count="2"></div>
                                 </div>
-
                                 <div class="capability-item" data-capability="speed" data-delay="200">
-                                    <div class="capability-item-label">
-                                        <span>Speed</span>
-                                    </div>
+                                    <div class="capability-item-label"><span>Speed</span></div>
                                     <div class="capability-icons-inline" data-count="3"></div>
                                 </div>
-
                                 <div class="capability-item" data-capability="creativity" data-delay="400">
-                                    <div class="capability-item-label">
-                                        <span>Creativity</span>
-                                    </div>
+                                    <div class="capability-item-label"><span>Creativity</span></div>
                                     <div class="capability-icons-inline" data-count="2"></div>
                                 </div>
-
                                 <div class="capability-item" data-capability="knowledge" data-delay="400">
                                     <div class="capability-item-label">
                                         <p><span>Knows about</span><br>events up until</p>
@@ -123,28 +114,18 @@
                                     <h3 class="model-name-card" id="model-name-card-2">GPT-5</h3>
                                     <p class="model-year-card" id="model-year-card-2">2024</p>
                                 </div>
-
                                 <div class="capability-item" data-capability="reasoning" data-delay="0">
-                                    <div class="capability-item-label">
-                                        <span>Reasoning</span>
-                                    </div>
+                                    <div class="capability-item-label"><span>Reasoning</span></div>
                                     <div class="capability-icons-inline" data-count="4"></div>
                                 </div>
-
                                 <div class="capability-item" data-capability="speed" data-delay="200">
-                                    <div class="capability-item-label">
-                                        <span>Speed</span>
-                                    </div>
+                                    <div class="capability-item-label"><span>Speed</span></div>
                                     <div class="capability-icons-inline" data-count="3"></div>
                                 </div>
-
                                 <div class="capability-item" data-capability="creativity" data-delay="400">
-                                    <div class="capability-item-label">
-                                        <span>Creativity</span>
-                                    </div>
+                                    <div class="capability-item-label"><span>Creativity</span></div>
                                     <div class="capability-icons-inline" data-count="2"></div>
                                 </div>
-
                                 <div class="capability-item" data-capability="knowledge" data-delay="400">
                                     <div class="capability-item-label">
                                         <p><span>Knows about</span><br>events up until</p>
@@ -154,20 +135,17 @@
                             </div>
                         </div>
 
-                        <!-- Assignment Popup -->
+                        <!-- Keep assignment popup and capability cards -->
                         <div class="assignment-popup" id="assignment-popup">
                             <div class="popup-content">
                                 <div class="popup-text">This is your Chatbot for today</div>
                             </div>
                         </div>
 
-                        <!-- Capability Cards (appear after cards shrink) -->
                         <div class="capability-cards-wrapper" id="capability-cards-wrapper">
-                            <!-- ADD: Arrow pointing to assigned model -->
                             <div class="capability-arrow" id="capability-arrow">
                                 <div class="arrow-head">▲</div>
                             </div>
-
                             <div class="capability-cards" id="capability-cards">
                                 <div class="capability-card strength-card">
                                     <div class="card-indicator"></div>
@@ -175,35 +153,17 @@
                                     <p id="strength-text">Excellent at complex reasoning and creative problem-solving
                                         tasks.</p>
                                 </div>
-
                                 <div class="capability-card weakness-card">
                                     <div class="card-indicator"></div>
                                     <h4>Weaknesses</h4>
                                     <p id="weakness-text">Takes more time to process complex requests thoroughly.</p>
                                 </div>
-
                                 <div class="capability-card usecase-card">
                                     <div class="card-indicator"></div>
                                     <h4>Best Use Cases</h4>
                                     <p id="usecase-text">Creative writing, professional communication, and complex
                                         analysis.</p>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 3: Prolific ID Entry -->
-                <div class="content-panel id-panel">
-                    <div class="content-card">
-                        <h1 class="content-title">Enter Your ID</h1>
-                        <p class="content-subtitle">We'll use this to connect your responses with the study</p>
-                        <div class="id-input-system">
-                            <div class="input-group">
-                                <input type="text" id="prolific-input" class="input-field"
-                                    placeholder="24-character Prolific ID" maxlength="24" autocomplete="off">
-                                <div id="input-error" class="input-error"></div>
-                                <div class="input-hint">Your ID should contain exactly 24 letters and numbers</div>
                             </div>
                         </div>
                     </div>

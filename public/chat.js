@@ -54,7 +54,7 @@ class ChatApp {
         // Welcome experience state
         this.welcomeState = {
             currentStep: 0,
-            maxSteps: 3,
+            maxSteps: 2,
             isAnimating: false,
             isTransitioning: false,
             transitionTimeout: null,
@@ -118,114 +118,62 @@ class ChatApp {
         this.showWelcomeExperience();
 
         try {
-            await this.loadConfiguration();
+            // Note: loadConfiguration now happens during welcome screen
             this.setupReleaseHandler();
         } catch (error) {
-            console.error('Configuration loading failed:', error.message);
+            console.error('App initialization failed:', error.message);
             this.setupReleaseHandler();
         }
     }
 
-    async loadConfiguration() {
+    async loadConfiguration(userId) {
         try {
-            const response = await fetch('/api/sessions/assign', {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-            });
+            console.log('🎯 Loading configuration for user:', userId);
 
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-
-            console.log('📦 [Config] Assignment data parsed:', {
-                success: data.success,
-                sessionId: data.sessionId,
-                configurationId: data.configuration?.id,
-                displayedModel: data.configuration?.displayedModel,
-                actualModel: data.configuration?.actualModel,
-                fullResponse: data
-            });
-
-            if (data.success) {
-                this.sessionId = data.sessionId;
-                this.configurationId = data.configuration.id;
-                this.config = {
-                    givenModel: data.configuration.displayedModel,
-                    trueModel: data.configuration.actualModel,
-                    displayName: data.configuration.displayedModel
-                };
-
-                console.log('✅ [Config] Configuration successfully applied:', {
-                    sessionId: this.sessionId,
-                    configId: this.configurationId,
-                    displayedModel: this.config.givenModel,
-                    actualModel: this.config.trueModel,
-                    displayName: this.config.displayName
-                });
-
-                return true;
-            }
-
-            throw new Error('Failed to get configuration assignment');
-
-        } catch (error) {
-            console.error('❌ [Config] Configuration loading failed:', {
-                error: error.message,
-                stack: error.stack,
-                timestamp: new Date().toISOString()
-            });
-
-            throw new Error(`Configuration loading failed: ${error.message}`);
-        }
-    }
-
-    async registerSession() {
-        if (!this.sessionId || !this.participantId || !this.configurationId) {
-            console.warn('⚠️ [Session] Registration skipped - missing required data:', {
-                hasSessionId: !!this.sessionId,
-                hasParticipantId: !!this.participantId,
-                hasConfigId: !!this.configurationId
-            });
-            return;
-        }
-
-        try {
-            console.log('📝 [Session] Starting registration:', {
-                sessionId: this.sessionId,
-                participantId: this.participantId,
-                configurationId: this.configurationId,
-                timestamp: new Date().toISOString()
-            });
-
-            const response = await fetch('/api/sessions/register', {
+            const response = await fetch('/api/allocation/claim', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    sessionId: this.sessionId,
-                    participantId: this.participantId,
-                    configurationId: this.configurationId
-                })
-            });
-
-            console.log('📡 [Session] Registration response:', {
-                status: response.status,
-                statusText: response.statusText,
-                ok: response.ok
+                body: JSON.stringify({ user_id: userId })
             });
 
             if (!response.ok) {
-                console.warn('⚠️ [Session] Registration failed but continuing...');
-            } else {
-                const result = await response.json();
-                console.log('✅ [Session] Registration successful:', result);
+                const error = await response.json();
+
+                // Handle specific error cases
+                if (response.status === 409) {
+                    throw new Error('STUDY_FULL: No more participants needed for this study.');
+                }
+
+                throw new Error(`Configuration loading failed: ${error.error || response.statusText}`);
             }
-        } catch (error) {
-            console.warn('⚠️ [Session] Registration error (non-critical):', {
-                error: error.message,
-                participantId: this.participantId
+
+            const allocation = await response.json();
+
+            console.log('✅ Configuration loaded successfully:', allocation);
+
+            // Map to existing variable names (no other code changes needed!)
+            this.sessionId = allocation.id;
+            this.configurationId = allocation.id;
+            this.participantId = userId;
+
+            this.config = {
+                givenModel: allocation.shown_model,
+                trueModel: allocation.source_model,
+                displayName: allocation.shown_model
+            };
+
+            console.log('✅ Configuration mapped to existing variables:', {
+                sessionId: this.sessionId,
+                configId: this.configurationId,
+                displayedModel: this.config.givenModel,
+                actualModel: this.config.trueModel
             });
+
+            return true;
+
+        } catch (error) {
+            console.error('❌ Configuration loading failed:', error.message);
+            throw error;
         }
     }
 
@@ -593,16 +541,19 @@ class ChatApp {
 
         const continueBtn = document.getElementById('nav-continue');
         const originalContent = continueBtn.innerHTML;
-        continueBtn.innerHTML = 'Starting...';
+        continueBtn.innerHTML = 'Loading configuration...';
         continueBtn.disabled = true;
 
-        this.participantId = prolificId;
-
         try {
-            await this.registerSession();
-            setTimeout(() => this.hideWelcomeExperience(), 800);
+            // Load configuration (which now claims allocation)
+            await this.loadConfiguration(prolificId);
+
+            // Move to model comparison screen  
+            this.renderWelcomeStep(1);
+
         } catch (error) {
-            console.error('Session registration failed:', error.message);
+            console.error('Configuration loading failed:', error);
+            this.showConfigurationError(error);
             continueBtn.innerHTML = originalContent;
             continueBtn.disabled = false;
         }
@@ -1751,14 +1702,10 @@ class ChatApp {
 
     async markSessionCompleted() {
         try {
-            const response = await fetch('/api/sessions/update', {
+            const response = await fetch('/api/allocation/confirm', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'complete',
-                    sessionId: this.sessionId,
-                    participantId: this.participantId
-                })
+                body: JSON.stringify({ user_id: this.participantId })
             });
 
             if (!response.ok) {
@@ -1989,6 +1936,44 @@ class ChatApp {
         };
     }
 
+    showConfigurationError(error) {
+        const errorDisplay = document.getElementById('simple-error-display');
+        const errorTitle = document.getElementById('error-title');
+        const errorMessage = document.getElementById('error-message');
+        const errorCode = document.getElementById('error-code-display');
+
+        // Set error details based on error type
+        if (error.message.includes('STUDY_FULL')) {
+            errorTitle.textContent = 'Study Complete';
+            errorMessage.textContent = 'This study has reached the required number of participants. Thank you for your interest!';
+            errorCode.textContent = 'STUDY_FULL_409';
+        } else if (error.message.includes('400')) {
+            errorTitle.textContent = 'Invalid Participant ID';
+            errorMessage.textContent = 'Please check your Prolific ID and try again.';
+            errorCode.textContent = 'INVALID_ID_400';
+        } else {
+            errorTitle.textContent = 'Configuration Error';
+            errorMessage.textContent = 'Unable to load study configuration. This may be a temporary issue.';
+            errorCode.textContent = `CONFIG_ERROR_${Date.now()}`;
+        }
+
+        errorDisplay.style.display = 'flex';
+
+        // Set up error handlers
+        document.getElementById('simple-error-close').onclick = () => {
+            errorDisplay.style.display = 'none';
+        };
+
+        document.getElementById('error-retry').onclick = () => {
+            errorDisplay.style.display = 'none';
+            this.handleProlificSubmission();
+        };
+
+        document.getElementById('error-report').onclick = () => {
+            alert('To report this error:\n\n1. Take a screenshot of this error\n2. Contact the researchers through Prolific\n3. Include the error code: ' + errorCode.textContent);
+        };
+    }
+
     // ===================================================================
     // PAGE LIFECYCLE MANAGEMENT
     // ===================================================================
@@ -2042,13 +2027,10 @@ class ChatApp {
 
     async releaseReservation() {
         try {
-            const response = await fetch('/api/sessions/update', {
+            const response = await fetch('/api/allocation/release', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'release',
-                    configurationId: this.configurationId
-                })
+                body: JSON.stringify({ user_id: this.participantId })
             });
 
             return response.ok;
