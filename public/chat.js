@@ -499,37 +499,46 @@ class ChatApp {
         const continueBtn = document.getElementById('nav-continue');
         const errorDiv = document.getElementById('input-error');
 
+        if (!input) {
+            console.error('❌ Input field not found');
+            return;
+        }
+
+        console.log('✅ Setting up validation, input found:', input);
+
+        // Test if input is clickable
+        input.onclick = () => console.log('✅ Input clicked!');
+        input.onfocus = () => console.log('✅ Input focused!');
+
         const validateInput = () => {
             const value = input.value.trim();
             const isValid = /^[a-zA-Z0-9]{24}$/.test(value);
 
-            input.classList.remove('error', 'success');
-            errorDiv.classList.remove('show');
+            console.log('Validating:', value, 'Valid:', isValid);
 
-            if (value.length === 0) {
-                continueBtn.disabled = true;
-                return;
+            if (continueBtn) {
+                continueBtn.disabled = !isValid;
             }
 
-            if (isValid) {
-                input.classList.add('success');
-                continueBtn.disabled = false;
-            } else {
-                input.classList.add('error');
-                errorDiv.textContent = 'Please enter a valid 24-character Prolific ID';
-                errorDiv.classList.add('show');
-                continueBtn.disabled = true;
+            if (errorDiv) {
+                if (value.length > 0 && !isValid) {
+                    errorDiv.textContent = 'Please enter a valid 24-character Prolific ID';
+                    errorDiv.classList.add('show');
+                } else {
+                    errorDiv.classList.remove('show');
+                }
             }
         };
 
+        // Simple event binding
         input.addEventListener('input', validateInput);
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !continueBtn.disabled) {
-                this.handleProlificSubmission();
-            }
-        });
-
         validateInput();
+
+        // Force focus
+        setTimeout(() => {
+            input.focus();
+            console.log('✅ Input should be focused now');
+        }, 100);
     }
 
     async handleProlificSubmission() {
