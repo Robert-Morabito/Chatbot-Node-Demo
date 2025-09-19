@@ -2782,31 +2782,6 @@ body.light-theme {
     /* Original orbs */
 }
 
-/* Fix welcome backdrop interference with input field */
-.welcome-backdrop,
-.welcome-backdrop::before,
-.welcome-backdrop::after {
-    pointer-events: none !important;
-}
-
-/* Ensure all interactive elements work */
-.welcome-container,
-.welcome-container * {
-    pointer-events: auto;
-}
-
-/* Specifically ensure input field works */
-.input-field {
-    pointer-events: auto !important;
-    position: relative;
-    z-index: 100;
-}
-
-.navigation-system,
-.navigation-system * {
-    pointer-events: auto;
-}
-
 @keyframes floatingOrbs {
     0% {
         transform: translate(0, 0);
@@ -2827,30 +2802,6 @@ body.light-theme {
     }
 }
 
-.welcome-backdrop::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background:
-        radial-gradient(ellipse at 25% 25%, rgba(59, 130, 246, 0.08) 0%, transparent 70%),
-        radial-gradient(ellipse at 75% 75%, rgba(139, 92, 246, 0.06) 0%, transparent 70%);
-    animation: gentleGlow 15s ease-in-out infinite;
-}
-
-@keyframes gentleGlow {
-
-    0%,
-    100% {
-        opacity: 0.4;
-    }
-
-    50% {
-        opacity: 0.8;
-    }
-}
 
 .welcome-container {
     position: relative;
