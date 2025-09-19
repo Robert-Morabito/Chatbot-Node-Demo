@@ -466,17 +466,17 @@ class ChatApp {
 
         const updateButton = () => {
             if (timeLeft > 0) {
-                continueBtn.innerHTML = 'Please read...';
+                continueBtn.innerHTML = `Please read... (${timeLeft}s)`;
                 continueBtn.disabled = true;
                 continueBtn.style.opacity = '0.6';
             } else {
                 continueBtn.innerHTML = `
-                    Continue to ID Entry
-                    <svg class="nav-icon" viewBox="0 0 24 24">
-                        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-                    </svg>
-                `;
-                continueBtn.onclick = () => this.renderWelcomeStep(2);
+                Start Study
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                </svg>
+            `;
+                continueBtn.onclick = () => this.hideWelcomeExperience();
                 continueBtn.disabled = false;
                 continueBtn.style.opacity = '1';
 
