@@ -1,3 +1,5 @@
+export default async function handler(req, res) {
+    const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -71,12 +73,6 @@
             border-color: #ef4444;
             background: rgba(239, 68, 68, 0.1);
         }
-        .status-display {
-            background: #374151;
-            padding: 1rem;
-            border-radius: 6px;
-            margin: 1rem 0;
-        }
         .clear-btn {
             background: #6b7280;
             font-size: 0.75rem;
@@ -115,15 +111,6 @@
         <div id="claim-result" class="result" style="display: none;"></div>
     </div>
 
-    <!-- Confirm Test -->
-    <div class="test-section">
-        <h2>✅ Confirm Allocation</h2>
-        <p>Mark the user's allocation as submitted (completed study)</p>
-        <button class="test-button" onclick="testConfirm()">Confirm Allocation</button>
-        <button class="clear-btn test-button" onclick="clearResult('confirm-result')">Clear</button>
-        <div id="confirm-result" class="result" style="display: none;"></div>
-    </div>
-
     <!-- Release Test -->
     <div class="test-section">
         <h2>🔓 Release Allocation</h2>
@@ -131,15 +118,6 @@
         <button class="test-button danger" onclick="testRelease()">Release Allocation</button>
         <button class="clear-btn test-button" onclick="clearResult('release-result')">Clear</button>
         <div id="release-result" class="result" style="display: none;"></div>
-    </div>
-
-    <!-- Workflow Test -->
-    <div class="test-section">
-        <h2>🔄 Full Workflow Test</h2>
-        <p>Test the complete workflow automatically</p>
-        <button class="test-button" onclick="testFullWorkflow()">Run Full Test</button>
-        <button class="clear-btn test-button" onclick="clearResult('workflow-result')">Clear</button>
-        <div id="workflow-result" class="result" style="display: none;"></div>
     </div>
 
     <script>
@@ -155,10 +133,10 @@
         function displayResult(elementId, result, isSuccess = true) {
             const element = document.getElementById(elementId);
             element.style.display = 'block';
-            element.className = `result ${isSuccess ? 'success' : 'error'}`;
+            element.className = \`result \${isSuccess ? 'success' : 'error'}\`;
             
             const timestamp = new Date().toLocaleTimeString();
-            const header = `[${timestamp}] ${isSuccess ? '✅' : '❌'}\n`;
+            const header = \`[\${timestamp}] \${isSuccess ? '✅' : '❌'}\\n\`;
             
             if (typeof result === 'object') {
                 element.textContent = header + JSON.stringify(result, null, 2);
@@ -184,7 +162,7 @@
                     options.body = JSON.stringify(body);
                 }
 
-                const response = await fetch(`/api/allocation/${endpoint}`, options);
+                const response = await fetch(\`/api/allocation/\${endpoint}\`, options);
                 const data = response.status === 204 ? { message: 'Success (No Content)' } : await response.json();
                 
                 return {
@@ -204,7 +182,7 @@
             const userId = getUserId();
             if (!userId) return;
 
-            const result = await makeRequest(`status?user_id=${encodeURIComponent(userId)}`);
+            const result = await makeRequest(\`status?user_id=\${encodeURIComponent(userId)}\`);
             displayResult('status-result', {
                 status: result.status,
                 success: result.success,
@@ -224,18 +202,6 @@
             }, result.success);
         }
 
-        async function testConfirm() {
-            const userId = getUserId();
-            if (!userId) return;
-
-            const result = await makeRequest('confirm', 'POST', { user_id: userId });
-            displayResult('confirm-result', {
-                status: result.status,
-                success: result.success,
-                data: result.data || result.error
-            }, result.success);
-        }
-
         async function testRelease() {
             const userId = getUserId();
             if (!userId) return;
@@ -247,51 +213,10 @@
                 data: result.data || result.error
             }, result.success);
         }
-
-        async function testFullWorkflow() {
-            const userId = getUserId();
-            if (!userId) return;
-
-            let workflowLog = [];
-
-            function log(step, result) {
-                workflowLog.push(`${step}: ${result.success ? 'SUCCESS' : 'FAILED'} (${result.status})`);
-                if (result.data) {
-                    workflowLog.push(JSON.stringify(result.data, null, 2));
-                }
-                workflowLog.push('---');
-            }
-
-            // Step 1: Check initial status
-            workflowLog.push('FULL WORKFLOW TEST');
-            workflowLog.push('=================');
-            
-            let result = await makeRequest(`status?user_id=${encodeURIComponent(userId)}`);
-            log('1. Initial Status Check', result);
-
-            // Step 2: Claim allocation
-            result = await makeRequest('claim', 'POST', { user_id: userId });
-            log('2. Claim Allocation', result);
-
-            // Step 3: Check status after claim
-            result = await makeRequest(`status?user_id=${encodeURIComponent(userId)}`);
-            log('3. Status After Claim', result);
-
-            // Step 4: Release allocation (to clean up)
-            result = await makeRequest('release', 'POST', { user_id: userId });
-            log('4. Release Allocation', result);
-
-            // Step 5: Final status check
-            result = await makeRequest(`status?user_id=${encodeURIComponent(userId)}`);
-            log('5. Final Status Check', result);
-
-            displayResult('workflow-result', workflowLog.join('\n'), true);
-        }
-
-        // Auto-check status on page load
-        window.addEventListener('load', () => {
-            setTimeout(checkStatus, 500);
-        });
     </script>
 </body>
-</html>
+</html>`;
+
+    res.setHeader('Content-Type', 'text/html');
+    res.status(200).send(html);
+}
