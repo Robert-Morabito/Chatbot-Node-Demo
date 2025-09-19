@@ -499,37 +499,39 @@ class ChatApp {
         const continueBtn = document.getElementById('nav-continue');
         const errorDiv = document.getElementById('input-error');
 
-        const validateInput = () => {
+        if (!input) return;
+
+        // Clear any existing listeners to avoid duplicates
+        input.removeEventListener('input', this._inputValidator);
+        input.removeEventListener('keydown', this._keydownHandler);
+
+        // Create bound functions so we can remove them later
+        this._inputValidator = () => {
             const value = input.value.trim();
             const isValid = /^[a-zA-Z0-9]{24}$/.test(value);
 
-            input.classList.remove('error', 'success');
-            errorDiv.classList.remove('show');
+            continueBtn.disabled = !isValid;
 
-            if (value.length === 0) {
-                continueBtn.disabled = true;
-                return;
-            }
-
-            if (isValid) {
-                input.classList.add('success');
-                continueBtn.disabled = false;
-            } else {
-                input.classList.add('error');
-                errorDiv.textContent = 'Please enter a valid 24-character Prolific ID';
-                errorDiv.classList.add('show');
-                continueBtn.disabled = true;
+            if (errorDiv) {
+                if (value.length > 0 && !isValid) {
+                    errorDiv.textContent = 'Please enter a valid 24-character Prolific ID';
+                    errorDiv.classList.add('show');
+                } else {
+                    errorDiv.classList.remove('show');
+                }
             }
         };
 
-        input.addEventListener('input', validateInput);
-        input.addEventListener('keydown', (e) => {
+        this._keydownHandler = (e) => {
             if (e.key === 'Enter' && !continueBtn.disabled) {
                 this.handleProlificSubmission();
             }
-        });
+        };
 
-        validateInput();
+        input.addEventListener('input', this._inputValidator);
+        input.addEventListener('keydown', this._keydownHandler);
+
+        this._inputValidator(); // Initial validation
     }
 
     async handleProlificSubmission() {
@@ -577,30 +579,25 @@ class ChatApp {
             backBtn.onclick = () => this.renderWelcomeStep(this.welcomeState.currentStep - 1);
         }
 
-        // Clear any existing styles
-        continueBtn.style.opacity = '1';
-        continueBtn.disabled = false;
-
         // Step 0: Prolific ID entry
         if (this.welcomeState.currentStep === 0) {
             continueBtn.innerHTML = 'Continue <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
-            continueBtn.disabled = true; // DISABLED BY DEFAULT
             continueBtn.onclick = () => this.handleProlificSubmission();
 
-            // Set up real-time validation
-            setTimeout(() => this.setupProlificValidation(), 100);
+            // DON'T disable by default - let validation handle it
+            // Set up real-time validation ONCE
+            if (!this._validationSetup) {
+                this._validationSetup = true;
+                setTimeout(() => this.setupProlificValidation(), 100);
+            }
         }
-        // Step 1: Model comparison
+        // Step 1: Model comparison  
         else if (this.welcomeState.currentStep === 1) {
-            // Check if animation is still running
             if (this.welcomeState.isAnimating) {
                 continueBtn.innerHTML = 'Loading...';
-                continueBtn.style.opacity = '0.6';
                 continueBtn.disabled = true;
                 return;
             }
-
-            // Show "See Details" button
             continueBtn.innerHTML = 'See Details <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
             continueBtn.disabled = false;
             continueBtn.onclick = () => this.showCapabilityCardsSequence();
