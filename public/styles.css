@@ -2649,6 +2649,17 @@ body.light-theme {
 /* ===================================================================
    SOPHISTICATED WELCOME EXPERIENCE
    ================================================================= */
+/* TEMPORARY DEBUG - Remove after testing */
+.welcome-experience * {
+    pointer-events: auto !important;
+    position: relative !important;
+}
+
+.welcome-experience .input-field {
+    background: red !important;
+    z-index: 9999 !important;
+    position: relative !important;
+}
 
 .welcome-experience {
     position: fixed;

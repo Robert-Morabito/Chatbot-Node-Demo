@@ -207,11 +207,6 @@ class ChatApp {
             // Handle special step logic
             if (index === stepIndex) {
                 if (stepIndex === 1) this.startModelComparison();
-                // DEBUG: Add this line
-                if (stepIndex === 0) {
-                    console.log('Step 0 active, setting up validation in 500ms');
-                    setTimeout(() => this.setupProlificValidation(), 500);
-                }
             }
         });
 
