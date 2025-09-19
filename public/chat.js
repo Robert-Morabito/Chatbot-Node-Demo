@@ -598,6 +598,10 @@ class ChatApp {
             backBtn.onclick = () => this.renderWelcomeStep(this.welcomeState.currentStep - 1);
         }
 
+        // Clear any existing styles
+        continueBtn.style.opacity = '1';
+        continueBtn.disabled = false;
+
         // Step 0: Prolific ID entry
         if (this.welcomeState.currentStep === 0) {
             continueBtn.innerHTML = 'Continue <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
@@ -607,11 +611,20 @@ class ChatApp {
             // Set up real-time validation
             setTimeout(() => this.setupProlificValidation(), 100);
         }
-        // Step 1: Model comparison  
+        // Step 1: Model comparison
         else if (this.welcomeState.currentStep === 1) {
-            continueBtn.innerHTML = 'Start Study <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
+            // Check if animation is still running
+            if (this.welcomeState.isAnimating) {
+                continueBtn.innerHTML = 'Loading...';
+                continueBtn.style.opacity = '0.6';
+                continueBtn.disabled = true;
+                return;
+            }
+
+            // Show "See Details" button
+            continueBtn.innerHTML = 'See Details <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
             continueBtn.disabled = false;
-            continueBtn.onclick = () => this.hideWelcomeExperience();
+            continueBtn.onclick = () => this.showCapabilityCardsSequence();
         }
     }
 
