@@ -7,8 +7,8 @@
   },
   "scripts": {
     "build": "cp -r public/* .",
-    "dev": "node public/chat.js",
-    "start": "node public/chat.js"
+    "dev": "vercel dev",
+    "start": "vercel dev"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.56.0",
