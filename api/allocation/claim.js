@@ -14,17 +14,15 @@ export default async function handler(req, res) {
 
     try {
         const { user_id } = req.body;
-
+        
         // Validate required fields
         if (!user_id || typeof user_id !== 'string' || user_id.length !== 24) {
-            return res.status(400).json({
-                error: 'Invalid user_id - must be 24-character Prolific ID'
+            return res.status(400).json({ 
+                error: 'Invalid user_id - must be 24-character Prolific ID' 
             });
         }
 
         console.log('🎯 [Allocation] Claiming configuration for user:', user_id);
-        console.log('🌐 [Allocation] Making request to:', `${DATABASE_API_BASE}/claim`);
-        console.log('📤 [Allocation] Request body:', { user_id });
 
         // Call database API
         const response = await fetch(`${DATABASE_API_BASE}/claim`, {
@@ -34,20 +32,6 @@ export default async function handler(req, res) {
             },
             body: JSON.stringify({ user_id })
         });
-
-        console.log('📥 [Allocation] Raw response:', {
-            status: response.status,
-            statusText: response.statusText,
-            headers: Object.fromEntries(response.headers.entries())
-        });
-
-        // Check if response is JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            const textResponse = await response.text();
-            console.error('❌ [Allocation] Non-JSON response:', textResponse);
-            throw new Error(`Database API returned non-JSON response: ${response.status} ${textResponse}`);
-        }
 
         const data = await response.json();
 
@@ -105,7 +89,7 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error('💥 [Allocation] Claim failed:', error.message);
-
+        
         // Check if it's a network error
         if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
             return res.status(503).json({

@@ -127,11 +127,17 @@ class ChatApp {
     // ===================================================================
     // CONFIGURATION & SESSION MANAGEMENT
     // ===================================================================
+
     async initializeApp() {
-        this.debugLog('Init', 'Starting app initialization...');
         this.showWelcomeExperience();
-        this.setupReleaseHandler();
-        this.debugLog('Init', 'App initialization complete - waiting for participant ID');
+
+        try {
+            await this.loadConfiguration();
+            this.setupReleaseHandler();
+        } catch (error) {
+            console.error('Configuration loading failed:', error.message);
+            this.setupReleaseHandler();
+        }
     }
 
     async loadConfiguration() {
@@ -303,15 +309,6 @@ class ChatApp {
         };
 
         const assignedModel = this.config?.trueModel;
-        if (!assignedModel) {
-            this.debugLog('ModelComp', 'No configuration loaded yet, using placeholder data');
-            // Return placeholder data for initial render
-            return {
-                family: 'openai',
-                models: this.getPlaceholderModels(),
-                assignedIndex: -1 // No assignment yet
-            };
-        }
         const family = assignedModel.includes('claude') ? 'claude' : 'openai';
 
         return {
