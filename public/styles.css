@@ -2770,6 +2770,31 @@ body.light-theme {
     /* Original orbs */
 }
 
+/* Fix welcome backdrop interference with input field */
+.welcome-backdrop,
+.welcome-backdrop::before,
+.welcome-backdrop::after {
+    pointer-events: none !important;
+}
+
+/* Ensure all interactive elements work */
+.welcome-container,
+.welcome-container * {
+    pointer-events: auto;
+}
+
+/* Specifically ensure input field works */
+.input-field {
+    pointer-events: auto !important;
+    position: relative;
+    z-index: 100;
+}
+
+.navigation-system,
+.navigation-system * {
+    pointer-events: auto;
+}
+
 @keyframes floatingOrbs {
     0% {
         transform: translate(0, 0);
@@ -5458,7 +5483,7 @@ body.light-theme {
     .navigation-system {
         gap: 0.75rem;
     }
-    
+
     .nav-button {
         padding: 0.75rem 1.25rem;
         font-size: 0.875rem;
