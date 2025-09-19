@@ -5,14 +5,14 @@
  * 
  * Comprehensive chatbot interface for research studies featuring:
  * - Multi-task conversation management with session tracking
- * - Sophisticated welcome experience with database-driven model assignment
+ * - Sophisticated welcome experience with model comparison
  * - Real-time behavioral metrics collection
  * - Data persistence and session management
  * - Responsive design with error handling
  * 
  * Architecture:
  * - Core App Management
- * - Database Configuration Management  
+ * - Configuration & Session Management  
  * - Welcome Experience Controller
  * - Task & Conversation Management
  * - Message & Chat Handling
@@ -51,16 +51,14 @@ class ChatApp {
         this.currentTheme = 'dark';
         this.isFinishing = false;
 
-        // Welcome experience state with database integration
+        // Welcome experience state
         this.welcomeState = {
             currentStep: 0,
             maxSteps: 3,
             isAnimating: false,
             isTransitioning: false,
             transitionTimeout: null,
-            countdownInterval: null,
-            configAssigned: false,
-            configAssignmentLoading: false
+            countdownInterval: null
         };
 
         this.behaviorMetrics = {
@@ -113,174 +111,121 @@ class ChatApp {
     }
 
     // ===================================================================
-    // DATABASE CONFIGURATION MANAGEMENT
+    // CONFIGURATION & SESSION MANAGEMENT
     // ===================================================================
 
     async initializeApp() {
         this.showWelcomeExperience();
-        this.setupReleaseHandler();
-        // Configuration loading now happens during welcome flow after ID entry
+
+        try {
+            await this.loadConfiguration();
+            this.setupReleaseHandler();
+        } catch (error) {
+            console.error('Configuration loading failed:', error.message);
+            this.setupReleaseHandler();
+        }
     }
 
-    /**
-     * Handle configuration assignment after Prolific ID entry
-     */
-    async handleProlificSubmission() {
-        const input = document.getElementById('prolific-input');
-        const prolificId = input.value.trim();
+    async loadConfiguration() {
+        try {
+            const response = await fetch('/api/sessions/assign', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
 
-        if (!/^[a-zA-Z0-9]{24}$/.test(prolificId)) {
-            this.showInputError('Please enter a valid 24-character Prolific ID');
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+
+            console.log('📦 [Config] Assignment data parsed:', {
+                success: data.success,
+                sessionId: data.sessionId,
+                configurationId: data.configuration?.id,
+                displayedModel: data.configuration?.displayedModel,
+                actualModel: data.configuration?.actualModel,
+                fullResponse: data
+            });
+
+            if (data.success) {
+                this.sessionId = data.sessionId;
+                this.configurationId = data.configuration.id;
+                this.config = {
+                    givenModel: data.configuration.displayedModel,
+                    trueModel: data.configuration.actualModel,
+                    displayName: data.configuration.displayedModel
+                };
+
+                console.log('✅ [Config] Configuration successfully applied:', {
+                    sessionId: this.sessionId,
+                    configId: this.configurationId,
+                    displayedModel: this.config.givenModel,
+                    actualModel: this.config.trueModel,
+                    displayName: this.config.displayName
+                });
+
+                return true;
+            }
+
+            throw new Error('Failed to get configuration assignment');
+
+        } catch (error) {
+            console.error('❌ [Config] Configuration loading failed:', {
+                error: error.message,
+                stack: error.stack,
+                timestamp: new Date().toISOString()
+            });
+
+            throw new Error(`Configuration loading failed: ${error.message}`);
+        }
+    }
+
+    async registerSession() {
+        if (!this.sessionId || !this.participantId || !this.configurationId) {
+            console.warn('⚠️ [Session] Registration skipped - missing required data:', {
+                hasSessionId: !!this.sessionId,
+                hasParticipantId: !!this.participantId,
+                hasConfigId: !!this.configurationId
+            });
             return;
         }
 
-        const continueBtn = document.getElementById('nav-continue');
-        const originalContent = continueBtn.innerHTML;
-        
         try {
-            // Show loading state
-            continueBtn.innerHTML = '⏳ Assigning Configuration...';
-            continueBtn.disabled = true;
-            this.welcomeState.configAssignmentLoading = true;
+            console.log('📝 [Session] Starting registration:', {
+                sessionId: this.sessionId,
+                participantId: this.participantId,
+                configurationId: this.configurationId,
+                timestamp: new Date().toISOString()
+            });
 
-            // Store participant ID
-            this.participantId = prolificId;
-
-            // Claim configuration from database
-            console.log('🎯 [Database] Claiming configuration for user:', prolificId);
-            const response = await fetch('/api/database/claim', {
+            const response = await fetch('/api/sessions/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: prolificId })
+                body: JSON.stringify({
+                    sessionId: this.sessionId,
+                    participantId: this.participantId,
+                    configurationId: this.configurationId
+                })
             });
 
-            const data = await response.json();
+            console.log('📡 [Session] Registration response:', {
+                status: response.status,
+                statusText: response.statusText,
+                ok: response.ok
+            });
 
-            if (response.ok) {
-                // Configuration assigned successfully
-                this.handleConfigAssignmentSuccess(data);
-                
-                // Move to next step to show assigned model
-                setTimeout(() => {
-                    this.welcomeState.configAssignmentLoading = false;
-                    this.renderWelcomeStep(2);
-                }, 800);
-
+            if (!response.ok) {
+                console.warn('⚠️ [Session] Registration failed but continuing...');
             } else {
-                this.handleConfigAssignmentError(data);
-            }
-
-        } catch (error) {
-            console.error('❌ [Database] Configuration assignment failed:', error);
-            this.handleConfigAssignmentError({
-                error: 'Connection failed',
-                code: 'NETWORK_ERROR',
-                userMessage: 'Unable to connect to the study system. Please check your connection and try again.'
-            });
-        } finally {
-            if (!this.welcomeState.configAssigned) {
-                continueBtn.innerHTML = originalContent;
-                continueBtn.disabled = false;
-                this.welcomeState.configAssignmentLoading = false;
-            }
-        }
-    }
-
-    /**
-     * Handle successful configuration assignment
-     */
-    handleConfigAssignmentSuccess(data) {
-        console.log('✅ [Database] Assignment successful:', data);
-
-        // Store configuration
-        this.sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        this.configurationId = data.configuration.id;
-        this.config = {
-            givenModel: data.configuration.displayedModel,
-            trueModel: data.configuration.actualModel,
-            displayName: data.configuration.displayedModel
-        };
-
-        this.welcomeState.configAssigned = true;
-
-        console.log('✅ [Database] Configuration stored:', {
-            sessionId: this.sessionId,
-            configId: this.configurationId,
-            displayedModel: this.config.givenModel,
-            actualModel: this.config.trueModel,
-            wasExisting: data.isExisting
-        });
-    }
-
-    /**
-     * Handle configuration assignment errors
-     */
-    handleConfigAssignmentError(errorData) {
-        console.error('❌ [Database] Assignment failed:', errorData);
-
-        if (errorData.code === 'STUDY_EXHAUSTED') {
-            this.showStudyExhaustedModal(errorData);
-        } else {
-            this.showDatabaseError(errorData);
-        }
-    }
-
-    /**
-     * Release configuration back to database (for page exits)
-     */
-    async releaseDatabaseConfiguration() {
-        if (!this.participantId) return false;
-
-        try {
-            console.log('🔄 [Database] Releasing configuration for user:', this.participantId);
-            
-            const response = await fetch('/api/database/release', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: this.participantId })
-            });
-
-            if (response.ok) {
-                console.log('✅ [Database] Configuration released successfully');
-                return true;
-            } else {
-                console.warn('⚠️ [Database] Release failed, but continuing...');
-                return false;
+                const result = await response.json();
+                console.log('✅ [Session] Registration successful:', result);
             }
         } catch (error) {
-            console.error('❌ [Database] Release error:', error);
-            return false;
-        }
-    }
-
-    /**
-     * Confirm study completion in database
-     */
-    async confirmStudyCompletion() {
-        if (!this.participantId) {
-            throw new Error('No participant ID available for confirmation');
-        }
-
-        try {
-            console.log('✅ [Database] Confirming study completion for user:', this.participantId);
-            
-            const response = await fetch('/api/database/confirm', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: this.participantId })
+            console.warn('⚠️ [Session] Registration error (non-critical):', {
+                error: error.message,
+                participantId: this.participantId
             });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                console.log('✅ [Database] Study completion confirmed');
-                return data;
-            } else {
-                throw new Error(data.error || 'Failed to confirm study completion');
-            }
-        } catch (error) {
-            console.error('❌ [Database] Confirmation failed:', error);
-            throw error;
         }
     }
 
@@ -310,52 +255,23 @@ class ChatApp {
         const panels = document.querySelectorAll('.content-panel');
         panels.forEach((panel, index) => {
             panel.classList.toggle('active', index === stepIndex);
-        });
 
-        // Handle special step logic
-        switch(stepIndex) {
-            case 0: // Intro
-                // No special setup needed
-                break;
-            case 1: // ID Entry
-                setTimeout(() => this.setupProlificValidation(), 100);
-                break;
-            case 2: // Model Display
-                if (this.welcomeState.configAssigned) {
-                    this.showAssignedModelDisplay();
-                }
-                break;
-        }
+            // Handle special step logic
+            if (index === stepIndex) {
+                if (stepIndex === 1) this.startModelComparison();
+                if (stepIndex === 2) setTimeout(() => this.setupProlificValidation(), 100);
+            }
+        });
 
         this.updateWelcomeNavigation();
     }
 
-    /**
-     * Show assigned model in step 3 (replace model comparison)
-     */
-    showAssignedModelDisplay() {
-        if (!this.config) return;
-
-        const comparisonData = this.getModelComparisonData();
-        const assignedIndex = comparisonData.assignedIndex;
-
-        // Show the model comparison with assigned model highlighted
-        this.populateModelComparison(comparisonData);
-        this.animateModelCards();
-        
-        setTimeout(() => {
-            this.highlightAssignedModel(assignedIndex);
-            this.showAssignmentPopup(assignedIndex);
-            this.showCapabilityCardsSequence();
-        }, 1000);
-    }
-
     startModelComparison() {
-        // This method is called in the old flow, but now we only show it in step 2
-        // after configuration assignment
-        if (this.welcomeState.configAssigned) {
-            this.showAssignedModelDisplay();
-        }
+        this.welcomeState.isAnimating = true;
+        const comparisonData = this.getModelComparisonData();
+
+        this.populateModelComparison(comparisonData);
+        this.runComparisonAnimation(comparisonData);
     }
 
     getModelComparisonData() {
@@ -415,7 +331,7 @@ class ChatApp {
         };
 
         const assignedModel = this.config?.trueModel;
-        const family = assignedModel && assignedModel.includes('claude') ? 'claude' : 'openai';
+        const family = assignedModel.includes('claude') ? 'claude' : 'openai';
 
         return {
             family,
@@ -427,7 +343,8 @@ class ChatApp {
     getAssignedModelIndex(models) {
         const assignedName = this.config?.displayName;
         const foundIndex = models.findIndex(m => m.name === assignedName);
-        return foundIndex >= 0 ? foundIndex : 0;
+
+        return foundIndex;
     }
 
     populateModelComparison(comparisonData) {
@@ -606,12 +523,12 @@ class ChatApp {
                 continueBtn.style.opacity = '0.6';
             } else {
                 continueBtn.innerHTML = `
-                    Start Study
+                    Continue to ID Entry
                     <svg class="nav-icon" viewBox="0 0 24 24">
                         <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
                     </svg>
                 `;
-                continueBtn.onclick = () => this.hideWelcomeExperience();
+                continueBtn.onclick = () => this.renderWelcomeStep(2);
                 continueBtn.disabled = false;
                 continueBtn.style.opacity = '1';
 
@@ -668,6 +585,29 @@ class ChatApp {
         validateInput();
     }
 
+    async handleProlificSubmission() {
+        const input = document.getElementById('prolific-input');
+        const prolificId = input.value.trim();
+
+        if (!/^[a-zA-Z0-9]{24}$/.test(prolificId)) return;
+
+        const continueBtn = document.getElementById('nav-continue');
+        const originalContent = continueBtn.innerHTML;
+        continueBtn.innerHTML = 'Starting...';
+        continueBtn.disabled = true;
+
+        this.participantId = prolificId;
+
+        try {
+            await this.registerSession();
+            setTimeout(() => this.hideWelcomeExperience(), 800);
+        } catch (error) {
+            console.error('Session registration failed:', error.message);
+            continueBtn.innerHTML = originalContent;
+            continueBtn.disabled = false;
+        }
+    }
+
     updateWelcomeProgress() {
         const progress = ((this.welcomeState.currentStep + 1) / this.welcomeState.maxSteps) * 100;
         const indicator = document.getElementById('progress-indicator');
@@ -687,13 +627,9 @@ class ChatApp {
             backBtn.onclick = () => this.renderWelcomeStep(this.welcomeState.currentStep - 1);
         }
 
-        // Handle continue button based on loading states
-        if (this.welcomeState.configAssignmentLoading) {
-            return; // Button state managed by assignment process
-        }
-
+        // Handle continue button
         if (this.welcomeState.isTransitioning ||
-            (this.welcomeState.currentStep === 2 && this.welcomeState.isAnimating)) {
+            (this.welcomeState.currentStep === 1 && this.welcomeState.isAnimating)) {
             continueBtn.style.opacity = '0.6';
             continueBtn.disabled = true;
             return;
@@ -703,81 +639,16 @@ class ChatApp {
         continueBtn.disabled = false;
 
         // Set button content and action based on step
-        if (this.welcomeState.currentStep === 0) {
-            continueBtn.innerHTML = 'Continue <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
-            continueBtn.onclick = () => this.renderWelcomeStep(1);
-        } else if (this.welcomeState.currentStep === 1) {
-            continueBtn.innerHTML = 'Get Configuration <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
+        if (this.welcomeState.currentStep === 1) {
+            continueBtn.innerHTML = 'See Details <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
+            continueBtn.onclick = () => this.showCapabilityCardsSequence();
+        } else if (this.welcomeState.currentStep === 2) {
+            continueBtn.innerHTML = 'Start Study <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
             continueBtn.onclick = () => this.handleProlificSubmission();
+        } else {
+            continueBtn.innerHTML = 'Continue <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
+            continueBtn.onclick = () => this.renderWelcomeStep(this.welcomeState.currentStep + 1);
         }
-        // Step 2 button is handled by the countdown system
-    }
-
-    /**
-     * Show input validation error
-     */
-    showInputError(message) {
-        const errorDiv = document.getElementById('input-error');
-        const input = document.getElementById('prolific-input');
-        
-        input.classList.add('error');
-        errorDiv.textContent = message;
-        errorDiv.classList.add('show');
-        
-        // Clear error after a few seconds
-        setTimeout(() => {
-            input.classList.remove('error');
-            errorDiv.classList.remove('show');
-        }, 5000);
-    }
-
-    /**
-     * Show study exhausted modal
-     */
-    showStudyExhaustedModal(errorData) {
-        const modal = document.getElementById('error-modal');
-        const titleEl = modal.querySelector('.error-modal-header h3');
-        const bodyEl = modal.querySelector('.error-modal-body > p');
-        const errorCodeSpan = document.getElementById('error-code');
-        
-        titleEl.textContent = '📋 Study Complete';
-        bodyEl.innerHTML = `
-            This study has reached capacity and is no longer accepting new participants.<br><br>
-            <strong>Thank you for your interest!</strong> Please return this study on Prolific so others can participate.
-        `;
-        
-        errorCodeSpan.textContent = `${errorData.code}_${Date.now()}`;
-        
-        // Hide try again button for this error type
-        const tryAgainBtn = document.getElementById('error-try-again');
-        if (tryAgainBtn) tryAgainBtn.style.display = 'none';
-        
-        modal.style.display = 'flex';
-    }
-
-    /**
-     * Show database error modal
-     */
-    showDatabaseError(errorData) {
-        const modal = document.getElementById('error-modal');
-        const titleEl = modal.querySelector('.error-modal-header h3');
-        const bodyEl = modal.querySelector('.error-modal-body > p');
-        const errorCodeSpan = document.getElementById('error-code');
-        const participantIdSpan = document.getElementById('error-participant-id');
-        
-        titleEl.textContent = '⚠️ Technical Issue';
-        bodyEl.textContent = errorData.userMessage || 'We\'re experiencing technical difficulties. Please report this error.';
-        
-        errorCodeSpan.textContent = `${errorData.code}_${Date.now()}`;
-        participantIdSpan.textContent = this.participantId || 'Not Set';
-        
-        // Show try again button for retryable errors
-        const tryAgainBtn = document.getElementById('error-try-again');
-        if (tryAgainBtn) {
-            tryAgainBtn.style.display = errorData.code === 'NETWORK_ERROR' ? 'block' : 'none';
-        }
-        
-        modal.style.display = 'flex';
     }
 
     clearWelcomeTransitions() {
@@ -1781,17 +1652,13 @@ class ChatApp {
 
             const exportData = this.prepareExportData();
             await this.downloadConversationData(exportData);
-            
-            // Save to GitHub (keeping existing functionality)
             await this.saveToServer();
-            
-            // NEW: Confirm completion in database
-            await this.confirmStudyCompletion();
+            await this.markSessionCompleted();
 
             this.closeApplication();
 
         } catch (error) {
-            console.error('❌ [Study] Completion failed:', error.message);
+            console.error('Study completion failed:', error.message);
             alert('There was an error completing the study. Please try again or contact support.');
             this.hideFinishLoadingIndicator();
             finishBtn.disabled = false;
@@ -1818,7 +1685,7 @@ class ChatApp {
             conversations: organizedConversations,
             behaviorMetrics: behaviorMetrics,
             completedTasks: this.completedTasks,
-            studyVersion: "3.0"
+            studyVersion: "2.0"
         };
     }
 
@@ -1880,6 +1747,31 @@ class ChatApp {
         document.body.removeChild(link);
 
         setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    async markSessionCompleted() {
+        try {
+            const response = await fetch('/api/sessions/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'complete',
+                    sessionId: this.sessionId,
+                    participantId: this.participantId
+                })
+            });
+
+            if (!response.ok) {
+                const responseText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${responseText}`);
+            }
+
+            return await response.json();
+
+        } catch (error) {
+            console.error('Session completion failed:', error.message);
+            throw error;
+        }
     }
 
     showFinishLoadingIndicator() {
@@ -2113,15 +2005,14 @@ class ChatApp {
             this._isDelayedClose = true;
             this.showSavingIndicator();
 
-            // NEW: Release database configuration instead of old session system
-            await this.releaseDatabaseConfiguration();
+            await this.releaseReservation();
             await new Promise(resolve => setTimeout(resolve, 500));
 
             window.location.reload();
             return;
         }
 
-        // Auto-save on close (still save to GitHub)
+        // Auto-save on close
         if (this.currentConversationId && this.currentChatlog.length > 0) {
             try {
                 const exportData = this.prepareExportData();
@@ -2147,6 +2038,24 @@ class ChatApp {
             </div>
         `;
         document.body.appendChild(overlay);
+    }
+
+    async releaseReservation() {
+        try {
+            const response = await fetch('/api/sessions/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'release',
+                    configurationId: this.configurationId
+                })
+            });
+
+            return response.ok;
+        } catch (error) {
+            console.error('Release request failed:', error.message);
+            return false;
+        }
     }
 
     // ===================================================================
