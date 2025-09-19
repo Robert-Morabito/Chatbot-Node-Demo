@@ -2649,16 +2649,22 @@ body.light-theme {
 /* ===================================================================
    SOPHISTICATED WELCOME EXPERIENCE
    ================================================================= */
-/* TEMPORARY DEBUG - Remove after testing */
-.welcome-experience * {
-    pointer-events: auto !important;
-    position: relative !important;
+/* Fix input field layering - proper solution */
+.welcome-panel .input-field {
+    position: relative;
+    z-index: 100;
+    background: rgba(249, 250, 251, 0.08);
+    border: 1px solid rgba(229, 231, 235, 0.2);
 }
 
-.welcome-experience .input-field {
-    background: red !important;
-    z-index: 9999 !important;
-    position: relative !important;
+.welcome-panel .input-group {
+    position: relative;
+    z-index: 100;
+}
+
+.welcome-panel .content-card {
+    position: relative;
+    z-index: 50;
 }
 
 .welcome-experience {
