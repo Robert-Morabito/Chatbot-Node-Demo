@@ -500,9 +500,18 @@ class ChatApp {
         const continueBtn = document.getElementById('nav-continue');
         const errorDiv = document.getElementById('input-error');
 
+        if (!input || !continueBtn) {
+            console.error('Prolific validation elements not found');
+            return;
+        }
+
+        console.log('Setting up prolific validation'); // Debug
+
         const validateInput = () => {
             const value = input.value.trim();
             const isValid = /^[a-zA-Z0-9]{24}$/.test(value);
+
+            console.log('Validating input:', value, 'Valid:', isValid); // Debug
 
             input.classList.remove('error', 'success');
             errorDiv.classList.remove('show');
@@ -523,14 +532,25 @@ class ChatApp {
             }
         };
 
+        // Clear any existing event listeners and add new ones
+        input.removeEventListener('input', validateInput);
         input.addEventListener('input', validateInput);
-        input.addEventListener('keydown', (e) => {
+
+        input.removeEventListener('keydown', handleKeydown);
+        function handleKeydown(e) {
             if (e.key === 'Enter' && !continueBtn.disabled) {
+                e.preventDefault();
+                e.stopPropagation();
                 this.handleProlificSubmission();
             }
-        });
+        }
+        input.addEventListener('keydown', handleKeydown.bind(this));
 
+        // Initial validation
         validateInput();
+
+        // Focus the input
+        setTimeout(() => input.focus(), 200);
     }
 
     async handleProlificSubmission() {
@@ -578,27 +598,20 @@ class ChatApp {
             backBtn.onclick = () => this.renderWelcomeStep(this.welcomeState.currentStep - 1);
         }
 
-        // Handle continue button
-        if (this.welcomeState.isTransitioning ||
-            (this.welcomeState.currentStep === 1 && this.welcomeState.isAnimating)) {
-            continueBtn.style.opacity = '0.6';
-            continueBtn.disabled = true;
-            return;
-        }
-
-        continueBtn.style.opacity = '1';
-        continueBtn.disabled = false;
-
-        // Set button content and action based on step
-        if (this.welcomeState.currentStep === 1) {
-            continueBtn.innerHTML = 'See Details <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
-            continueBtn.onclick = () => this.showCapabilityCardsSequence();
-        } else if (this.welcomeState.currentStep === 2) {
-            continueBtn.innerHTML = 'Start Study <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
-            continueBtn.onclick = () => this.handleProlificSubmission();
-        } else {
+        // Step 0: Prolific ID entry
+        if (this.welcomeState.currentStep === 0) {
             continueBtn.innerHTML = 'Continue <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
-            continueBtn.onclick = () => this.renderWelcomeStep(this.welcomeState.currentStep + 1);
+            continueBtn.disabled = true; // DISABLED BY DEFAULT
+            continueBtn.onclick = () => this.handleProlificSubmission();
+
+            // Set up real-time validation
+            setTimeout(() => this.setupProlificValidation(), 100);
+        }
+        // Step 1: Model comparison  
+        else if (this.welcomeState.currentStep === 1) {
+            continueBtn.innerHTML = 'Start Study <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
+            continueBtn.disabled = false;
+            continueBtn.onclick = () => this.hideWelcomeExperience();
         }
     }
 
