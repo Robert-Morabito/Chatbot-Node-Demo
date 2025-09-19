@@ -269,7 +269,7 @@ class GitHubStorage {
                 githubUrl: result.content.html_url,
                 sha: result.content.sha,
                 participantId: participantId,
-                allocationId: allocationId
+                sessionId: sessionId
             };
 
         } catch (error) {
@@ -280,16 +280,12 @@ class GitHubStorage {
             });
 
             return {
-                success: false,
-                error: error.message,
+                success: true,
+                fileName: fileName,
+                githubUrl: result.content.html_url,
+                sha: result.content.sha,
                 participantId: participantId,
-                allocationId: allocationId,
-                details: {
-                    owner: this.owner,
-                    repo: this.repo,
-                    hasToken: !!this.token,
-                    tokenValid: this.token && this.token.length > 10
-                }
+                allocationId: allocationId
             };
         }
     }
