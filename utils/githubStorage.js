@@ -205,11 +205,11 @@ class GitHubStorage {
      * @param {Object} chatData - Complete chat data including conversations and metrics
      * @returns {Promise<Object>} Save result with success status and details
      */
-    async saveParticipantData(participantId, allocationId, chatData) {
+    async saveParticipantData(participantId, sessionId, chatData) {
         try {
             console.log('💾 Starting participant data save:', {
                 participantId,
-                allocationId: allocationId || 'none',
+                sessionId,
                 dataSize: JSON.stringify(chatData).length
             });
 
@@ -248,7 +248,7 @@ class GitHubStorage {
 
             // Handle response
             const responseText = await response.text();
-
+            
             if (!response.ok) {
                 console.error('📡 GitHub API Error Response:', response.status, responseText.substring(0, 300));
                 throw new Error(`GitHub API error: ${response.status} - ${responseText}`);
@@ -280,12 +280,16 @@ class GitHubStorage {
             });
 
             return {
-                success: true,
-                fileName: fileName,
-                githubUrl: result.content.html_url,
-                sha: result.content.sha,
+                success: false,
+                error: error.message,
                 participantId: participantId,
-                allocationId: allocationId
+                sessionId: sessionId,
+                details: {
+                    owner: this.owner,
+                    repo: this.repo,
+                    hasToken: !!this.token,
+                    tokenValid: this.token && this.token.length > 10
+                }
             };
         }
     }

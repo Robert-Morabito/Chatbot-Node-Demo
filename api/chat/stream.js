@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { messages, model, allocationId, conversationId, imageContext } = req.body;
+        const { messages, model, sessionId, conversationId, imageContext } = req.body;
 
         // Validate request
         const validation = validateRequest(messages, model);
@@ -31,15 +31,7 @@ export default async function handler(req, res) {
 
         // Set up server-sent events
         setupSSEHeaders(res);
-        // Debug logging
-        console.log('🌊 [Stream] New stream connection:', {
-            allocationId: allocationId || 'none',
-            conversationId,
-            model,
-            messageCount: messages.length
-        });
-
-        res.write(`data: ${JSON.stringify({ type: 'connected', conversationId, allocationId })}\n\n`);
+        res.write(`data: ${JSON.stringify({ type: 'connected', conversationId })}\n\n`);
 
         const lastMessage = messages[messages.length - 1];
 
