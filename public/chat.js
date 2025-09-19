@@ -28,8 +28,12 @@ class ChatApp {
     constructor() {
         // Core identifiers
         this.participantId = null;
-        this.sessionId = null;
-        this.configurationId = null;
+        this.allocationId = null;      // Replaces sessionId
+        this.sourceModel = null;       // From database allocation
+        this.shownModel = null;        // From database allocation
+
+        // Debug flags
+        this.debugMode = true;
 
         // Task management
         this.taskSequence = ['image-generation', 'social-media', 'acronym-building'];
@@ -87,6 +91,16 @@ class ChatApp {
             }
         };
 
+        // Allocation state - will be populated after claim
+        this.allocationData = null;
+
+        // Debug logging helper
+        this.debugLog = (category, message, data = null) => {
+            if (this.debugMode) {
+                console.log(`🔧 [${category}]`, message, data || '');
+            }
+        };
+
         // Task configurations
         this.taskConfig = {
             'image-generation': {
@@ -127,105 +141,69 @@ class ChatApp {
     }
 
     async loadConfiguration() {
+        this.debugLog('Config', 'Starting configuration load for participant:', this.participantId);
+
+        if (!this.participantId) {
+            throw new Error('Cannot load configuration without participant ID');
+        }
+
         try {
-            const response = await fetch('/api/sessions/assign', {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
+            this.debugLog('Config', 'Calling allocation claim API...');
+
+            const response = await fetch('/api/allocation/claim', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: this.participantId
+                })
             });
 
+            this.debugLog('Config', 'Allocation API response status:', response.status);
+
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                const errorData = await response.json();
+                this.debugLog('Config', 'Allocation API error response:', errorData);
+                throw new Error(errorData.userMessage || errorData.message || `HTTP ${response.status}`);
             }
 
             const data = await response.json();
+            this.debugLog('Config', 'Allocation API success response:', data);
 
-            console.log('📦 [Config] Assignment data parsed:', {
-                success: data.success,
-                sessionId: data.sessionId,
-                configurationId: data.configuration?.id,
-                displayedModel: data.configuration?.displayedModel,
-                actualModel: data.configuration?.actualModel,
-                fullResponse: data
-            });
+            if (data.success && data.allocation) {
+                // Store allocation data
+                this.allocationData = data.allocation;
+                this.allocationId = data.allocation.id;
+                this.sourceModel = data.allocation.sourceModel;
+                this.shownModel = data.allocation.shownModel;
 
-            if (data.success) {
-                this.sessionId = data.sessionId;
-                this.configurationId = data.configuration.id;
+                // Build config object for compatibility
                 this.config = {
-                    givenModel: data.configuration.displayedModel,
-                    trueModel: data.configuration.actualModel,
-                    displayName: data.configuration.displayedModel
+                    givenModel: this.shownModel,
+                    trueModel: this.sourceModel,
+                    displayName: this.shownModel
                 };
 
-                console.log('✅ [Config] Configuration successfully applied:', {
-                    sessionId: this.sessionId,
-                    configId: this.configurationId,
-                    displayedModel: this.config.givenModel,
-                    actualModel: this.config.trueModel,
-                    displayName: this.config.displayName
+                this.debugLog('Config', 'Configuration successfully loaded:', {
+                    allocationId: this.allocationId,
+                    sourceModel: this.sourceModel,
+                    shownModel: this.shownModel,
+                    message: data.message
                 });
 
                 return true;
             }
 
-            throw new Error('Failed to get configuration assignment');
+            throw new Error('Invalid response format from allocation API');
 
         } catch (error) {
             console.error('❌ [Config] Configuration loading failed:', {
                 error: error.message,
-                stack: error.stack,
-                timestamp: new Date().toISOString()
-            });
-
-            throw new Error(`Configuration loading failed: ${error.message}`);
-        }
-    }
-
-    async registerSession() {
-        if (!this.sessionId || !this.participantId || !this.configurationId) {
-            console.warn('⚠️ [Session] Registration skipped - missing required data:', {
-                hasSessionId: !!this.sessionId,
-                hasParticipantId: !!this.participantId,
-                hasConfigId: !!this.configurationId
-            });
-            return;
-        }
-
-        try {
-            console.log('📝 [Session] Starting registration:', {
-                sessionId: this.sessionId,
                 participantId: this.participantId,
-                configurationId: this.configurationId,
                 timestamp: new Date().toISOString()
             });
 
-            const response = await fetch('/api/sessions/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    sessionId: this.sessionId,
-                    participantId: this.participantId,
-                    configurationId: this.configurationId
-                })
-            });
-
-            console.log('📡 [Session] Registration response:', {
-                status: response.status,
-                statusText: response.statusText,
-                ok: response.ok
-            });
-
-            if (!response.ok) {
-                console.warn('⚠️ [Session] Registration failed but continuing...');
-            } else {
-                const result = await response.json();
-                console.log('✅ [Session] Registration successful:', result);
-            }
-        } catch (error) {
-            console.warn('⚠️ [Session] Registration error (non-critical):', {
-                error: error.message,
-                participantId: this.participantId
-            });
+            // Don't set any defaults - throw the error up
+            throw new Error(`Configuration loading failed: ${error.message}`);
         }
     }
 
@@ -599,10 +577,19 @@ class ChatApp {
         this.participantId = prolificId;
 
         try {
-            await this.registerSession();
+            this.debugLog('Prolific', 'Starting configuration claim process...');
+            await this.loadConfiguration();
+            this.debugLog('Prolific', 'Configuration claimed successfully, proceeding to main app...');
             setTimeout(() => this.hideWelcomeExperience(), 800);
         } catch (error) {
-            console.error('Session registration failed:', error.message);
+            console.error('❌ [Prolific] Configuration claim failed:', error.message);
+            this.debugLog('Prolific', 'Configuration claim error:', error);
+
+            // Show user-friendly error
+            const errorDiv = document.getElementById('input-error');
+            errorDiv.textContent = error.message || 'Configuration loading failed. Please try again.';
+            errorDiv.classList.add('show');
+
             continueBtn.innerHTML = originalContent;
             continueBtn.disabled = false;
         }
@@ -1034,10 +1021,16 @@ class ChatApp {
             const requestData = {
                 messages: this.currentChatlog,
                 model: this.config.trueModel,
-                sessionId: this.sessionId,
+                allocationId: this.allocationId,
                 conversationId: this.currentConversationId,
                 imageContext: this.imageContext
             };
+
+            this.debugLog('Stream', 'Starting LLM request:', {
+                allocationId: this.allocationId,
+                model: this.config.trueModel,
+                messageCount: this.currentChatlog.length
+            });
 
             const response = await fetch('/api/chat/stream', {
                 method: 'POST',
@@ -1700,18 +1693,27 @@ class ChatApp {
         const saveData = {
             participantId: this.participantId,
             conversations: organizedConversations,
-            sessionId: this.sessionId,
+            allocationId: this.allocationId,
             completedAt: new Date().toISOString(),
             modelConfig: {
                 displayedModel: this.config.givenModel,
                 actualModel: this.config.trueModel,
-                configurationId: this.configurationId
+                allocationId: this.allocationId,
+                sourceModel: this.sourceModel,
+                shownModel: this.shownModel
             },
             behaviorMetrics: behaviorMetrics,
             taskMetrics: this.behaviorMetrics.taskMetrics,
             completedTasks: this.completedTasks,
             currentTaskIndex: this.currentTaskIndex
         };
+
+        this.debugLog('Save', 'Saving data to server:', {
+            participantId: this.participantId,
+            allocationId: this.allocationId,
+            conversationCount: Object.keys(organizedConversations).length,
+            dataSize: JSON.stringify(saveData).length
+        });
 
         const response = await fetch('/api/chat/save', {
             method: 'POST',
@@ -1750,26 +1752,35 @@ class ChatApp {
     }
 
     async markSessionCompleted() {
+        this.debugLog('Completion', 'Starting study completion process...');
+
         try {
-            const response = await fetch('/api/sessions/update', {
+            const response = await fetch('/api/allocation/confirm', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    action: 'complete',
-                    sessionId: this.sessionId,
-                    participantId: this.participantId
+                    user_id: this.participantId
                 })
             });
 
+            this.debugLog('Completion', 'Confirmation API response:', {
+                status: response.status,
+                ok: response.ok
+            });
+
             if (!response.ok) {
-                const responseText = await response.text();
-                throw new Error(`HTTP ${response.status}: ${responseText}`);
+                const errorData = await response.json();
+                this.debugLog('Completion', 'Confirmation API error:', errorData);
+                throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
             }
 
-            return await response.json();
+            const result = await response.json();
+            this.debugLog('Completion', 'Study completion confirmed successfully:', result);
+            return result;
 
         } catch (error) {
-            console.error('Session completion failed:', error.message);
+            console.error('❌ [Completion] Study completion failed:', error.message);
+            this.debugLog('Completion', 'Completion error details:', error);
             throw error;
         }
     }
@@ -2041,19 +2052,43 @@ class ChatApp {
     }
 
     async releaseReservation() {
+        this.debugLog('Release', 'Starting allocation release process...');
+
+        if (!this.participantId) {
+            this.debugLog('Release', 'No participant ID - skipping release');
+            return false;
+        }
+
         try {
-            const response = await fetch('/api/sessions/update', {
+            const response = await fetch('/api/allocation/release', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    action: 'release',
-                    configurationId: this.configurationId
+                    user_id: this.participantId
                 })
             });
 
-            return response.ok;
+            this.debugLog('Release', 'Release API response:', {
+                status: response.status,
+                ok: response.ok
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                this.debugLog('Release', 'Release API error:', errorData);
+                // Don't throw error for release - log and continue
+                console.warn('⚠️ [Release] Release failed but continuing:', errorData.message);
+                return false;
+            }
+
+            const result = await response.json();
+            this.debugLog('Release', 'Allocation released successfully:', result);
+            return true;
+
         } catch (error) {
-            console.error('Release request failed:', error.message);
+            console.error('❌ [Release] Release request failed:', error.message);
+            this.debugLog('Release', 'Release error details:', error);
+            // Don't throw error for release - log and continue
             return false;
         }
     }

@@ -14,19 +14,27 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { participantId, sessionId, conversations, behaviorMetrics, modelConfig } = req.body;
-        
+        const { participantId, allocationId, conversations, behaviorMetrics, modelConfig } = req.body;
+
         // Validate required fields
-        if (!participantId || !sessionId || !conversations || !modelConfig) {
-            return res.status(400).json({ 
-                error: 'Missing required fields: participantId, sessionId, conversations, modelConfig' 
+        if (!participantId || !conversations || !modelConfig) {
+            return res.status(400).json({
+                error: 'Missing required fields: participantId, conversations, modelConfig'
             });
         }
+
+        // Debug logging
+        console.log('💾 [Save] Received save request:', {
+            participantId,
+            allocationId: allocationId || 'none',
+            conversationKeys: Object.keys(conversations),
+            hasMetrics: !!behaviorMetrics
+        });
 
         // Prepare complete dataset
         const studyData = {
             participantId,
-            sessionId,
+            allocationId,
             conversations,
             modelConfig,
             behaviorMetrics: behaviorMetrics || {},
@@ -35,7 +43,7 @@ export default async function handler(req, res) {
 
         // Save to GitHub storage
         const githubStorage = new GitHubStorage();
-        await githubStorage.saveParticipantData(participantId, sessionId, studyData);
+        await githubStorage.saveParticipantData(participantId, allocationId, studyData);
 
         res.json({
             success: true,
@@ -46,9 +54,9 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error('Data save failed:', error.message);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Failed to save data',
-            details: error.message 
+            details: error.message
         });
     }
 }
