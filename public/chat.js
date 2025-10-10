@@ -906,14 +906,17 @@ class ChatApp {
         const config = this.getCurrentTaskConfig();
 
         messagesContainer.innerHTML = `
-            <div class="welcome-message">
-                <div class="welcome-content">
-                    <h2>${config.icon} ${config.name}</h2>
-                    <p>${config.description}</p>
-                    <p>Start a conversation with <strong>${this.config.givenModel}</strong></p>
+        <div class="welcome-message">
+            <div class="welcome-content">
+                <h2>${config.icon} ${config.name}</h2>
+                <p>${config.description}</p>
+                <p>Start a conversation with <strong>${this.config.givenModel}</strong></p>
+                <div class="task-completion-note">
+                    <p><strong>📝 Note:</strong> If you are done with the current task, please click the "Complete Task" button in the lower right corner. It will direct you to the next task.</p>
                 </div>
             </div>
-        `;
+        </div>
+    `;
     }
 
     updateConversationList() {
