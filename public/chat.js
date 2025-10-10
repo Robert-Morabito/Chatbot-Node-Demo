@@ -1367,11 +1367,44 @@ class ChatApp {
     }
 
     hideAllIndicators() {
-        const indicators = ['typing-indicator', 'image-generation-indicator'];
+        const indicators = ['typing-indicator', 'image-indicator'];
         indicators.forEach(id => {
             const indicator = document.getElementById(id);
             if (indicator) indicator.remove();
         });
+    }
+
+    // Add these new methods to the ChatApp class
+    disableInput() {
+        const sendBtn = document.getElementById('send-btn');
+        const messageInput = document.getElementById('message-input');
+
+        if (sendBtn) {
+            sendBtn.disabled = true;
+            sendBtn.style.opacity = '0.5';
+            sendBtn.style.cursor = 'not-allowed';
+        }
+        if (messageInput) {
+            messageInput.disabled = true;
+            messageInput.style.opacity = '0.7';
+            messageInput.placeholder = 'Please wait...';
+        }
+    }
+
+    enableInput() {
+        const sendBtn = document.getElementById('send-btn');
+        const messageInput = document.getElementById('message-input');
+
+        if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.style.opacity = '1';
+            sendBtn.style.cursor = 'pointer';
+        }
+        if (messageInput) {
+            messageInput.disabled = false;
+            messageInput.style.opacity = '1';
+            messageInput.placeholder = 'Type your message...';
+        }
     }
 
     // ===================================================================
