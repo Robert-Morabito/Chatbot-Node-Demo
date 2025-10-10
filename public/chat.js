@@ -51,6 +51,20 @@ class ChatApp {
         this.currentTheme = 'dark';
         this.isFinishing = false;
 
+        // Possible errors
+        this.errorTypes = {
+            NETWORK_TIMEOUT: 'network_timeout',
+            NETWORK_OFFLINE: 'network_offline',
+            INVALID_USER_ID: 'invalid_user_id',
+            STUDY_FULL: 'study_full',
+            SERVER_ERROR: 'server_error',
+            API_KEY_ERROR: 'api_key_error',
+            RATE_LIMIT: 'rate_limit',
+            PARSE_ERROR: 'parse_error',
+            SAVE_ERROR: 'save_error',
+            UNKNOWN: 'unknown'
+        };
+
         // Welcome experience state
         this.welcomeState = {
             currentStep: 0,
@@ -137,14 +151,29 @@ class ChatApp {
             });
 
             if (!response.ok) {
-                const error = await response.json();
+                const errorData = await response.json().catch(() => ({}));
 
-                // Handle specific error cases
+                // Create enhanced error object
+                const error = new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+                error.status = response.status;
+                error.details = errorData;
+
+                // Log detailed error info for debugging
+                console.error('❌ Configuration loading failed:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    errorData: errorData,
+                    userId: userId,
+                    url: '/api/allocation/claim',
+                    timestamp: new Date().toISOString()
+                });
+
+                // Handle specific error cases with better messages
                 if (response.status === 409) {
                     throw new Error('STUDY_FULL: No more participants needed for this study.');
                 }
 
-                throw new Error(`Configuration loading failed: ${error.error || response.statusText}`);
+                throw error;
             }
 
             const allocation = await response.json();
@@ -172,7 +201,8 @@ class ChatApp {
             return true;
 
         } catch (error) {
-            console.error('❌ Configuration loading failed:', error.message);
+            const errorType = this.classifyError(error, 'configuration');
+            console.error('❌ Configuration error classified as:', errorType);
             throw error;
         }
     }
@@ -1004,6 +1034,12 @@ class ChatApp {
                 imageContext: this.imageContext
             };
 
+            console.log('💬 Sending LLM request:', {
+                model: this.config.trueModel,
+                messageCount: this.currentChatlog.length,
+                conversationId: this.currentConversationId
+            });
+
             const response = await fetch('/api/chat/stream', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1012,15 +1048,35 @@ class ChatApp {
 
             if (!response.ok) {
                 const errorText = await response.text();
-                throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
+                const error = new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
+                error.status = response.status;
+                error.details = errorText;
+
+                console.error('❌ LLM request failed:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    errorText: errorText.substring(0, 200),
+                    model: this.config.trueModel,
+                    messageCount: this.currentChatlog.length,
+                    timestamp: new Date().toISOString()
+                });
+
+                throw error;
             }
 
             await this.handleStreamResponse(response);
 
         } catch (error) {
-            console.error('LLM response failed:', error.message);
+            console.error('❌ LLM response failed:', {
+                error: error.message,
+                status: error.status,
+                model: this.config?.trueModel,
+                messageCount: this.currentChatlog?.length,
+                timestamp: new Date().toISOString()
+            });
+
             this.hideAllIndicators();
-            this.showErrorModal(error, 'chat');
+            this.showEnhancedErrorModal(error, 'chat');
         }
     }
 
@@ -1901,30 +1957,73 @@ class ChatApp {
     // ERROR HANDLING
     // ===================================================================
 
-    showErrorModal(error, context = 'chat') {
+    showEnhancedErrorModal(error, context = 'chat') {
+        const errorType = this.classifyError(error, context);
+        const errorInfo = this.getErrorMessage(errorType, context);
+
         const modal = document.getElementById('error-modal');
+        const titleEl = modal.querySelector('h3');
+        const bodyEl = modal.querySelector('.error-modal-body > p');
         const errorCodeSpan = document.getElementById('error-code');
         const participantIdSpan = document.getElementById('error-participant-id');
+        const tryAgainBtn = document.getElementById('error-try-again');
 
-        // Generate error code
-        let errorCode = 'UNKNOWN';
-        if (error.status) {
-            errorCode = `HTTP_${error.status}`;
-        } else if (error.message) {
-            if (error.message.includes('fetch')) errorCode = 'NETWORK_ERROR';
-            else if (error.message.includes('JSON')) errorCode = 'PARSE_ERROR';
-            else if (error.message.includes('timeout')) errorCode = 'TIMEOUT_ERROR';
-            else errorCode = 'API_ERROR';
-        }
+        // Generate detailed error code
+        const errorCode = `${errorType.toUpperCase()}_${context.toUpperCase()}_${error.status || 'NET'}_${Date.now().toString().slice(-6)}`;
 
-        const timestamp = new Date().toISOString().substring(0, 19).replace('T', '_');
-        errorCode += `_${context.toUpperCase()}_${timestamp}`;
+        // Update modal content
+        titleEl.innerHTML = `⚠️ ${errorInfo.title}`;
+        bodyEl.innerHTML = `
+        <strong>${errorInfo.message}</strong>
+        <p class="error-instruction" style="margin-top: 1rem; font-style: italic; color: var(--text-secondary-dark); line-height: 1.4;">
+            ${errorInfo.instruction}
+        </p>
+    `;
 
         errorCodeSpan.textContent = errorCode;
         participantIdSpan.textContent = this.participantId || 'Not Set';
 
+        // Show/hide try again button based on error type
+        if (errorInfo.recoverable) {
+            tryAgainBtn.style.display = 'inline-block';
+        } else {
+            tryAgainBtn.style.display = 'none';
+        }
+
         modal.style.display = 'flex';
         this.setupErrorModalListeners();
+    }
+
+    // Keep the existing setupErrorModalListeners method but update the try again logic
+    setupErrorModalListeners() {
+        const closeBtn = document.getElementById('error-modal-close');
+        const closeBtn2 = document.getElementById('error-close');
+        const tryAgainBtn = document.getElementById('error-try-again');
+
+        const closeModal = () => {
+            const modal = document.getElementById('error-modal');
+            modal.style.display = 'none';
+        };
+
+        const tryAgain = () => {
+            closeModal();
+            if (this.currentChatlog.length > 0) {
+                const lastMessage = this.currentChatlog[this.currentChatlog.length - 1];
+                if (lastMessage.sender === 'User') {
+                    this.showIndicator('typing');
+                    setTimeout(() => this.getLLMResponse(), 1000); // Add delay for rate limiting
+                }
+            }
+        };
+
+        closeBtn.onclick = closeModal;
+        closeBtn2.onclick = closeModal;
+        tryAgainBtn.onclick = tryAgain;
+
+        const modal = document.getElementById('error-modal');
+        modal.onclick = (e) => {
+            if (e.target === modal) closeModal();
+        };
     }
 
     setupErrorModalListeners() {
@@ -1959,25 +2058,26 @@ class ChatApp {
     }
 
     showConfigurationError(error) {
+        const errorType = this.classifyError(error, 'configuration');
+        const errorInfo = this.getErrorMessage(errorType, 'configuration');
+
         const errorDisplay = document.getElementById('simple-error-display');
         const errorTitle = document.getElementById('error-title');
         const errorMessage = document.getElementById('error-message');
-        const errorCode = document.getElementById('error-code-display');
+        const errorCodeDisplay = document.getElementById('error-code-display');
 
         // Set error details based on error type
-        if (error.message.includes('STUDY_FULL')) {
-            errorTitle.textContent = 'Study Complete';
-            errorMessage.textContent = 'This study has reached the required number of participants. Thank you for your interest!';
-            errorCode.textContent = 'STUDY_FULL_409';
-        } else if (error.message.includes('400')) {
-            errorTitle.textContent = 'Invalid Participant ID';
-            errorMessage.textContent = 'Please check your Prolific ID and try again.';
-            errorCode.textContent = 'INVALID_ID_400';
-        } else {
-            errorTitle.textContent = 'Configuration Error';
-            errorMessage.textContent = 'Unable to load study configuration. This may be a temporary issue.';
-            errorCode.textContent = `CONFIG_ERROR_${Date.now()}`;
-        }
+        errorTitle.textContent = errorInfo.title;
+        errorMessage.innerHTML = `
+        <p><strong>${errorInfo.message}</strong></p>
+        <p class="error-instruction" style="margin-top: 1rem; font-style: italic; color: var(--text-secondary-dark); line-height: 1.4;">
+            ${errorInfo.instruction}
+        </p>
+    `;
+
+        // Generate detailed error code for support
+        const errorCode = `${errorType.toUpperCase()}_${error.status || 'NET'}_${Date.now().toString().slice(-6)}`;
+        errorCodeDisplay.textContent = errorCode;
 
         errorDisplay.style.display = 'flex';
 
@@ -1986,15 +2086,164 @@ class ChatApp {
             errorDisplay.style.display = 'none';
         };
 
-        document.getElementById('error-retry').onclick = () => {
-            errorDisplay.style.display = 'none';
-            this.handleProlificSubmission();
-        };
+        const retryButton = document.getElementById('error-retry');
+        if (errorInfo.recoverable) {
+            retryButton.style.display = 'block';
+            retryButton.onclick = () => {
+                errorDisplay.style.display = 'none';
+                this.handleProlificSubmission();
+            };
+        } else {
+            retryButton.style.display = 'none';
+        }
 
         document.getElementById('error-report').onclick = () => {
-            alert('To report this error:\n\n1. Take a screenshot of this error\n2. Contact the researchers through Prolific\n3. Include the error code: ' + errorCode.textContent);
+            const reportText = `Error Report:\n\nError Code: ${errorCode}\nParticipant ID: ${this.participantId || 'Not set'}\nError Type: ${errorInfo.title}\nDetails: ${errorInfo.message}\n\nTime: ${new Date().toISOString()}`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Study Error Report',
+                    text: reportText
+                });
+            } else {
+                navigator.clipboard.writeText(reportText).then(() => {
+                    alert('Error details copied to clipboard. Please paste this into your Prolific message to the researchers.');
+                }).catch(() => {
+                    alert('To report this error:\n\n1. Take a screenshot of this error\n2. Contact the researchers through Prolific\n3. Include the error code: ' + errorCode);
+                });
+            }
         };
     }
+
+    /**
+    * Enhanced error classification based on error details
+    */
+    classifyError(error, context = 'general') {
+        // Clean console logging - structured and informative
+        const errorInfo = {
+            message: error.message,
+            context: context,
+            timestamp: new Date().toISOString(),
+            userId: this.participantId || 'unknown'
+        };
+
+        // Network-related errors
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            console.error('🌐 Network Error:', errorInfo);
+            return this.errorTypes.NETWORK_OFFLINE;
+        }
+
+        if (error.message.includes('timeout') || error.name === 'TimeoutError') {
+            console.error('⏱️ Timeout Error:', errorInfo);
+            return this.errorTypes.NETWORK_TIMEOUT;
+        }
+
+        // API-specific errors based on HTTP status
+        if (error.status) {
+            console.error(`📡 HTTP ${error.status} Error:`, errorInfo);
+
+            switch (error.status) {
+                case 400:
+                    return context === 'configuration' ?
+                        this.errorTypes.INVALID_USER_ID : this.errorTypes.PARSE_ERROR;
+                case 401:
+                case 403:
+                    return this.errorTypes.API_KEY_ERROR;
+                case 409:
+                    return this.errorTypes.STUDY_FULL;
+                case 429:
+                    return this.errorTypes.RATE_LIMIT;
+                case 500:
+                case 502:
+                case 503:
+                case 504:
+                    return this.errorTypes.SERVER_ERROR;
+                default:
+                    return this.errorTypes.UNKNOWN;
+            }
+        }
+
+        // Parse errors
+        if (error.message.includes('JSON') || error.message.includes('parse')) {
+            console.error('🔧 Parse Error:', errorInfo);
+            return this.errorTypes.PARSE_ERROR;
+        }
+
+        // Default unknown error
+        console.error('❓ Unknown Error:', errorInfo);
+        return this.errorTypes.UNKNOWN;
+    }
+
+    /**
+     * Get user-friendly error messages with specific instructions
+     */
+    getErrorMessage(errorType, context = 'general') {
+        const messages = {
+            [this.errorTypes.NETWORK_TIMEOUT]: {
+                title: 'Connection Timeout',
+                message: 'The request took too long to complete.',
+                instruction: 'This is most likely a network connectivity issue. Please do not close this page and click "Try Again" once your internet connection is stable.',
+                recoverable: true
+            },
+            [this.errorTypes.NETWORK_OFFLINE]: {
+                title: 'Network Connection Error',
+                message: 'Unable to connect to the server.',
+                instruction: 'Please check your internet connection. Do not close this page - your progress is saved. Click "Try Again" when your connection is restored.',
+                recoverable: true
+            },
+            [this.errorTypes.INVALID_USER_ID]: {
+                title: 'Invalid Participant ID',
+                message: 'The Prolific ID you entered is not valid.',
+                instruction: 'Please double-check your 24-character Prolific ID and try again. Make sure to copy it exactly from your Prolific dashboard.',
+                recoverable: true
+            },
+            [this.errorTypes.STUDY_FULL]: {
+                title: 'Study Complete',
+                message: 'This study has reached the required number of participants.',
+                instruction: 'Thank you for your interest! Unfortunately, the study is now full. You may try again in a little while, should a spot open up. In the meantine, you close this window.',
+                recoverable: false
+            },
+            [this.errorTypes.SERVER_ERROR]: {
+                title: 'Server Error',
+                message: 'The server is experiencing technical difficulties.',
+                instruction: 'This is a temporary issue on our end. Please wait a moment and try again. If the problem persists, take a screenshot and report it via Prolific.',
+                recoverable: true
+            },
+            [this.errorTypes.API_KEY_ERROR]: {
+                title: 'Service Authentication Error',
+                message: 'There is an issue with the AI service configuration.',
+                instruction: 'This is a technical issue on our end. Please take a screenshot of this error and report it via Prolific messaging. We will resolve this quickly.',
+                recoverable: false
+            },
+            [this.errorTypes.RATE_LIMIT]: {
+                title: 'Service Temporarily Unavailable',
+                message: 'The AI service is currently at capacity.',
+                instruction: 'Please wait 30 seconds and try again. The service should be available shortly.',
+                recoverable: true
+            },
+            [this.errorTypes.SAVE_ERROR]: {
+                title: 'Data Save Error',
+                message: 'Unable to save your conversation data.',
+                instruction: 'Your conversation is still active, but we couldn\'t save it to our servers. Please continue and try saving again later, or take a screenshot if the issue persists.',
+                recoverable: true
+            },
+            [this.errorTypes.PARSE_ERROR]: {
+                title: 'Data Processing Error',
+                message: 'Unable to process the server response.',
+                instruction: 'This may be a temporary server issue. Please try again in a moment.',
+                recoverable: true
+            },
+            [this.errorTypes.UNKNOWN]: {
+                title: 'Unexpected Error',
+                message: 'An unexpected error occurred.',
+                instruction: 'Please take a screenshot of this error and report it via Prolific. Include your participant ID and the error code below.',
+                recoverable: true
+            }
+        };
+
+        return messages[errorType] || messages[this.errorTypes.UNKNOWN];
+    }
+
 
     // ===================================================================
     // PAGE LIFECYCLE MANAGEMENT
