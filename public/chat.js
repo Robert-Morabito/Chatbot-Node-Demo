@@ -68,7 +68,7 @@ class ChatApp {
         // Welcome experience state
         this.welcomeState = {
             currentStep: 0,
-            maxSteps: 2,
+            maxSteps: 3,
             isAnimating: false,
             isTransitioning: false,
             transitionTimeout: null,
@@ -505,7 +505,7 @@ class ChatApp {
                     <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
                 </svg>
             `;
-                continueBtn.onclick = () => this.hideWelcomeExperience();
+                continueBtn.onclick = () => this.renderWelcomeStep(2);
                 continueBtn.disabled = false;
                 continueBtn.style.opacity = '1';
 
@@ -644,6 +644,15 @@ class ChatApp {
             continueBtn.disabled = false;
             continueBtn.onclick = () => this.showCapabilityCardsSequence();
         }
+        // Step 2: Survey redirect + password entry
+        else if (this.welcomeState.currentStep === 2) {
+            continueBtn.innerHTML = 'Start Study <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
+            continueBtn.disabled = true; // Disabled by default
+            continueBtn.onclick = () => this.hideWelcomeExperience();
+
+            // Set up password validation
+            setTimeout(() => this.setupPasswordValidation(), 100);
+        }
     }
 
     clearWelcomeTransitions() {
@@ -667,6 +676,48 @@ class ChatApp {
             document.querySelector('.app-container').classList.add('ready');
             this.initializeMainApp();
         }, 600);
+    }
+
+    setupPasswordValidation() {
+        const input = document.getElementById('password-input');
+        const continueBtn = document.getElementById('nav-continue');
+        const errorDiv = document.getElementById('password-error');
+
+        if (!input) {
+            console.error('❌ Password input field not found');
+            return;
+        }
+
+        console.log('✅ Setting up password validation');
+
+        const validatePassword = () => {
+            const password = input.value.trim();
+            const isValid = password.toLowerCase() === 'all done';
+
+            console.log('Validating password:', password, 'Valid:', isValid);
+
+            if (continueBtn) {
+                continueBtn.disabled = !isValid;
+            }
+
+            if (errorDiv) {
+                if (password.length > 0 && !isValid) {
+                    errorDiv.textContent = 'Incorrect password. Please check the survey for the correct password.';
+                    errorDiv.classList.add('show');
+                } else {
+                    errorDiv.classList.remove('show');
+                }
+            }
+        };
+
+        input.addEventListener('input', validatePassword);
+        validatePassword();
+
+        // Focus the input
+        setTimeout(() => {
+            input.focus();
+            console.log('✅ Password input should be focused now');
+        }, 100);
     }
 
     // ===================================================================
@@ -1412,9 +1463,7 @@ class ChatApp {
         if (messageInput) {
             messageInput.disabled = false;
             messageInput.style.opacity = '1';
-            // Restore original placeholder
-            const originalPlaceholder = messageInput.dataset.originalPlaceholder || 'Type your message...';
-            messageInput.placeholder = originalPlaceholder;
+            messageInput.placeholder = "Type your message...";
         }
     }
 

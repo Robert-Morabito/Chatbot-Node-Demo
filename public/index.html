@@ -22,7 +22,7 @@
                 <div class="progress-counter">
                     <span id="current-step">1</span>
                     <span class="step-separator">/</span>
-                    <span>2</span> <!-- Changed from 3 to 2 steps -->
+                    <span>3</span>
                 </div>
             </div>
 
@@ -164,6 +164,31 @@
                                     <p id="usecase-text">Creative writing, professional communication, and complex
                                         analysis.</p>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Survey Redirect + Password Entry -->
+                <div class="content-panel survey-panel">
+                    <div class="content-card">
+                        <h1 class="content-title">Complete Pre-study Survey</h1>
+                        <p class="content-subtitle">One more step before you can access the chatbot</p>
+
+                        <div class="info-grid" style="margin: 2rem 0;">
+                            <div class="info-item info-item-large">
+                                <p>Now, please switch back to the Tally page and move on to the <strong>Pre-study
+                                        Questionnaire</strong>. Once you put in the password below you will be given
+                                    access to the chatbot.</p>
+                            </div>
+                        </div>
+
+                        <div class="id-input-system">
+                            <div class="input-group">
+                                <input type="text" id="password-input" class="input-field"
+                                    placeholder="Enter password from survey" autocomplete="off">
+                                <div id="password-error" class="input-error"></div>
+                                <div class="input-hint">Complete the survey and enter the password you receive</div>
                             </div>
                         </div>
                     </div>
