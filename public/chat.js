@@ -1340,6 +1340,8 @@ class ChatApp {
 
     showIndicator(type) {
         this.hideAllIndicators();
+        this.disableInput();
+        this.disableConversationSwitching();
 
         const messagesContainer = document.getElementById('messages');
         const indicatorDiv = document.createElement('div');
@@ -1372,9 +1374,12 @@ class ChatApp {
             const indicator = document.getElementById(id);
             if (indicator) indicator.remove();
         });
+        this.enableInput();
+        this.enableConversationSwitching();
     }
 
-    // Add these new methods to the ChatApp class
+    // In chat.js, update these methods:
+
     disableInput() {
         const sendBtn = document.getElementById('send-btn');
         const messageInput = document.getElementById('message-input');
@@ -1388,6 +1393,10 @@ class ChatApp {
             messageInput.disabled = true;
             messageInput.style.opacity = '0.7';
             messageInput.placeholder = 'Please wait...';
+            // Store original placeholder to restore later
+            if (!messageInput.dataset.originalPlaceholder) {
+                messageInput.dataset.originalPlaceholder = messageInput.placeholder;
+            }
         }
     }
 
@@ -1403,7 +1412,49 @@ class ChatApp {
         if (messageInput) {
             messageInput.disabled = false;
             messageInput.style.opacity = '1';
-            messageInput.placeholder = 'Type your message...';
+            // Restore original placeholder
+            const originalPlaceholder = messageInput.dataset.originalPlaceholder || 'Type your message...';
+            messageInput.placeholder = originalPlaceholder;
+        }
+    }
+
+    // Add these methods to the ChatApp class:
+
+    disableConversationSwitching() {
+        // Disable all conversation items
+        const conversationItems = document.querySelectorAll('.conversation-item');
+        conversationItems.forEach(item => {
+            item.style.pointerEvents = 'none';
+            item.style.opacity = '0.5';
+            item.style.cursor = 'not-allowed';
+        });
+
+        // Disable new chat button
+        const newChatBtn = document.getElementById('new-chat-btn');
+        if (newChatBtn) {
+            newChatBtn.disabled = true;
+            newChatBtn.style.opacity = '0.5';
+            newChatBtn.style.cursor = 'not-allowed';
+            newChatBtn.style.pointerEvents = 'none';
+        }
+    }
+
+    enableConversationSwitching() {
+        // Re-enable all conversation items
+        const conversationItems = document.querySelectorAll('.conversation-item');
+        conversationItems.forEach(item => {
+            item.style.pointerEvents = 'auto';
+            item.style.opacity = '1';
+            item.style.cursor = 'pointer';
+        });
+
+        // Re-enable new chat button
+        const newChatBtn = document.getElementById('new-chat-btn');
+        if (newChatBtn) {
+            newChatBtn.disabled = false;
+            newChatBtn.style.opacity = '1';
+            newChatBtn.style.cursor = 'pointer';
+            newChatBtn.style.pointerEvents = 'auto';
         }
     }
 
@@ -2355,7 +2406,13 @@ class ChatApp {
         // Set up new event listeners
         document.getElementById('send-btn').addEventListener('click', () => this.sendMessage());
         document.getElementById('message-input').addEventListener('keydown', (e) => {
+            // Check if input is disabled before processing Enter key
+            const messageInput = document.getElementById('message-input');
             if (e.key === 'Enter' && !e.shiftKey) {
+                if (messageInput.disabled) {
+                    e.preventDefault();
+                    return;
+                }
                 e.preventDefault();
                 this.sendMessage();
             }
