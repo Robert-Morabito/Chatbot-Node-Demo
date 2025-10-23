@@ -1053,12 +1053,10 @@ class ChatApp {
         const messageEl = document.getElementById('survey-reminder-message');
 
         let message;
-        if (isFirstTask) {
-            message = "Before you begin your first task, please ensure you have completed the pre-task survey.";
-        } else if (taskName) {
+        if (taskName) {
             const taskConfig = this.taskConfig[taskName];
             const taskDisplayName = taskConfig ? taskConfig.name : taskName;
-            message = `Before starting the "${taskDisplayName}" task, please ensure you have completed the pre-task survey for this section.`;
+            message = `Please ensure you have completed the pre-task survey for the "${taskDisplayName}" task.`;
         } else {
             message = "Please ensure you have completed the pre-task survey before continuing.";
         }
