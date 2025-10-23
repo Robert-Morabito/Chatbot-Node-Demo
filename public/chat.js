@@ -986,11 +986,25 @@ class ChatApp {
         this.currentTaskIndex++;
 
         if (this.currentTaskIndex < this.taskSequence.length) {
-            // Reset conversation state for new task
-            this.currentConversationId = null;
-            this.currentChatlog = [];
-            this.updateFinishButton();
-            this.createNewConversation();
+            const nextTask = this.taskSequence[this.currentTaskIndex];
+
+            // Show survey reminder before starting new task
+            this.showPreTaskReminder(nextTask, false);
+
+            // Continue with task setup after user acknowledges reminder
+            const continueBtn = document.getElementById('survey-reminder-continue');
+            const handleContinue = () => {
+                // Reset conversation state for new task
+                this.currentConversationId = null;
+                this.currentChatlog = [];
+                this.updateFinishButton();
+                this.createNewConversation();
+
+                // Remove this specific listener
+                continueBtn.removeEventListener('click', handleContinue);
+            };
+
+            continueBtn.addEventListener('click', handleContinue);
         }
     }
 
@@ -1010,6 +1024,78 @@ class ChatApp {
             finishBtn.title = 'Finish current task and move to next';
             finishBtn.classList.remove('final-task');
         }
+    }
+
+    // ===================================================================
+    // SURVEY REMINDER SYSTEM
+    // ===================================================================
+
+    /**
+     * Shows the pre-task survey reminder modal
+     * @param {string} taskName - Name of the task about to start
+     * @param {boolean} isFirstTask - Whether this is the first task
+     */
+    showPreTaskReminder(taskName = null, isFirstTask = false) {
+        const modal = document.getElementById('survey-reminder-modal');
+        const messageEl = document.getElementById('survey-reminder-message');
+
+        let message;
+        if (isFirstTask) {
+            message = "Before you begin your first task, please ensure you have completed the pre-task survey.";
+        } else if (taskName) {
+            const taskConfig = this.taskConfig[taskName];
+            const taskDisplayName = taskConfig ? taskConfig.name : taskName;
+            message = `Before starting the "${taskDisplayName}" task, please ensure you have completed the pre-task survey for this section.`;
+        } else {
+            message = "Please ensure you have completed the pre-task survey before continuing.";
+        }
+
+        messageEl.textContent = message;
+        modal.style.display = 'flex';
+
+        // Set up event handler
+        this.setupSurveyReminderHandlers();
+
+        console.log('📋 Survey reminder shown:', {
+            taskName: taskName || 'initial',
+            isFirstTask,
+            message: message.substring(0, 50) + '...'
+        });
+    }
+
+    /**
+     * Hides the survey reminder modal
+     */
+    hidePreTaskReminder() {
+        const modal = document.getElementById('survey-reminder-modal');
+        modal.style.display = 'none';
+
+        console.log('✅ Survey reminder dismissed');
+    }
+
+    /**
+     * Sets up event handlers for the survey reminder modal
+     */
+    setupSurveyReminderHandlers() {
+        const continueBtn = document.getElementById('survey-reminder-continue');
+        const modal = document.getElementById('survey-reminder-modal');
+
+        // Remove any existing listeners
+        const newContinueBtn = continueBtn.cloneNode(true);
+        continueBtn.parentNode.replaceChild(newContinueBtn, continueBtn);
+
+        // Add new listener
+        newContinueBtn.addEventListener('click', () => {
+            this.hidePreTaskReminder();
+        });
+
+        // Prevent closing by clicking outside (force user to acknowledge)
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                // Don't close - user must click the button
+                e.stopPropagation();
+            }
+        });
     }
 
     // ===================================================================

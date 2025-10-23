@@ -5137,6 +5137,146 @@ body.light-theme {
     filter: grayscale(1) brightness(0.65);
 }
 
+/* ===================================================================
+   SURVEY REMINDER MODAL
+   ================================================================= */
+
+.survey-reminder-dialog {
+    background: var(--main-bg-dark);
+    color: var(--text-dark);
+    border-radius: 12px;
+    max-width: 500px;
+    width: 90%;
+    margin: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 2px solid #3b82f6;
+    animation: surveyReminderSlideIn 0.3s ease-out;
+    overflow: hidden;
+}
+
+.light-theme .survey-reminder-dialog {
+    background: var(--main-bg-light);
+    color: var(--text-light);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.survey-reminder-header {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.survey-reminder-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.survey-reminder-body {
+    padding: 2rem 1.5rem;
+    text-align: center;
+}
+
+.survey-reminder-body p {
+    margin: 0 0 1.5rem 0;
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: var(--text-dark);
+}
+
+.light-theme .survey-reminder-body p {
+    color: var(--text-light);
+}
+
+.survey-reminder-note {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 6px;
+    padding: 1rem;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    text-align: left;
+}
+
+.light-theme .survey-reminder-note {
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.survey-reminder-note strong {
+    color: #3b82f6;
+}
+
+.survey-reminder-footer {
+    background: var(--hover-dark);
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: center;
+}
+
+.light-theme .survey-reminder-footer {
+    background: var(--hover-light);
+}
+
+.survey-reminder-button {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    border: none;
+    padding: 0.875rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 200px;
+}
+
+.survey-reminder-button:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.survey-reminder-button:active {
+    transform: translateY(0);
+}
+
+@keyframes surveyReminderSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .survey-reminder-dialog {
+        width: 95%;
+        margin: 10px;
+    }
+    
+    .survey-reminder-header {
+        padding: 1.25rem;
+    }
+    
+    .survey-reminder-body {
+        padding: 1.5rem 1.25rem;
+    }
+    
+    .survey-reminder-body p {
+        font-size: 1rem;
+    }
+    
+    .survey-reminder-button {
+        width: 100%;
+        min-width: auto;
+    }
+}
+
 /* Responsive adjustments */
 @media (max-width: 1024px) {
     .comparison-models {

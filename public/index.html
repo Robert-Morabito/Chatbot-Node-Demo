@@ -178,7 +178,8 @@
                         <div class="info-grid" style="margin: 2rem 0;">
                             <div class="info-item info-item-large">
                                 <p>Now, please switch back to the Tally page and move on to the <strong>Pre-study
-                                        Questionnaire</strong>. After completing it, you will be shown the password to enter below, which will grant you 
+                                        Questionnaire</strong>. After completing it, you will be shown the password to
+                                    enter below, which will grant you
                                     access to the chatbot.</p>
                             </div>
                         </div>
@@ -223,6 +224,27 @@
             <div class="finish-buttons">
                 <button id="finish-cancel-btn" class="finish-button finish-cancel">Cancel</button>
                 <button id="finish-confirm-btn" class="finish-button finish-confirm">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Survey Reminder Modal (hidden by default) -->
+    <div id="survey-reminder-modal" class="modal-backdrop" style="display: none;">
+        <div class="survey-reminder-dialog">
+            <div class="survey-reminder-header">
+                <h3>📋 Pre-Task Survey Reminder</h3>
+            </div>
+            <div class="survey-reminder-body">
+                <p id="survey-reminder-message">Please ensure you have completed the pre-task survey before continuing
+                    with this task.</p>
+                <div class="survey-reminder-note">
+                    <strong>Important:</strong> Completing the survey after starting the task may bias your responses.
+                    Please complete it now if you haven't already.
+                </div>
+            </div>
+            <div class="survey-reminder-footer">
+                <button id="survey-reminder-continue" class="survey-reminder-button">I have completed the
+                    survey</button>
             </div>
         </div>
     </div>
