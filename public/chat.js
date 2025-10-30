@@ -544,8 +544,6 @@ class ChatApp {
             const value = input.value.trim();
             const isValid = /^[a-zA-Z0-9]{24}$/.test(value);
 
-            console.log('Validating:', value, 'Valid:', isValid);
-
             if (continueBtn) {
                 continueBtn.disabled = !isValid;
             }
@@ -693,8 +691,6 @@ class ChatApp {
         const validatePassword = () => {
             const password = input.value.trim();
             const isValid = password.toLowerCase() === 'start';
-
-            console.log('Validating password:', password, 'Valid:', isValid);
 
             if (continueBtn) {
                 continueBtn.disabled = !isValid;
