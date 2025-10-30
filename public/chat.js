@@ -1841,6 +1841,11 @@ class ChatApp {
         const confirmed = await this.showTaskCompletionDialog(taskConfig.name, isLastTask);
         if (!confirmed) return;
 
+        // Set finishing flag as early as possible
+        if (isLastTask) {
+            this.isFinishing = true;
+        }
+
         try {
             await this.saveCurrentTaskData();
 
@@ -1852,6 +1857,10 @@ class ChatApp {
         } catch (error) {
             console.error('Task completion failed:', error.message);
             alert('Error completing task. Please try again.');
+            // Reset flag on error
+            if (isLastTask) {
+                this.isFinishing = false;
+            }
         }
     }
 
@@ -1898,16 +1907,19 @@ class ChatApp {
         const finishBtn = document.getElementById('finish-btn');
         if (finishBtn.disabled) return;
 
+        // Set isFinishing IMMEDIATELY to prevent race conditions
+        this.isFinishing = true;
+
         finishBtn.disabled = true;
         this.showFinishLoadingIndicator();
 
         try {
             await this.saveCurrentTaskData();
+            await this.markSessionCompleted(); // ← Move this BEFORE other operations
 
             const exportData = this.prepareExportData();
             await this.downloadConversationData(exportData);
             await this.saveToServer();
-            await this.markSessionCompleted();
 
             this.closeApplication();
 
@@ -1916,6 +1928,7 @@ class ChatApp {
             alert('There was an error completing the study. Please try again or contact support.');
             this.hideFinishLoadingIndicator();
             finishBtn.disabled = false;
+            this.isFinishing = false; // ← Reset on error
         }
     }
 
@@ -2485,7 +2498,11 @@ class ChatApp {
     async handlePageClose(event) {
         this.stopSessionTimer();
 
-        if (this.isFinishing) return;
+        // More robust check to prevent conflicts
+        if (this.isFinishing) {
+            console.log('🏁 Study completion in progress, skipping page close cleanup');
+            return;
+        }
 
         if (event && !this._isDelayedClose) {
             event.preventDefault();
@@ -2501,7 +2518,7 @@ class ChatApp {
             return;
         }
 
-        // Auto-save on close
+        // Auto-save on close (only if not finishing)
         if (this.currentConversationId && this.currentChatlog.length > 0) {
             try {
                 const exportData = this.prepareExportData();
@@ -2510,6 +2527,27 @@ class ChatApp {
             } catch (error) {
                 console.error('Auto-save on close failed:', error.message);
             }
+        }
+    }
+
+    async releaseReservation() {
+        // Prevent releasing during completion
+        if (this.isFinishing) {
+            console.log('🏁 Study completing, skipping allocation release');
+            return true;
+        }
+
+        try {
+            const response = await fetch('/api/allocation/release', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: this.participantId })
+            });
+
+            return response.ok;
+        } catch (error) {
+            console.error('Release request failed:', error.message);
+            return false;
         }
     }
 
