@@ -120,6 +120,8 @@ class ChatApp {
             }
         };
 
+        this.setupManualCompletionMethods();
+
         // Initialize application
         this.initializeApp();
     }
@@ -1118,6 +1120,11 @@ class ChatApp {
             return;
         }
 
+        if (this.checkForManualCompletionCommand(message)) {
+            messageInput.value = '';
+            return;
+        }
+
         console.log('💬 [Message] Sending user message:', {
             content: message.substring(0, 100) + (message.length > 100 ? '...' : ''),
             length: message.length,
@@ -2078,6 +2085,135 @@ class ChatApp {
                 </div>
             </div>
         `;
+    }
+
+    // ===================================================================
+    // MANUAL COMPLETION BACKUP METHODS
+    // ===================================================================
+
+    setupManualCompletionMethods() {
+        // Hot-key listeners
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+Shift+End = Finish Study (rarely used by browsers)
+            if (e.ctrlKey && e.shiftKey && e.key === 'End') {
+                e.preventDefault();
+                this.triggerManualCompletion('study', 'hotkey');
+            }
+
+            // Ctrl+Alt+T = Complete Task (Alt+T is rarely used)
+            if (e.ctrlKey && e.altKey && e.key === 't') {
+                e.preventDefault();
+                this.triggerManualCompletion('task', 'hotkey');
+            }
+        });
+
+        console.log('🔧 Manual completion methods activated');
+    }
+
+    triggerManualCompletion(type, method) {
+        const isStudy = type === 'study';
+        const actionName = isStudy ? 'finish the entire study' : 'complete the current task';
+
+        // Show confirmation
+        const confirmed = confirm(
+            `🔧 MANUAL OVERRIDE\n\n` +
+            `You are about to ${actionName} using the backup method.\n\n` +
+            `This will trigger the same process as the normal button.\n\n` +
+            `Continue?`
+        );
+
+        if (!confirmed) {
+            console.log('🔧 Manual completion cancelled by user');
+            return;
+        }
+
+        // Log the manual trigger
+        this.logManualCompletion(method, type, true);
+
+        // Show feedback
+        this.showManualCompletionFeedback(type, method);
+
+        // Execute the same code as the buttons
+        setTimeout(() => {
+            try {
+                if (isStudy) {
+                    this.handleTaskCompletion(); // This will detect it's the final task
+                } else {
+                    this.handleTaskCompletion();
+                }
+            } catch (error) {
+                console.error('Manual completion failed:', error);
+                alert('Manual completion failed. Please contact support with this error: ' + error.message);
+            }
+        }, 1000); // Small delay to show feedback
+    }
+
+    showManualCompletionFeedback(type, method) {
+        const feedback = document.createElement('div');
+        feedback.style.cssText = `
+        position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+        background: #10b981; color: white; padding: 15px 25px;
+        border-radius: 8px; z-index: 10000; font-weight: 600;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        font-size: 16px; text-align: center; max-width: 400px;
+    `;
+
+        const methodText = method === 'hotkey' ? 'Hot-key' : 'Message';
+        const typeText = type === 'study' ? 'Study Finish' : 'Task Completion';
+
+        feedback.innerHTML = `
+        ✅ ${methodText} Override Activated<br>
+        <small>${typeText} initiated...</small>
+    `;
+
+        document.body.appendChild(feedback);
+
+        setTimeout(() => {
+            if (feedback.parentNode) {
+                feedback.remove();
+            }
+        }, 3000);
+    }
+
+    logManualCompletion(method, type, success) {
+        const logData = {
+            timestamp: new Date().toISOString(),
+            participantId: this.participantId,
+            sessionId: this.sessionId,
+            method: method,
+            type: type,
+            success: success,
+            currentTask: this.currentTask,
+            currentTaskIndex: this.currentTaskIndex,
+            isFinalTask: this.isFinalTask(),
+            conversationCount: this.behaviorMetrics?.conversationCount || 0
+        };
+
+        console.log('🔧 MANUAL COMPLETION TRIGGERED:', logData);
+
+        // Add to behavior metrics for analysis
+        if (!this.behaviorMetrics.manualCompletions) {
+            this.behaviorMetrics.manualCompletions = [];
+        }
+        this.behaviorMetrics.manualCompletions.push(logData);
+    }
+
+    checkForManualCompletionCommand(message) {
+        const lowerMessage = message.toLowerCase().trim();
+
+        // Check for study finish command
+        if (lowerMessage === 'emergency finish study' || lowerMessage === 'emergency finish study now') {
+            this.triggerManualCompletion('study', 'message');
+            return true;
+        }
+
+        // Check for task completion command
+        if (lowerMessage === 'emergency complete task' || lowerMessage === 'emergency complete task now') {
+            this.triggerManualCompletion('task', 'message');
+            return true;
+        }
+
+        return false; // Not a special command
     }
 
     // ===================================================================
