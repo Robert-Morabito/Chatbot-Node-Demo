@@ -2202,13 +2202,13 @@ class ChatApp {
         const lowerMessage = message.toLowerCase().trim();
 
         // Check for study finish command
-        if (lowerMessage === 'emergency finish study' || lowerMessage === 'emergency finish study now') {
+        if (lowerMessage === 'emergency finish study now') {
             this.triggerManualCompletion('study', 'message');
             return true;
         }
 
         // Check for task completion command
-        if (lowerMessage === 'emergency complete task' || lowerMessage === 'emergency complete task now') {
+        if (lowerMessage === 'emergency complete task now') {
             this.triggerManualCompletion('task', 'message');
             return true;
         }
