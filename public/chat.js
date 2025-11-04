@@ -260,25 +260,25 @@ class ChatApp {
                     name: 'GPT-3.5',
                     year: '2022',
                     capabilities: { reasoning: 1, speed: 3, creativity: 2, knowledge: 'Sept 2021' },
-                    strengths: "Quick responses and good general knowledge for everyday tasks.",
-                    weaknesses: "Limited creativity and may struggle with complex reasoning tasks.",
-                    bestFor: "Quick questions, basic writing, and simple problem-solving tasks."
+                    strengths: "Very quick and reliable for everyday use and general knowledge.",
+                    weaknesses: "Not great at deep thinking or generating original ideas.",
+                    bestFor: "Simple questions, short writing tasks, and quick answers."
                 },
                 {
                     name: 'GPT-4',
                     year: '2023',
                     capabilities: { reasoning: 2, speed: 3, creativity: 3, knowledge: 'Dec 2023' },
-                    strengths: "Good balance of creativity, accuracy, and professional communication.",
-                    weaknesses: "Slower response times compared to simpler models.",
-                    bestFor: "Professional writing, basic creative projects, and moderate reasoning tasks."
+                    strengths: "Good mix of clear reasoning, creativity, and accuracy.",
+                    weaknesses: "A bit slower than smaller or newer models on light tasks.",
+                    bestFor: "Professional writing, creative projects, and general problem solving."
                 },
                 {
                     name: 'GPT-5',
                     year: '2025',
                     capabilities: { reasoning: 4, speed: 3, creativity: 4, knowledge: 'Sept 2024' },
-                    strengths: "State of the art, exceptional reasoning abilities and highly creative problem-solving.",
-                    weaknesses: "May take more time to process requests to ensure the best accuracy.",
-                    bestFor: "Complex creative challenges, advanced reasoning, and innovative solutions."
+                    strengths: "Top-level reasoning and strong creative thinking.",
+                    weaknesses: "Takes a little longer on big or detailed requests.",
+                    bestFor: "Complex writing, advanced problem solving, and creative work."
                 }
             ],
             'claude': [
@@ -286,28 +286,29 @@ class ChatApp {
                     name: 'Claude 3',
                     year: '2024',
                     capabilities: { reasoning: 1, speed: 4, creativity: 2, knowledge: 'Aug 2023' },
-                    strengths: "Fast responses with decent accuracy for routine tasks.",
-                    weaknesses: "Limited depth in creative and complex analytical tasks.",
-                    bestFor: "Quick tasks, basic writing assistance, and straightforward questions."
+                    strengths: "Extremely fast and dependable for simple tasks.",
+                    weaknesses: "Can miss details or struggle with hard reasoning problems.",
+                    bestFor: "Quick replies, light writing, and everyday questions."
                 },
                 {
                     name: 'Claude 3.5',
                     year: '2024',
                     capabilities: { reasoning: 2, speed: 4, creativity: 3, knowledge: 'July 2024' },
-                    strengths: "Good professional communication and analytical capabilities.",
-                    weaknesses: "Slower response times compared to simpler models.",
-                    bestFor: "Professional writing, basic creative projects, and moderate reasoning tasks."
+                    strengths: "Fast, clear, and better at explaining ideas than older models.",
+                    weaknesses: "Not as accurate on tough or technical topics as newer ones.",
+                    bestFor: "Emails, reports, creative writing, and general problem solving."
                 },
                 {
                     name: 'Claude 4',
                     year: '2025',
                     capabilities: { reasoning: 4, speed: 2, creativity: 4, knowledge: 'Mar 2025' },
-                    strengths: "Cutting-edge reasoning with exceptional creativity.",
-                    weaknesses: "May process requests slower for best accuracy.",
-                    bestFor: "Advanced creative projects, complex reasoning, and detailed writing."
+                    strengths: "Excellent reasoning and natural, creative writing style.",
+                    weaknesses: "Slower to respond than faster, smaller models.",
+                    bestFor: "Detailed writing, complex questions, and creative projects."
                 }
             ]
         };
+
 
         const assignedModel = this.config?.trueModel;
         const family = assignedModel.includes('claude') ? 'claude' : 'openai';
