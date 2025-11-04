@@ -259,7 +259,7 @@ class ChatApp {
                 {
                     name: 'GPT-3.5',
                     year: '2022',
-                    capabilities: { reasoning: 1, speed: 2, creativity: 2, knowledge: 'Sept 2021' },
+                    capabilities: { reasoning: 1, speed: 3, creativity: 2, knowledge: 'Sept 2021' },
                     strengths: "Quick responses and good general knowledge for everyday tasks.",
                     weaknesses: "Limited creativity and may struggle with complex reasoning tasks.",
                     bestFor: "Quick questions, basic writing, and simple problem-solving tasks."
@@ -285,7 +285,7 @@ class ChatApp {
                 {
                     name: 'Claude 3',
                     year: '2024',
-                    capabilities: { reasoning: 1, speed: 3, creativity: 2, knowledge: 'Aug 2023' },
+                    capabilities: { reasoning: 1, speed: 4, creativity: 2, knowledge: 'Aug 2023' },
                     strengths: "Fast responses with decent accuracy for routine tasks.",
                     weaknesses: "Limited depth in creative and complex analytical tasks.",
                     bestFor: "Quick tasks, basic writing assistance, and straightforward questions."
@@ -293,7 +293,7 @@ class ChatApp {
                 {
                     name: 'Claude 3.5',
                     year: '2024',
-                    capabilities: { reasoning: 2, speed: 3, creativity: 3, knowledge: 'July 2024' },
+                    capabilities: { reasoning: 2, speed: 4, creativity: 3, knowledge: 'July 2024' },
                     strengths: "Good professional communication and analytical capabilities.",
                     weaknesses: "Slower response times compared to simpler models.",
                     bestFor: "Professional writing, basic creative projects, and moderate reasoning tasks."
@@ -1636,12 +1636,24 @@ class ChatApp {
             }
         });
 
-        // Disable copy/paste for study integrity
+        // Task-specific copy/paste handling
         const messageInput = document.getElementById('message-input');
         ['paste', 'copy'].forEach(event => {
             messageInput.addEventListener(event, (e) => {
+                // Allow copy/paste for social media task, disable for others
+                if (this.currentTask === 'social-media') {
+                    // Allow the operation for social media task
+                    console.log(`✅ ${event.charAt(0).toUpperCase() + event.slice(1)} allowed for social media task`);
+                    return; // Don't prevent default - allow copy/paste
+                }
+
+                // Prevent copy/paste for other tasks
                 e.preventDefault();
-                this.showNotification(`${event.charAt(0).toUpperCase() + event.slice(1)} is disabled for this study`, 'warning');
+                const taskName = this.getCurrentTaskConfig()?.name || 'this task';
+                this.showNotification(
+                    `${event.charAt(0).toUpperCase() + event.slice(1)} is disabled for ${taskName}`,
+                    'warning'
+                );
             });
         });
 
