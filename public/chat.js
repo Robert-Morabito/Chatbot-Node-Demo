@@ -268,16 +268,16 @@ class ChatApp {
                     name: 'GPT-4',
                     year: '2023',
                     capabilities: { reasoning: 2, speed: 3, creativity: 3, knowledge: 'Dec 2023' },
-                    strengths: "Good balance of creativity, accuracy, and professional communication.",
-                    weaknesses: "Slower response times compared to simpler models.",
-                    bestFor: "Professional writing, basic creative projects, and moderate reasoning tasks."
+                    strengths: "Strong balance of reasoning, creativity, and professional accuracy.",
+                    weaknesses: "Slightly slower than newer or smaller models on lighter tasks.",
+                    bestFor: "Professional writing, detailed creative work, and structured reasoning."
                 },
                 {
                     name: 'GPT-5',
                     year: '2025',
                     capabilities: { reasoning: 4, speed: 3, creativity: 4, knowledge: 'Sept 2024' },
-                    strengths: "State of the art, exceptional reasoning abilities and highly creative problem-solving.",
-                    weaknesses: "May take more time to process requests to ensure the best accuracy.",
+                    strengths: "State of the art, exceptional reasoning and highly creative problem-solving.",
+                    weaknesses: "May take extra time to ensure precision on complex outputs.",
                     bestFor: "Complex creative challenges, advanced reasoning, and innovative solutions."
                 }
             ],
@@ -286,24 +286,24 @@ class ChatApp {
                     name: 'Claude 3',
                     year: '2024',
                     capabilities: { reasoning: 1, speed: 4, creativity: 2, knowledge: 'Aug 2023' },
-                    strengths: "Fast responses with decent accuracy for routine tasks.",
-                    weaknesses: "Limited depth in creative and complex analytical tasks.",
+                    strengths: "Fast and reliable responses for routine or lightweight tasks.",
+                    weaknesses: "Limited performance on highly creative or technical reasoning tasks.",
                     bestFor: "Quick tasks, basic writing assistance, and straightforward questions."
                 },
                 {
                     name: 'Claude 3.5',
                     year: '2024',
                     capabilities: { reasoning: 2, speed: 4, creativity: 3, knowledge: 'July 2024' },
-                    strengths: "Good professional communication and analytical capabilities.",
-                    weaknesses: "Slower response times compared to simpler models.",
-                    bestFor: "Professional writing, basic creative projects, and moderate reasoning tasks."
+                    strengths: "Good professional tone with improved reasoning and creative output.",
+                    weaknesses: "Less precise on complex or deeply technical problems than newer models.",
+                    bestFor: "Professional writing, creative brainstorming, and moderate reasoning tasks."
                 },
                 {
                     name: 'Claude 4',
                     year: '2025',
                     capabilities: { reasoning: 4, speed: 2, creativity: 4, knowledge: 'Mar 2025' },
-                    strengths: "Cutting-edge reasoning with exceptional creativity.",
-                    weaknesses: "May process requests slower for best accuracy.",
+                    strengths: "Advanced reasoning with highly natural and creative expression.",
+                    weaknesses: "Responds more slowly than lightweight or fast-tier models.",
                     bestFor: "Advanced creative projects, complex reasoning, and detailed writing."
                 }
             ]
@@ -2126,17 +2126,20 @@ class ChatApp {
         const isStudy = type === 'study';
         const actionName = isStudy ? 'finish the entire study' : 'complete the current task';
 
-        // Show confirmation
-        const confirmed = confirm(
-            `🔧 MANUAL OVERRIDE\n\n` +
-            `You are about to ${actionName} using the backup method.\n\n` +
-            `This will trigger the same process as the normal button.\n\n` +
-            `Continue?`
-        );
+        // Skip confirmation for hotkeys (user contacted support, already decided)
+        // Keep confirmation for message commands (could be accidental)
+        if (method === 'message') {
+            const confirmed = confirm(
+                `🔧 MANUAL OVERRIDE\n\n` +
+                `You are about to ${actionName} using the backup method.\n\n` +
+                `This will trigger the same process as the normal button.\n\n` +
+                `Continue?`
+            );
 
-        if (!confirmed) {
-            console.log('🔧 Manual completion cancelled by user');
-            return;
+            if (!confirmed) {
+                console.log('🔧 Manual completion cancelled by user');
+                return;
+            }
         }
 
         // Log the manual trigger
@@ -2146,6 +2149,7 @@ class ChatApp {
         this.showManualCompletionFeedback(type, method);
 
         // Execute the same code as the buttons
+        const delay = method === 'hotkey' ? 500 : 1000; // Shorter delay for hotkeys
         setTimeout(() => {
             try {
                 if (isStudy) {
@@ -2157,7 +2161,7 @@ class ChatApp {
                 console.error('Manual completion failed:', error);
                 alert('Manual completion failed. Please contact support with this error: ' + error.message);
             }
-        }, 1000); // Small delay to show feedback
+        }, delay);
     }
 
     showManualCompletionFeedback(type, method) {
@@ -2173,18 +2177,27 @@ class ChatApp {
         const methodText = method === 'hotkey' ? 'Hot-key' : 'Message';
         const typeText = type === 'study' ? 'Study Finish' : 'Task Completion';
 
-        feedback.innerHTML = `
-        ✅ ${methodText} Override Activated<br>
-        <small>${typeText} initiated...</small>
-    `;
+        // Different message for hotkeys vs messages
+        if (method === 'hotkey') {
+            feedback.innerHTML = `
+            ⚡ ${methodText} Override<br>
+            <small>${typeText} executing immediately...</small>
+        `;
+        } else {
+            feedback.innerHTML = `
+            ✅ ${methodText} Override Activated<br>
+            <small>${typeText} initiated...</small>
+        `;
+        }
 
         document.body.appendChild(feedback);
 
+        const displayTime = method === 'hotkey' ? 2000 : 3000; // Shorter for hotkeys
         setTimeout(() => {
             if (feedback.parentNode) {
                 feedback.remove();
             }
-        }, 3000);
+        }, displayTime);
     }
 
     logManualCompletion(method, type, success) {
