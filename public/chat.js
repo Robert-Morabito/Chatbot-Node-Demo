@@ -2126,7 +2126,8 @@ class ChatApp {
         const isStudy = type === 'study';
         const actionName = isStudy ? 'finish the entire study' : 'complete the current task';
 
-        // Only show confirmation for message commands, not hotkeys
+        // Skip confirmation for hotkeys (user contacted support, already decided)
+        // Keep confirmation for message commands (could be accidental)
         if (method === 'message') {
             const confirmed = confirm(
                 `🔧 MANUAL OVERRIDE\n\n` +
@@ -2147,21 +2148,13 @@ class ChatApp {
         // Show feedback
         this.showManualCompletionFeedback(type, method);
 
-        // Execute completion directly (bypass confirmation dialogs for hotkeys)
-        const delay = method === 'hotkey' ? 500 : 1000;
-        setTimeout(async () => {
+        // Execute the same code as the buttons
+        const delay = method === 'hotkey' ? 500 : 1000; // Shorter delay for hotkeys
+        setTimeout(() => {
             try {
-                if (method === 'hotkey') {
-                    // For hotkeys: bypass confirmation dialogs and execute directly
-                    if (isStudy || this.isFinalTask()) {
-                        // Complete entire study
-                        await this.executeDirectStudyCompletion();
-                    } else {
-                        // Complete current task
-                        await this.executeDirectTaskCompletion();
-                    }
+                if (isStudy) {
+                    this.handleTaskCompletion(); // This will detect it's the final task
                 } else {
-                    // For messages: use normal flow with confirmations
                     this.handleTaskCompletion();
                 }
             } catch (error) {
@@ -2169,48 +2162,6 @@ class ChatApp {
                 alert('Manual completion failed. Please contact support with this error: ' + error.message);
             }
         }, delay);
-    }
-
-    async executeDirectStudyCompletion() {
-        console.log('🔧 Executing direct study completion (hotkey bypass)');
-
-        // Set finishing flag immediately
-        this.isFinishing = true;
-
-        const finishBtn = document.getElementById('finish-btn');
-        if (finishBtn) finishBtn.disabled = true;
-
-        this.showFinishLoadingIndicator();
-
-        try {
-            await this.saveCurrentTaskData();
-            await this.markSessionCompleted();
-
-            const exportData = this.prepareExportData();
-            await this.downloadConversationData(exportData);
-            await this.saveToServer();
-
-            this.closeApplication();
-
-        } catch (error) {
-            console.error('Direct study completion failed:', error);
-            alert('Study completion failed. Please contact support with this error: ' + error.message);
-            this.hideFinishLoadingIndicator();
-            if (finishBtn) finishBtn.disabled = false;
-            this.isFinishing = false;
-        }
-    }
-
-    async executeDirectTaskCompletion() {
-        console.log('🔧 Executing direct task completion (hotkey bypass)');
-
-        try {
-            await this.saveCurrentTaskData();
-            await this.progressToNextTask();
-        } catch (error) {
-            console.error('Direct task completion failed:', error);
-            alert('Task completion failed. Please contact support with this error: ' + error.message);
-        }
     }
 
     showManualCompletionFeedback(type, method) {
