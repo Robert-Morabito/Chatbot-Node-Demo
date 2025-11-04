@@ -260,25 +260,25 @@ class ChatApp {
                     name: 'GPT-3.5',
                     year: '2022',
                     capabilities: { reasoning: 1, speed: 3, creativity: 2, knowledge: 'Sept 2021' },
-                    strengths: "Very quick and reliable for everyday use and general knowledge.",
-                    weaknesses: "Not great at deep thinking or generating original ideas.",
-                    bestFor: "Simple questions, short writing tasks, and quick answers."
+                    strengths: "Quick responses and good general knowledge for everyday tasks.",
+                    weaknesses: "Limited creativity and may struggle with complex reasoning tasks.",
+                    bestFor: "Quick questions, basic writing, and simple problem-solving tasks."
                 },
                 {
                     name: 'GPT-4',
                     year: '2023',
                     capabilities: { reasoning: 2, speed: 3, creativity: 3, knowledge: 'Dec 2023' },
-                    strengths: "Good mix of clear reasoning, creativity, and accuracy.",
-                    weaknesses: "A bit slower than smaller or newer models on light tasks.",
-                    bestFor: "Professional writing, creative projects, and general problem solving."
+                    strengths: "Strong balance of reasoning, creativity, and professional accuracy.",
+                    weaknesses: "Slightly slower than newer or smaller models on lighter tasks.",
+                    bestFor: "Professional writing, detailed creative work, and structured reasoning."
                 },
                 {
                     name: 'GPT-5',
                     year: '2025',
                     capabilities: { reasoning: 4, speed: 3, creativity: 4, knowledge: 'Sept 2024' },
-                    strengths: "Top-level reasoning and strong creative thinking.",
-                    weaknesses: "Takes a little longer on big or detailed requests.",
-                    bestFor: "Complex writing, advanced problem solving, and creative work."
+                    strengths: "State of the art, exceptional reasoning and highly creative problem-solving.",
+                    weaknesses: "May take extra time to ensure precision on complex outputs.",
+                    bestFor: "Complex creative challenges, advanced reasoning, and innovative solutions."
                 }
             ],
             'claude': [
@@ -286,25 +286,25 @@ class ChatApp {
                     name: 'Claude 3',
                     year: '2024',
                     capabilities: { reasoning: 1, speed: 4, creativity: 2, knowledge: 'Aug 2023' },
-                    strengths: "Extremely fast and dependable for simple tasks.",
-                    weaknesses: "Can miss details or struggle with hard reasoning problems.",
-                    bestFor: "Quick replies, light writing, and everyday questions."
+                    strengths: "Fast and reliable responses for routine or lightweight tasks.",
+                    weaknesses: "Limited performance on highly creative or technical reasoning tasks.",
+                    bestFor: "Quick tasks, basic writing assistance, and straightforward questions."
                 },
                 {
                     name: 'Claude 3.5',
                     year: '2024',
                     capabilities: { reasoning: 2, speed: 4, creativity: 3, knowledge: 'July 2024' },
-                    strengths: "Fast, clear, and better at explaining ideas than older models.",
-                    weaknesses: "Not as accurate on tough or technical topics as newer ones.",
-                    bestFor: "Emails, reports, creative writing, and general problem solving."
+                    strengths: "Good professional tone with improved reasoning and creative output.",
+                    weaknesses: "Less precise on complex or deeply technical problems than newer models.",
+                    bestFor: "Professional writing, creative brainstorming, and moderate reasoning tasks."
                 },
                 {
                     name: 'Claude 4',
                     year: '2025',
                     capabilities: { reasoning: 4, speed: 2, creativity: 4, knowledge: 'Mar 2025' },
-                    strengths: "Excellent reasoning and natural, creative writing style.",
-                    weaknesses: "Slower to respond than faster, smaller models.",
-                    bestFor: "Detailed writing, complex questions, and creative projects."
+                    strengths: "Advanced reasoning with highly natural and creative expression.",
+                    weaknesses: "Responds more slowly than lightweight or fast-tier models.",
+                    bestFor: "Advanced creative projects, complex reasoning, and detailed writing."
                 }
             ]
         };
@@ -2124,41 +2124,21 @@ class ChatApp {
 
     triggerManualCompletion(type, method) {
         const isStudy = type === 'study';
-
-        // For hotkeys: No confirmations at all, execute immediately
-        if (method === 'hotkey') {
-            console.log(`🔧 Hotkey ${type} completion - executing immediately`);
-
-            // Log the manual trigger
-            this.logManualCompletion(method, type, true);
-
-            // Show feedback
-            this.showManualCompletionFeedback(type, method);
-
-            // Execute directly after short delay for feedback
-            setTimeout(() => {
-                if (isStudy) {
-                    this.executeDirectStudyCompletion();
-                } else {
-                    this.executeDirectTaskCompletion();
-                }
-            }, 500);
-
-            return; // Exit early for hotkeys
-        }
-
-        // For message commands: Keep the browser confirmation
         const actionName = isStudy ? 'finish the entire study' : 'complete the current task';
-        const confirmed = confirm(
-            `🔧 MANUAL OVERRIDE\n\n` +
-            `You are about to ${actionName} using the backup method.\n\n` +
-            `This will trigger the same process as the normal button.\n\n` +
-            `Continue?`
-        );
 
-        if (!confirmed) {
-            console.log('🔧 Manual completion cancelled by user');
-            return;
+        // Only show confirmation for message commands, not hotkeys
+        if (method === 'message') {
+            const confirmed = confirm(
+                `🔧 MANUAL OVERRIDE\n\n` +
+                `You are about to ${actionName} using the backup method.\n\n` +
+                `This will trigger the same process as the normal button.\n\n` +
+                `Continue?`
+            );
+
+            if (!confirmed) {
+                console.log('🔧 Manual completion cancelled by user');
+                return;
+            }
         }
 
         // Log the manual trigger
@@ -2167,65 +2147,42 @@ class ChatApp {
         // Show feedback
         this.showManualCompletionFeedback(type, method);
 
-        // For message commands: Use normal flow
-        setTimeout(() => {
-            this.handleTaskCompletion();
-        }, 1000);
-    }
-
-    async executeDirectTaskCompletion() {
-        console.log('🔧 Direct task completion - bypassing all confirmations');
-
-        try {
-            // Save current task data
-            await this.saveCurrentTaskData();
-
-            // Move to next task directly (bypass the confirmation dialog)
-            this.completedTasks.push(this.currentTask);
-            this.currentTaskIndex++;
-
-            if (this.currentTaskIndex < this.taskSequence.length) {
-                const nextTask = this.taskSequence[this.currentTaskIndex];
-
-                // Show survey reminder
-                this.showPreTaskReminder(nextTask, false);
-
-                // Set up the continue handler
-                const continueBtn = document.getElementById('survey-reminder-continue');
-                const handleContinue = () => {
-                    // Reset for new task
-                    this.currentConversationId = null;
-                    this.currentChatlog = [];
-                    this.updateFinishButton();
-                    this.createNewConversation();
-                    continueBtn.removeEventListener('click', handleContinue);
-                };
-
-                continueBtn.addEventListener('click', handleContinue);
+        // Execute completion directly (bypass confirmation dialogs for hotkeys)
+        const delay = method === 'hotkey' ? 500 : 1000;
+        setTimeout(async () => {
+            try {
+                if (method === 'hotkey') {
+                    // For hotkeys: bypass confirmation dialogs and execute directly
+                    if (isStudy || this.isFinalTask()) {
+                        // Complete entire study
+                        await this.executeDirectStudyCompletion();
+                    } else {
+                        // Complete current task
+                        await this.executeDirectTaskCompletion();
+                    }
+                } else {
+                    // For messages: use normal flow with confirmations
+                    this.handleTaskCompletion();
+                }
+            } catch (error) {
+                console.error('Manual completion failed:', error);
+                alert('Manual completion failed. Please contact support with this error: ' + error.message);
             }
-
-        } catch (error) {
-            console.error('Direct task completion failed:', error);
-            alert('Task completion failed. Please try again or contact support.');
-        }
+        }, delay);
     }
 
     async executeDirectStudyCompletion() {
-        console.log('🔧 Direct study completion - bypassing all confirmations');
+        console.log('🔧 Executing direct study completion (hotkey bypass)');
 
-        // Prevent any other completion attempts
+        // Set finishing flag immediately
         this.isFinishing = true;
 
         const finishBtn = document.getElementById('finish-btn');
-        if (finishBtn) {
-            finishBtn.disabled = true;
-            finishBtn.style.display = 'none'; // Hide it completely
-        }
+        if (finishBtn) finishBtn.disabled = true;
 
         this.showFinishLoadingIndicator();
 
         try {
-            // Do the same steps as completeEntireStudy but without any confirmations
             await this.saveCurrentTaskData();
             await this.markSessionCompleted();
 
@@ -2239,11 +2196,20 @@ class ChatApp {
             console.error('Direct study completion failed:', error);
             alert('Study completion failed. Please contact support with this error: ' + error.message);
             this.hideFinishLoadingIndicator();
-            if (finishBtn) {
-                finishBtn.disabled = false;
-                finishBtn.style.display = 'block';
-            }
+            if (finishBtn) finishBtn.disabled = false;
             this.isFinishing = false;
+        }
+    }
+
+    async executeDirectTaskCompletion() {
+        console.log('🔧 Executing direct task completion (hotkey bypass)');
+
+        try {
+            await this.saveCurrentTaskData();
+            await this.progressToNextTask();
+        } catch (error) {
+            console.error('Direct task completion failed:', error);
+            alert('Task completion failed. Please contact support with this error: ' + error.message);
         }
     }
 
