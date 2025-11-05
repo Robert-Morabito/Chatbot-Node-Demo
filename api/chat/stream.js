@@ -8,6 +8,7 @@
 
 import { OpenAIHandler } from '../../handlers/openaiHandler.js';
 import { ClaudeHandler } from '../../handlers/claudeHandler.js';
+import GitHubStorage from '../../utils/githubStorage.js';
 
 // Supported model configurations
 const VALID_MODELS = {
