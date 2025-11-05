@@ -1,6 +1,5 @@
 /**
- * OpenAI API Handler - Updated for GPT-5 Support
- * Version: 2.1.0 (GPT-5 Optimized)
+ * OpenAI API Handler
  * 
  * Manages interactions with OpenAI's APIs including chat completions and image generation.
  * Handles different model types (GPT-3.5, GPT-4, GPT-5) with appropriate parameter management.
@@ -8,26 +7,13 @@
 
 import OpenAI from 'openai';
 
-// ===================================================================
-// VERSION TRACKING
-// ===================================================================
-const HANDLER_VERSION = '2.1.0';
-console.log(`🔧 OpenAI Handler initialized - Version ${HANDLER_VERSION}`);
-
 export class OpenAIHandler {
     constructor(apiKey) {
         if (!apiKey) {
             throw new Error('OpenAI API key is required');
         }
 
-        // Increase timeout for GPT-5
-        this.client = new OpenAI({ 
-            apiKey,
-            timeout: 180000, // 3 minutes (increased from default 90s)
-            maxRetries: 2
-        });
-        
-        console.log('✅ OpenAI client initialized with 3-minute timeout');
+        this.client = new OpenAI({ apiKey });
     }
 
     /**
@@ -68,27 +54,13 @@ export class OpenAIHandler {
         } = options;
 
         try {
-            // Validate prompt is not empty
-            if (!prompt || prompt.trim().length === 0) {
-                throw new Error('Image prompt cannot be empty');
-            }
-
-            console.log('🎨 [DALL-E] Generating image:', {
-                promptLength: prompt.length,
-                model,
-                size,
-                quality
-            });
-
             const response = await this.client.images.generate({
                 model,
-                prompt: prompt.trim(), // Ensure no whitespace issues
+                prompt,
                 n,
                 size,
                 quality
             });
-
-            console.log('✅ [DALL-E] Image generated successfully');
 
             return {
                 success: true,
@@ -97,11 +69,7 @@ export class OpenAIHandler {
             };
 
         } catch (error) {
-            console.error('❌ [DALL-E] Generation failed:', {
-                error: error.message,
-                status: error.status,
-                prompt: prompt?.substring(0, 100)
-            });
+            console.error('DALL-E generation failed:', error.message);
             throw error;
         }
     }
@@ -123,29 +91,10 @@ export class OpenAIHandler {
             const formattedMessages = this.formatMessages(messages, includeSystemPrompt);
             const streamConfig = this.buildStreamConfig(model, formattedMessages, temperature, maxTokens);
 
-            // Enhanced debug logging
-            console.log('🚀 [OpenAI] Starting stream:', {
-                model,
-                messageCount: formattedMessages.length,
-                config: {
-                    temperature: streamConfig.temperature,
-                    maxTokens: streamConfig.max_completion_tokens || streamConfig.max_tokens,
-                    hasReasoningEffort: !!streamConfig.reasoning
-                },
-                timestamp: new Date().toISOString()
-            });
-
-            const startTime = Date.now();
             const stream = await this.client.chat.completions.create(streamConfig);
             let fullResponse = '';
-            let firstChunkTime = null;
 
             for await (const chunk of stream) {
-                if (!firstChunkTime) {
-                    firstChunkTime = Date.now();
-                    console.log(`⚡ [OpenAI] First chunk received after ${firstChunkTime - startTime}ms`);
-                }
-
                 const delta = chunk.choices[0]?.delta;
 
                 if (delta?.content) {
@@ -158,14 +107,6 @@ export class OpenAIHandler {
                 }
 
                 if (chunk.choices[0]?.finish_reason) {
-                    const totalTime = Date.now() - startTime;
-                    console.log('✅ [OpenAI] Stream completed:', {
-                        model,
-                        totalTime: `${totalTime}ms`,
-                        responseLength: fullResponse.length,
-                        finishReason: chunk.choices[0].finish_reason
-                    });
-
                     yield {
                         type: 'done',
                         fullContent: fullResponse,
@@ -176,18 +117,10 @@ export class OpenAIHandler {
             }
 
         } catch (error) {
-            console.error('❌ [OpenAI] Stream failed:', {
-                model,
-                error: error.message,
-                status: error.status,
-                type: error.constructor.name,
-                timestamp: new Date().toISOString()
-            });
-            
+            console.error('Chat stream failed:', error.message);
             yield {
                 type: 'error',
-                error: error.message,
-                errorType: error.constructor.name
+                error: error.message
             };
         }
     }
@@ -214,26 +147,11 @@ export class OpenAIHandler {
             // Remove stream flag for regular completion
             delete config.stream;
 
-            console.log('🔄 [OpenAI] Non-streaming completion:', {
-                model,
-                messageCount: formattedMessages.length,
-                maxTokens: config.max_completion_tokens || config.max_tokens
-            });
-
-            const startTime = Date.now();
             const response = await this.client.chat.completions.create(config);
-            const duration = Date.now() - startTime;
-
-            console.log(`✅ [OpenAI] Completion received in ${duration}ms`);
-
             return response.choices[0].message.content;
 
         } catch (error) {
-            console.error('❌ [OpenAI] Completion failed:', {
-                model,
-                error: error.message,
-                status: error.status
-            });
+            console.error('OpenAI completion failed:', error.message);
             throw error;
         }
     }
@@ -251,28 +169,9 @@ export class OpenAIHandler {
 
         // GPT-5 has different parameter requirements
         if (model.startsWith('gpt-5')) {
-            // Use max_completion_tokens for GPT-5
-            const adjustedMaxTokens = Math.min(maxTokens, 600);
-            config.max_completion_tokens = adjustedMaxTokens;
-            
-            // GPT-5 DOES support temperature - set it!
-            config.temperature = temperature;
-            
-            // Add reasoning effort control for faster responses
-            // "minimal" = fastest, best for your chat use case
-            config.reasoning = {
-                effort: "low"  // Critical for reducing timeouts!
-            };
-
-            console.log('⚙️ [GPT-5 Config]:', {
-                max_completion_tokens: adjustedMaxTokens,
-                temperature: temperature,
-                reasoning_effort: 'minimal',
-                note: 'Using minimal reasoning for speed'
-            });
-
+            config.max_completion_tokens = maxTokens;
+            // GPT-5 uses default temperature only
         } else {
-            // GPT-3.5 and GPT-4 use standard parameters
             config.max_tokens = maxTokens;
             config.temperature = temperature;
         }
