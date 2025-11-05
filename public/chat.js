@@ -26,6 +26,8 @@ class ChatApp {
     // ===================================================================
 
     constructor() {
+        console.log("Loaded v.3.1")
+
         // Core identifiers
         this.participantId = null;
         this.sessionId = null;
@@ -180,7 +182,7 @@ class ChatApp {
 
             const allocation = await response.json();
 
-            console.log('✅ Configuration loaded successfully:', allocation);
+            //console.log('✅ Configuration loaded successfully:', allocation);
 
             // Map to existing variable names (no other code changes needed!)
             this.sessionId = allocation.id;
@@ -196,8 +198,8 @@ class ChatApp {
             console.log('✅ Configuration mapped to existing variables:', {
                 sessionId: this.sessionId,
                 configId: this.configurationId,
-                displayedModel: this.config.givenModel,
-                actualModel: this.config.trueModel
+                //displayedModel: this.config.givenModel,
+                //actualModel: this.config.trueModel
             });
 
             return true;
