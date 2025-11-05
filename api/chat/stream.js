@@ -15,15 +15,10 @@ const VALID_MODELS = {
     claude: ['claude-3-haiku-20240307', 'claude-3-5-haiku-20241022', 'claude-sonnet-4-20250514']
 };
 
-// Keep track of retries to prevent infinite loops
-const activeRetries = new Map();
-
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
-
-    const requestId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     try {
         const { messages, model, sessionId, conversationId, imageContext } = req.body;
@@ -58,16 +53,13 @@ export default async function handler(req, res) {
             }
         }
 
-        // Handle regular chat with retry logic for GPT-5
-        await streamRegularChatWithRetry(messages, model, res, requestId);
+        // Handle regular chat
+        await streamRegularChat(messages, model, res);
         res.end();
 
     } catch (error) {
         console.error('Stream handler error:', error.message);
         handleStreamError(res, error);
-    } finally {
-        // Clean up retry tracking
-        activeRetries.delete(requestId);
     }
 }
 
@@ -205,14 +197,8 @@ function parseClassificationResult(classification, imageContext) {
  */
 async function generateImage(userMessage, model, imageContext, intent, res) {
     try {
-        // Step 1: Enhance the prompt using the assigned model or fallback
+        // Step 1: Enhance the prompt using the assigned model
         const enhancedPrompt = await enhanceImagePrompt(userMessage, model, imageContext, intent);
-
-        // Validate enhancement result
-        if (!enhancedPrompt || enhancedPrompt.trim().length === 0) {
-            console.warn('⚠️ Empty enhanced prompt, using original:', userMessage);
-            enhancedPrompt = userMessage;
-        }
 
         // Step 2: Generate image with DALL-E
         const imageHandler = new OpenAIHandler(process.env.OPENAI_API_KEY);
@@ -257,32 +243,17 @@ async function generateImage(userMessage, model, imageContext, intent, res) {
  * Enhances user prompt for DALL-E using the assigned model
  */
 async function enhanceImagePrompt(userMessage, model, imageContext, intent) {
-    try {
-        const enhancementPrompt = buildEnhancementPrompt(userMessage, imageContext, intent);
-        const messages = [{ sender: 'User', content: enhancementPrompt }];
+    const enhancementPrompt = buildEnhancementPrompt(userMessage, imageContext, intent);
+    const messages = [{ sender: 'User', content: enhancementPrompt }];
 
-        // For GPT-5, use GPT-4 as fallback for enhancement (more reliable for simple tasks)
-        let enhancementModel = model;
-        if (model.startsWith('gpt-5')) {
-            console.log('📝 Using GPT-4 for image prompt enhancement (faster/more reliable than GPT-5)');
-            enhancementModel = 'gpt-4-0125-preview';
-        }
+    // Use appropriate handler based on model type
+    const handler = getModelType(model) === 'claude'
+        ? new ClaudeHandler(process.env.ANTHROPIC_API_KEY)
+        : new OpenAIHandler(process.env.OPENAI_API_KEY);
 
-        // Use appropriate handler based on model type
-        const handler = getModelType(enhancementModel) === 'claude'
-            ? new ClaudeHandler(process.env.ANTHROPIC_API_KEY)
-            : new OpenAIHandler(process.env.OPENAI_API_KEY);
+    const enhancedPrompt = await handler.getCompletion(messages, model);
 
-        const enhancedPrompt = await handler.getCompletion(messages, enhancementModel, {
-            maxTokens: 200  // Limit enhancement length
-        });
-
-        return enhancedPrompt.trim();
-        
-    } catch (error) {
-        console.error('Prompt enhancement failed, using original:', error.message);
-        return userMessage;  // Fallback to original prompt
-    }
+    return enhancedPrompt.trim();
 }
 
 /**
@@ -302,9 +273,9 @@ function buildEnhancementPrompt(userMessage, imageContext, intent) {
 }
 
 /**
- * Handles regular chat streaming with retry logic for GPT-5
+ * Handles regular chat streaming
  */
-async function streamRegularChatWithRetry(messages, model, res, requestId) {
+async function streamRegularChat(messages, model, res) {
     res.write(`data: ${JSON.stringify({ type: 'typing_start' })}\n\n`);
 
     const modelType = getModelType(model);
@@ -312,77 +283,9 @@ async function streamRegularChatWithRetry(messages, model, res, requestId) {
         ? new ClaudeHandler(process.env.ANTHROPIC_API_KEY)
         : new OpenAIHandler(process.env.OPENAI_API_KEY);
 
-    // Only retry for GPT-5, and limit retries
-    const maxRetries = model.startsWith('gpt-5') ? 1 : 0;
-    let retryCount = activeRetries.get(requestId) || 0;
-
-    // Prevent infinite retry loops
-    if (retryCount > maxRetries) {
-        console.error(`❌ Max retries exceeded for request ${requestId}`);
-        res.write(`data: ${JSON.stringify({ 
-            type: 'error', 
-            error: 'Maximum retry attempts exceeded. Please try again later.' 
-        })}\n\n`);
-        return;
-    }
-
-    activeRetries.set(requestId, retryCount);
-
-    try {
-        let hasContent = false;
-        let errorOccurred = false;
-
-        // Adjust token limits for GPT-5
-        const streamOptions = model.startsWith('gpt-5') 
-            ? { maxTokens: 2000 }  // Give GPT-5 more tokens
-            : {};
-
-        for await (const chunk of handler.streamChat(messages, model, streamOptions)) {
-            if (chunk.type === 'content') {
-                hasContent = true;
-            } else if (chunk.type === 'error') {
-                errorOccurred = true;
-                
-                // Only retry for timeout/connection errors, not parameter errors
-                const shouldRetry = model.startsWith('gpt-5') && 
-                                  retryCount < maxRetries && 
-                                  !chunk.error.includes('400') &&
-                                  !chunk.error.includes('parameter');
-                
-                if (shouldRetry) {
-                    console.log(`⏳ Retrying GPT-5 after error (attempt ${retryCount + 1}/${maxRetries})`);
-                    
-                    // Wait before retry
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    
-                    // Update retry count and try again
-                    activeRetries.set(requestId, retryCount + 1);
-                    return streamRegularChatWithRetry(messages, model, res, requestId);
-                }
-            }
-            
-            res.write(`data: ${JSON.stringify(chunk)}\n\n`);
-            
-            if (chunk.type === 'done' || chunk.type === 'error') {
-                break;
-            }
-        }
-
-        // If GPT-5 had no content and no error was explicitly sent, it might have timed out silently
-        if (model.startsWith('gpt-5') && !hasContent && !errorOccurred && retryCount < maxRetries) {
-            console.log(`⚠️ GPT-5 produced no content, retrying (attempt ${retryCount + 1}/${maxRetries})`);
-            
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            activeRetries.set(requestId, retryCount + 1);
-            return streamRegularChatWithRetry(messages, model, res, requestId);
-        }
-
-    } catch (error) {
-        console.error('Stream error:', error.message);
-        res.write(`data: ${JSON.stringify({ 
-            type: 'error', 
-            error: `Stream error: ${error.message}` 
-        })}\n\n`);
+    for await (const chunk of handler.streamChat(messages, model)) {
+        res.write(`data: ${JSON.stringify(chunk)}\n\n`);
+        if (chunk.type === 'done' || chunk.type === 'error') break;
     }
 }
 
