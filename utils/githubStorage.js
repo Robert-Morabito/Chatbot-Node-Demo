@@ -371,57 +371,76 @@ class GitHubStorage {
      * @param {Object} chatData - Complete chat data
      * @returns {Array} Array of image info objects
      */
+    /**
+ * Extract all image URLs from conversation data
+ * @private
+ * @param {Object} chatData - Complete chat data
+ * @returns {Array} Array of image info objects
+ */
     _extractImageUrls(chatData) {
         const imageUrls = [];
 
         if (!chatData.conversations) return imageUrls;
 
-        for (const [taskId, conversations] of Object.entries(chatData.conversations)) {
-            // Handle both Map (from frontend) and Object (serialized) formats
-            const conversationEntries = conversations instanceof Map
-                ? Array.from(conversations.entries())
-                : Object.entries(conversations);
+        // Focus on image-generation task only since that's where images come from
+        const imageGenerationConversations = chatData.conversations['image-generation'];
+        if (!imageGenerationConversations) return imageUrls;
 
-            for (const [conversationId, conversation] of conversationEntries) {
-                if (!conversation.messages) continue;
+        // Handle both Map (from frontend) and Object (serialized) formats
+        const conversationEntries = imageGenerationConversations instanceof Map
+            ? Array.from(imageGenerationConversations.entries())
+            : Object.entries(imageGenerationConversations);
 
-                conversation.messages.forEach((message, messageIndex) => {
-                    if (message.sender === 'Bot' && message.content) {
-                        // Look for markdown image syntax: ![Generated Image](url) or ![...](url)
-                        const imageRegex = /!\[.*?\]\((https?:\/\/[^\)]+)\)/g;
-                        let match;
-                        let imageCounter = 0;
+        // Sort conversations by creation time to get consistent chat numbering
+        const sortedConversations = conversationEntries.sort((a, b) => {
+            const timeA = a[1].createdAt ? new Date(a[1].createdAt).getTime() : 0;
+            const timeB = b[1].createdAt ? new Date(b[1].createdAt).getTime() : 0;
+            return timeA - timeB;
+        });
 
-                        while ((match = imageRegex.exec(message.content)) !== null) {
-                            const imageUrl = match[1];
+        sortedConversations.forEach(([conversationId, conversation], chatIndex) => {
+            if (!conversation.messages) return;
 
-                            // Create a clean timestamp for filename
-                            const timestamp = message.timestamp
-                                ? new Date(message.timestamp).toISOString().replace(/[:.]/g, '-').split('T')[0] + '_' + new Date(message.timestamp).toISOString().replace(/[:.]/g, '-').split('T')[1].split('Z')[0]
-                                : new Date().toISOString().replace(/[:.]/g, '-');
+            const chatNumber = chatIndex + 1; // Start from chat1, chat2, etc.
 
-                            // Create descriptive filename
-                            const taskName = taskId.replace(/-/g, '_');
-                            const convId = conversationId.split('_')[1] || 'conv'; // Get timestamp part of conversation ID
-                            const msgId = message.msg_id || messageIndex;
+            conversation.messages.forEach((message, messageIndex) => {
+                if (message.sender === 'Bot' && message.content) {
+                    // Look for markdown image syntax: ![Generated Image](url) or ![...](url)
+                    const imageRegex = /!\[.*?\]\((https?:\/\/[^\)]+)\)/g;
+                    let match;
+                    let imageCounter = 0;
 
-                            imageCounter++;
-                            const filename = `${taskName}_${convId}_msg${msgId}_img${imageCounter}_${timestamp}.png`;
+                    while ((match = imageRegex.exec(message.content)) !== null) {
+                        const imageUrl = match[1];
+                        imageCounter++;
 
-                            imageUrls.push({
-                                url: imageUrl,
-                                filename: filename,
-                                conversationId: conversationId,
-                                messageId: message.msg_id || messageIndex,
-                                taskId: taskId,
-                                timestamp: message.timestamp,
-                                imageCounter: imageCounter
-                            });
+                        // Simple, clear filename: chat1_msg3_img1.png
+                        // Use message.msg_id if available, otherwise use index + 1
+                        const messageNumber = message.msg_id || (messageIndex + 1);
+
+                        let filename;
+                        if (imageCounter === 1) {
+                            // If only one image in the message, skip the img counter
+                            filename = `chat${chatNumber}_msg${messageNumber}.png`;
+                        } else {
+                            // If multiple images in same message, add image counter
+                            filename = `chat${chatNumber}_msg${messageNumber}_img${imageCounter}.png`;
                         }
+
+                        imageUrls.push({
+                            url: imageUrl,
+                            filename: filename,
+                            conversationId: conversationId,
+                            messageId: message.msg_id || messageIndex,
+                            messageNumber: messageNumber,
+                            chatNumber: chatNumber,
+                            imageCounter: imageCounter,
+                            timestamp: message.timestamp
+                        });
                     }
-                });
-            }
-        }
+                }
+            });
+        });
 
         return imageUrls;
     }
