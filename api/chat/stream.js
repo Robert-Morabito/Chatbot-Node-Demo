@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { messages, model, sessionId, conversationId, imageContext } = req.body;
+        const { messages, model, sessionId, conversationId, imageContext, participantId } = req.body;
 
         // Validate request
         const validation = validateRequest(messages, model);
@@ -43,7 +43,13 @@ export default async function handler(req, res) {
                 res.write(`data: ${JSON.stringify({ type: 'image_request_detected' })}\n\n`);
 
                 const imageGenerated = await generateImage(
-                    lastMessage.content, model, imageContext, imageIntent, res
+                    lastMessage.content,
+                    model,
+                    imageContext,
+                    imageIntent,
+                    res,
+                    participantId, // Add this
+                    conversationId // Add this
                 );
 
                 if (imageGenerated) {
@@ -192,15 +198,12 @@ function parseClassificationResult(classification, imageContext) {
     return classification.includes('YES') ? 'new_image' : 'none';
 }
 
-/**
- * Generates image using DALL-E with prompt enhancement
- */
 async function generateImage(userMessage, model, imageContext, intent, res) {
     try {
-        // Step 1: Enhance the prompt using the assigned model
+        // Step 1: Enhance the prompt (existing code)
         const enhancedPrompt = await enhanceImagePrompt(userMessage, model, imageContext, intent);
 
-        // Step 2: Generate image with DALL-E
+        // Step 2: Generate image with DALL-E (existing code)
         const imageHandler = new OpenAIHandler(process.env.OPENAI_API_KEY);
         const imageResult = await imageHandler.generateImage(enhancedPrompt);
 
@@ -208,19 +211,36 @@ async function generateImage(userMessage, model, imageContext, intent, res) {
             throw new Error('Image generation failed or returned no URL');
         }
 
-        // Step 3: Send response to client
+        // Step 3: NEW - Save image to GitHub for permanent storage
+        const githubStorage = new GitHubStorage();
+        const imageSaveResult = await githubStorage.saveImageFromBlob(
+            imageResult.url,
+            extractParticipantIdFromRes(res), // You'll need to pass this through
+            extractConversationIdFromRes(res), // You'll need to pass this through
+            userMessage
+        );
+
+        // Step 4: Use permanent URL if save succeeded, otherwise use original
+        const finalImageUrl = imageSaveResult.success
+            ? imageSaveResult.permanentUrl
+            : imageSaveResult.fallbackUrl || imageResult.url;
+
+        // Step 5: Send response with permanent URL (modified existing code)
         const responseMessage = intent === 'modify_image'
-            ? `I've modified the image based on your request:\n\n![Generated Image](${imageResult.url})`
-            : `I've generated an image for you:\n\n![Generated Image](${imageResult.url})`;
+            ? `I've modified the image based on your request:\n\n![Generated Image](${finalImageUrl})`
+            : `I've generated an image for you:\n\n![Generated Image](${finalImageUrl})`;
 
         const responseData = {
             type: 'content',
             content: responseMessage,
             fullContent: responseMessage,
-            imageUrl: imageResult.url,
+            imageUrl: finalImageUrl, // This is now the permanent URL
             imagePrompt: enhancedPrompt,
             originalPrompt: userMessage,
-            revisedPrompt: imageResult.revisedPrompt
+            revisedPrompt: imageResult.revisedPrompt,
+            // Store both URLs for debugging/analysis
+            originalBlobUrl: imageResult.url,
+            imageStorage: imageSaveResult
         };
 
         res.write(`data: ${JSON.stringify(responseData)}\n\n`);
