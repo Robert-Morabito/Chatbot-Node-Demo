@@ -1186,8 +1186,7 @@ class ChatApp {
                 model: this.config.trueModel,
                 sessionId: this.sessionId,
                 conversationId: this.currentConversationId,
-                imageContext: this.imageContext,
-                participantId: this.participantId
+                imageContext: this.imageContext
             };
 
             console.log('💬 Sending LLM request:', {
@@ -1732,18 +1731,6 @@ class ChatApp {
                 : 0,
             totalIdleTime: metrics.totalIdleTime,
             messageTimes: metrics.messageTimes,
-            totalIdleTimeFormatted: this.formatDuration(metrics.totalIdleTime),
-            sessionDurationFormatted: this.formatDuration(sessionDuration),
-            averageResponseTimeAfterBotFormatted: this.formatSeconds(
-                metrics.responseTimesAfterBot.length > 0
-                    ? metrics.responseTimesAfterBot.reduce((a, b) => a + b, 0) / metrics.responseTimesAfterBot.length
-                    : 0
-            ),
-            averageTypingDurationFormatted: this.formatSeconds(
-                metrics.typingPatterns.typingDurations.length > 0
-                    ? metrics.typingPatterns.typingDurations.reduce((a, b) => a + b, 0) / metrics.typingPatterns.typingDurations.length
-                    : 0
-            ),
             conversationSwitches: metrics.conversationSwitches,
             averageResponseTimeAfterBot: metrics.responseTimesAfterBot.length > 0
                 ? metrics.responseTimesAfterBot.reduce((a, b) => a + b, 0) / metrics.responseTimesAfterBot.length
@@ -2024,37 +2011,6 @@ class ChatApp {
         }
 
         return result;
-    }
-
-    /**
-     * Format duration from milliseconds to human-readable string
-     * @param {number} milliseconds - Duration in milliseconds
-     * @returns {string} Formatted duration string
-     */
-    formatDuration(milliseconds) {
-        if (!milliseconds || milliseconds < 0) return '0s';
-
-        const totalSeconds = Math.floor(milliseconds / 1000);
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
-
-        const parts = [];
-        if (hours > 0) parts.push(`${hours}h`);
-        if (minutes > 0) parts.push(`${minutes}m`);
-        if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
-
-        return parts.join(' ');
-    }
-
-    /**
-     * Format milliseconds to just seconds with decimal
-     * @param {number} milliseconds - Duration in milliseconds  
-     * @returns {string} Formatted as "X.Xs"
-     */
-    formatSeconds(milliseconds) {
-        if (!milliseconds || milliseconds < 0) return '0.0s';
-        return `${(milliseconds / 1000).toFixed(1)}s`;
     }
 
     async downloadConversationData(data) {

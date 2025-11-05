@@ -248,7 +248,7 @@ class GitHubStorage {
 
             // Handle response
             const responseText = await response.text();
-
+            
             if (!response.ok) {
                 console.error('📡 GitHub API Error Response:', response.status, responseText.substring(0, 300));
                 throw new Error(`GitHub API error: ${response.status} - ${responseText}`);
@@ -290,84 +290,6 @@ class GitHubStorage {
                     hasToken: !!this.token,
                     tokenValid: this.token && this.token.length > 10
                 }
-            };
-        }
-    }
-
-    /**
- * Download and save image from DALL-E blob URL to GitHub
- * @param {string} blobUrl - Original DALL-E blob URL
- * @param {string} participantId - Participant identifier
- * @param {string} conversationId - Conversation identifier  
- * @param {string} originalPrompt - User's original prompt for filename
- * @returns {Promise<Object>} Result with permanent URL or error
- */
-    async saveImageFromBlob(blobUrl, participantId, conversationId, originalPrompt) {
-        try {
-            console.log('🖼️ Downloading and saving image from DALL-E...');
-
-            // Step 1: Download the image from blob URL
-            const imageResponse = await fetch(blobUrl);
-            if (!imageResponse.ok) {
-                throw new Error(`Failed to download image: ${imageResponse.status}`);
-            }
-
-            const imageBuffer = await imageResponse.arrayBuffer();
-            const base64Content = Buffer.from(imageBuffer).toString('base64');
-
-            // Step 2: Generate unique filename
-            const timestamp = Date.now();
-            const promptSlug = originalPrompt
-                .toLowerCase()
-                .replace(/[^a-z0-9]/g, '_')
-                .substring(0, 30);
-            const filename = `images/${participantId}/${timestamp}_${promptSlug}.png`;
-
-            // Step 3: Save to GitHub
-            const url = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${filename}`;
-            const response = await fetch(url, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `token ${this.token}`,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/vnd.github.v3+json',
-                },
-                body: JSON.stringify({
-                    message: `Save generated image for participant ${participantId}`,
-                    content: base64Content,
-                    branch: this.branch
-                })
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`GitHub save failed: ${response.status} - ${errorText}`);
-            }
-
-            // Step 4: Generate permanent URL
-            const permanentUrl = `https://raw.githubusercontent.com/${this.owner}/${this.repo}/${this.branch}/${filename}`;
-
-            console.log('✅ Image saved successfully:', {
-                originalUrl: blobUrl.substring(0, 50) + '...',
-                permanentUrl,
-                filename,
-                size: `${Math.round(imageBuffer.byteLength / 1024)}KB`
-            });
-
-            return {
-                success: true,
-                permanentUrl,
-                filename,
-                originalUrl: blobUrl,
-                size: imageBuffer.byteLength
-            };
-
-        } catch (error) {
-            console.error('❌ Image save failed:', error);
-            return {
-                success: false,
-                error: error.message,
-                fallbackUrl: blobUrl  // Use original blob URL as fallback
             };
         }
     }
