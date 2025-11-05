@@ -26,6 +26,9 @@ class ChatApp {
     // ===================================================================
 
     constructor() {
+        this.appVersion = '2.1.0'; // Update this with each deploy
+        console.log(`🚀 ChatBot App Version ${this.appVersion} initialized`);
+        
         // Core identifiers
         this.participantId = null;
         this.sessionId = null;
