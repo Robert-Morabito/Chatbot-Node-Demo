@@ -248,7 +248,7 @@ class GitHubStorage {
 
             // Handle response
             const responseText = await response.text();
-
+            
             if (!response.ok) {
                 console.error('📡 GitHub API Error Response:', response.status, responseText.substring(0, 300));
                 throw new Error(`GitHub API error: ${response.status} - ${responseText}`);
@@ -291,53 +291,6 @@ class GitHubStorage {
                     tokenValid: this.token && this.token.length > 10
                 }
             };
-        }
-    }
-    /**
- * Save image data to GitHub repository
- * @param {Buffer} imageBuffer - Image data as buffer
- * @param {string} filename - Filename for the image
- * @returns {Promise<string>} Permanent GitHub raw URL
- */
-    async saveImage(imageBuffer, filename) {
-        try {
-            console.log('🖼️ Saving image to GitHub:', filename);
-
-            const imagePath = `images/${filename}`;
-            const encodedContent = imageBuffer.toString('base64');
-
-            // Check if file already exists
-            const sha = await this._getFileSha(imagePath);
-
-            const url = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${imagePath}`;
-            const response = await fetch(url, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `token ${this.token}`,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/vnd.github.v3+json',
-                },
-                body: JSON.stringify({
-                    message: `Add image: ${filename} - ${new Date().toISOString()}`,
-                    content: encodedContent,
-                    branch: this.branch,
-                    ...(sha && { sha })
-                })
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`GitHub API error: ${response.status} - ${errorText}`);
-            }
-
-            // Return the permanent raw GitHub URL
-            const permanentUrl = `https://raw.githubusercontent.com/${this.owner}/${this.repo}/${this.branch}/${imagePath}`;
-            console.log('✅ Image saved successfully:', permanentUrl);
-            return permanentUrl;
-
-        } catch (error) {
-            console.error('❌ Error saving image:', error);
-            throw error;
         }
     }
 }
