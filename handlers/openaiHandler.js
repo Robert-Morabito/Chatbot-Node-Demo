@@ -1,6 +1,6 @@
 /**
  * OpenAI API Handler - Updated for GPT-5 Support
- * Version: 2.1.0 (GPT-5 Optimized)
+ * Version: 2.1.1 (GPT-5 Optimized - Chat Completions API)
  * 
  * Manages interactions with OpenAI's APIs including chat completions and image generation.
  * Handles different model types (GPT-3.5, GPT-4, GPT-5) with appropriate parameter management.
@@ -11,7 +11,7 @@ import OpenAI from 'openai';
 // ===================================================================
 // VERSION TRACKING
 // ===================================================================
-const HANDLER_VERSION = '2.1.0';
+const HANDLER_VERSION = '2.1.1';
 console.log(`🔧 OpenAI Handler initialized - Version ${HANDLER_VERSION}`);
 
 export class OpenAIHandler {
@@ -130,7 +130,7 @@ export class OpenAIHandler {
                 config: {
                     temperature: streamConfig.temperature,
                     maxTokens: streamConfig.max_completion_tokens || streamConfig.max_tokens,
-                    hasReasoningEffort: !!streamConfig.reasoning
+                    isGPT5: model.startsWith('gpt-5')
                 },
                 timestamp: new Date().toISOString()
             });
@@ -251,24 +251,19 @@ export class OpenAIHandler {
 
         // GPT-5 has different parameter requirements
         if (model.startsWith('gpt-5')) {
-            // Use max_completion_tokens for GPT-5
-            const adjustedMaxTokens = Math.min(maxTokens, 600);
+            // Use max_completion_tokens for GPT-5 (required parameter)
+            // Reduce to 400 tokens for faster responses
+            const adjustedMaxTokens = Math.min(maxTokens, 400);
             config.max_completion_tokens = adjustedMaxTokens;
             
-            // GPT-5 DOES support temperature - set it!
+            // Set temperature (GPT-5 supports this)
             config.temperature = temperature;
             
-            // Add reasoning effort control for faster responses
-            // "minimal" = fastest, best for your chat use case
-            config.reasoning = {
-                effort: "low"  // Critical for reducing timeouts!
-            };
-
             console.log('⚙️ [GPT-5 Config]:', {
                 max_completion_tokens: adjustedMaxTokens,
                 temperature: temperature,
-                reasoning_effort: 'minimal',
-                note: 'Using minimal reasoning for speed'
+                api: 'chat.completions',
+                note: 'Using reduced max_completion_tokens for speed (reasoning parameter not available in Chat Completions API)'
             });
 
         } else {
