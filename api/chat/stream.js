@@ -78,7 +78,6 @@ export default async function handler(req, res) {
     }
 }
 
-
 /**
  * Validates incoming request parameters
  */
@@ -209,12 +208,29 @@ function parseClassificationResult(classification, imageContext) {
 }
 
 /**
- * Generates image using DALL-E with prompt enhancement
+ * Enhanced image generation with validation
  */
 async function generateImage(userMessage, model, imageContext, intent, res) {
     try {
+        console.log('🎨 [Image Generation] Starting:', {
+            model,
+            intent,
+            messageLength: userMessage.length
+        });
+
         // Step 1: Enhance the prompt using the assigned model
         const enhancedPrompt = await enhanceImagePrompt(userMessage, model, imageContext, intent);
+
+        // Validate enhanced prompt before sending to DALL-E
+        if (!enhancedPrompt || enhancedPrompt.trim().length === 0) {
+            throw new Error('Enhanced prompt is empty - cannot generate image');
+        }
+
+        console.log('✅ [Image Generation] Prompt enhanced:', {
+            originalLength: userMessage.length,
+            enhancedLength: enhancedPrompt.length,
+            preview: enhancedPrompt.substring(0, 100)
+        });
 
         // Step 2: Generate image with DALL-E
         const imageHandler = new OpenAIHandler(process.env.OPENAI_API_KEY);
@@ -223,6 +239,8 @@ async function generateImage(userMessage, model, imageContext, intent, res) {
         if (!imageResult?.success || !imageResult?.url) {
             throw new Error('Image generation failed or returned no URL');
         }
+
+        console.log('✅ [Image Generation] Complete');
 
         // Step 3: Send response to client
         const responseMessage = intent === 'modify_image'
@@ -245,7 +263,12 @@ async function generateImage(userMessage, model, imageContext, intent, res) {
         return true;
 
     } catch (error) {
-        console.error('Image generation failed:', error.message);
+        console.error('❌ [Image Generation] Failed:', {
+            error: error.message,
+            status: error.status,
+            intent,
+            timestamp: new Date().toISOString()
+        });
 
         const errorMessage = `I apologize, but I couldn't generate the image. Error: ${error.message}`;
         res.write(`data: ${JSON.stringify({ type: 'content', content: errorMessage, fullContent: errorMessage })}\n\n`);
@@ -331,78 +354,6 @@ async function streamRegularChatWithTimeout(messages, model, res) {
         if (timeoutWarning) clearTimeout(timeoutWarning);
     }
 }
-
-/**
- * Enhanced image generation with validation
- */
-async function generateImage(userMessage, model, imageContext, intent, res) {
-    try {
-        console.log('🎨 [Image Generation] Starting:', {
-            model,
-            intent,
-            messageLength: userMessage.length
-        });
-
-        // Step 1: Enhance the prompt using the assigned model
-        const enhancedPrompt = await enhanceImagePrompt(userMessage, model, imageContext, intent);
-
-        // Validate enhanced prompt before sending to DALL-E
-        if (!enhancedPrompt || enhancedPrompt.trim().length === 0) {
-            throw new Error('Enhanced prompt is empty - cannot generate image');
-        }
-
-        console.log('✅ [Image Generation] Prompt enhanced:', {
-            originalLength: userMessage.length,
-            enhancedLength: enhancedPrompt.length,
-            preview: enhancedPrompt.substring(0, 100)
-        });
-
-        // Step 2: Generate image with DALL-E
-        const imageHandler = new OpenAIHandler(process.env.OPENAI_API_KEY);
-        const imageResult = await imageHandler.generateImage(enhancedPrompt);
-
-        if (!imageResult?.success || !imageResult?.url) {
-            throw new Error('Image generation failed or returned no URL');
-        }
-
-        console.log('✅ [Image Generation] Complete');
-
-        // Step 3: Send response to client
-        const responseMessage = intent === 'modify_image'
-            ? `I've modified the image based on your request:\n\n![Generated Image](${imageResult.url})`
-            : `I've generated an image for you:\n\n![Generated Image](${imageResult.url})`;
-
-        const responseData = {
-            type: 'content',
-            content: responseMessage,
-            fullContent: responseMessage,
-            imageUrl: imageResult.url,
-            imagePrompt: enhancedPrompt,
-            originalPrompt: userMessage,
-            revisedPrompt: imageResult.revisedPrompt
-        };
-
-        res.write(`data: ${JSON.stringify(responseData)}\n\n`);
-        res.write(`data: ${JSON.stringify({ type: 'done', finishReason: 'image_generated' })}\n\n`);
-
-        return true;
-
-    } catch (error) {
-        console.error('❌ [Image Generation] Failed:', {
-            error: error.message,
-            status: error.status,
-            intent,
-            timestamp: new Date().toISOString()
-        });
-
-        const errorMessage = `I apologize, but I couldn't generate the image. Error: ${error.message}`;
-        res.write(`data: ${JSON.stringify({ type: 'content', content: errorMessage, fullContent: errorMessage })}\n\n`);
-        res.write(`data: ${JSON.stringify({ type: 'done', finishReason: 'error' })}\n\n`);
-
-        return false;
-    }
-}
-
 
 /**
  * Handles streaming errors
