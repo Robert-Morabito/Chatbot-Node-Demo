@@ -81,20 +81,48 @@ export class OpenAIHandler {
      * @param {Object} options - Streaming options
      */
     async* streamChat(messages, model, options = {}) {
+        const defaultMaxTokens = model.startsWith('gpt-5') ? 2000 : 800; // Give GPT-5 more room
+
         const {
             includeSystemPrompt = true,
             temperature = 0.7,
-            maxTokens = 800
+            maxTokens = defaultMaxTokens,
+            timeout = model.startsWith('gpt-5') ? 180000 : 60000 // 3 min for GPT-5, 1 min for others
         } = options;
+
+        const startTime = Date.now();
+        let hasStartedStreaming = false;
 
         try {
             const formattedMessages = this.formatMessages(messages, includeSystemPrompt);
             const streamConfig = this.buildStreamConfig(model, formattedMessages, temperature, maxTokens);
 
-            const stream = await this.client.chat.completions.create(streamConfig);
+            // Add timeout wrapper for GPT-5
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                if (!hasStartedStreaming && model.startsWith('gpt-5')) {
+                    console.error('⏱️ GPT-5 timeout - no response after', timeout / 1000, 'seconds');
+                    controller.abort();
+                }
+            }, timeout);
+
+            const stream = await this.client.chat.completions.create({
+                ...streamConfig,
+                signal: controller.signal
+            });
+
             let fullResponse = '';
+            let chunkCount = 0;
 
             for await (const chunk of stream) {
+                if (!hasStartedStreaming) {
+                    hasStartedStreaming = true;
+                    clearTimeout(timeoutId);
+                    const timeToFirstChunk = Date.now() - startTime;
+                    console.log('✅ GPT-5 first chunk received after', timeToFirstChunk / 1000, 'seconds');
+                }
+
+                chunkCount++;
                 const delta = chunk.choices[0]?.delta;
 
                 if (delta?.content) {
@@ -107,6 +135,13 @@ export class OpenAIHandler {
                 }
 
                 if (chunk.choices[0]?.finish_reason) {
+                    const totalTime = Date.now() - startTime;
+                    console.log('✅ GPT-5 completed:', {
+                        totalTime: totalTime / 1000 + 's',
+                        chunks: chunkCount,
+                        responseLength: fullResponse.length
+                    });
+
                     yield {
                         type: 'done',
                         fullContent: fullResponse,
@@ -117,11 +152,21 @@ export class OpenAIHandler {
             }
 
         } catch (error) {
-            console.error('Chat stream failed:', error.message);
-            yield {
-                type: 'error',
-                error: error.message
-            };
+            const totalTime = Date.now() - startTime;
+            console.error('❌ GPT-5 stream failed after', totalTime / 1000, 'seconds:', error.message);
+
+            // Check if it's a timeout
+            if (error.name === 'AbortError') {
+                yield {
+                    type: 'error',
+                    error: 'GPT-5 response timeout - the model took too long to respond. Try a simpler prompt or use GPT-4 instead.'
+                };
+            } else {
+                yield {
+                    type: 'error',
+                    error: error.message
+                };
+            }
         }
     }
 
@@ -161,6 +206,13 @@ export class OpenAIHandler {
      * @private
      */
     buildStreamConfig(model, messages, temperature, maxTokens) {
+        console.log('🔧 Building config for model:', model, {
+            messageCount: messages.length,
+            totalInputTokens: JSON.stringify(messages).length / 4, // rough estimate
+            maxTokens,
+            temperature
+        });
+
         const config = {
             model,
             messages,
@@ -171,6 +223,7 @@ export class OpenAIHandler {
         if (model.startsWith('gpt-5')) {
             config.max_completion_tokens = maxTokens;
             // GPT-5 uses default temperature only
+            console.log('⚠️ GPT-5 detected - using max_completion_tokens:', maxTokens);
         } else {
             config.max_tokens = maxTokens;
             config.temperature = temperature;
