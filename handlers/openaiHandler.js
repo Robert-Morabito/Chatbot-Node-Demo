@@ -87,14 +87,32 @@ export class OpenAIHandler {
             maxTokens = 800
         } = options;
 
+        const startTime = Date.now();
+        let hasStartedStreaming = false;
+
         try {
             const formattedMessages = this.formatMessages(messages, includeSystemPrompt);
             const streamConfig = this.buildStreamConfig(model, formattedMessages, temperature, maxTokens);
 
+            console.log('🚀 Starting stream for model:', model, {
+                messageCount: messages.length,
+                configParams: Object.keys(streamConfig),
+                isGPT5: model.startsWith('gpt-5')
+            });
+
             const stream = await this.client.chat.completions.create(streamConfig);
+            
             let fullResponse = '';
+            let chunkCount = 0;
 
             for await (const chunk of stream) {
+                if (!hasStartedStreaming) {
+                    hasStartedStreaming = true;
+                    const timeToFirstChunk = Date.now() - startTime;
+                    console.log(`✅ ${model} first chunk received after ${timeToFirstChunk / 1000}s`);
+                }
+                
+                chunkCount++;
                 const delta = chunk.choices[0]?.delta;
 
                 if (delta?.content) {
@@ -107,6 +125,14 @@ export class OpenAIHandler {
                 }
 
                 if (chunk.choices[0]?.finish_reason) {
+                    const totalTime = Date.now() - startTime;
+                    console.log(`✅ ${model} completed:`, {
+                        totalTime: `${totalTime / 1000}s`,
+                        chunks: chunkCount,
+                        responseLength: fullResponse.length,
+                        finishReason: chunk.choices[0].finish_reason
+                    });
+                    
                     yield {
                         type: 'done',
                         fullContent: fullResponse,
@@ -116,8 +142,24 @@ export class OpenAIHandler {
                 }
             }
 
+            // Check if we got no response at all
+            if (!hasStartedStreaming) {
+                console.error(`⚠️ ${model} stream ended without any chunks after ${(Date.now() - startTime) / 1000}s`);
+                yield {
+                    type: 'error',
+                    error: `${model} did not respond. The model may be overloaded or the request may be too complex. Please try again.`
+                };
+            }
+
         } catch (error) {
-            console.error('Chat stream failed:', error.message);
+            const totalTime = Date.now() - startTime;
+            console.error(`❌ ${model} stream failed after ${totalTime / 1000}s:`, error.message);
+            
+            // Don't retry on 400 errors - these are usually parameter issues
+            if (error.status === 400) {
+                console.error('Bad request error details:', error.message);
+            }
+            
             yield {
                 type: 'error',
                 error: error.message
@@ -137,23 +179,43 @@ export class OpenAIHandler {
         const {
             includeSystemPrompt = true,
             temperature = 0.7,
-            maxTokens = 800
+            maxTokens = 800,
+            maxRetries = 2
         } = options;
 
-        try {
-            const formattedMessages = this.formatMessages(messages, includeSystemPrompt);
-            const config = this.buildStreamConfig(model, formattedMessages, temperature, maxTokens);
+        let lastError = null;
+        
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                const formattedMessages = this.formatMessages(messages, includeSystemPrompt);
+                const config = this.buildStreamConfig(model, formattedMessages, temperature, maxTokens);
 
-            // Remove stream flag for regular completion
-            delete config.stream;
+                // Remove stream flag for regular completion
+                delete config.stream;
 
-            const response = await this.client.chat.completions.create(config);
-            return response.choices[0].message.content;
+                console.log(`🔄 Attempt ${attempt + 1} for ${model} completion`);
 
-        } catch (error) {
-            console.error('OpenAI completion failed:', error.message);
-            throw error;
+                const response = await this.client.chat.completions.create(config);
+                return response.choices[0].message.content;
+
+            } catch (error) {
+                lastError = error;
+                console.error(`❌ ${model} completion attempt ${attempt + 1} failed:`, error.message);
+                
+                // Don't retry on 400 errors
+                if (error.status === 400) {
+                    throw error;
+                }
+                
+                if (attempt < maxRetries) {
+                    const delay = Math.min(1000 * Math.pow(2, attempt), 5000);
+                    console.log(`⏳ Retrying in ${delay / 1000}s...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
         }
+        
+        throw lastError;
     }
 
     /**
@@ -161,6 +223,13 @@ export class OpenAIHandler {
      * @private
      */
     buildStreamConfig(model, messages, temperature, maxTokens) {
+        console.log('🔧 Building config for model:', model, {
+            messageCount: messages.length,
+            totalInputTokens: JSON.stringify(messages).length / 4, // rough estimate
+            maxTokens,
+            temperature
+        });
+        
         const config = {
             model,
             messages,
@@ -171,6 +240,7 @@ export class OpenAIHandler {
         if (model.startsWith('gpt-5')) {
             config.max_completion_tokens = maxTokens;
             // GPT-5 uses default temperature only
+            console.log('⚠️ GPT-5 detected - using max_completion_tokens:', maxTokens);
         } else {
             config.max_tokens = maxTokens;
             config.temperature = temperature;
