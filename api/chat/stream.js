@@ -246,34 +246,14 @@ async function enhanceImagePrompt(userMessage, model, imageContext, intent) {
     const enhancementPrompt = buildEnhancementPrompt(userMessage, imageContext, intent);
     const messages = [{ sender: 'User', content: enhancementPrompt }];
 
-    try {
-        // Use GPT-4 for enhancement if GPT-5 is assigned (for reliability)
-        let enhancementModel = model;
-        if (model.startsWith('gpt-5')) {
-            console.log('⚠️ Using GPT-4 for image prompt enhancement (GPT-5 fallback)');
-            enhancementModel = 'gpt-4-0125-preview';
-        }
+    // Use appropriate handler based on model type
+    const handler = getModelType(model) === 'claude'
+        ? new ClaudeHandler(process.env.ANTHROPIC_API_KEY)
+        : new OpenAIHandler(process.env.OPENAI_API_KEY);
 
-        // Use appropriate handler based on model type
-        const handler = getModelType(enhancementModel) === 'claude'
-            ? new ClaudeHandler(process.env.ANTHROPIC_API_KEY)
-            : new OpenAIHandler(process.env.OPENAI_API_KEY);
+    const enhancedPrompt = await handler.getCompletion(messages, model);
 
-        const enhancedPrompt = await handler.getCompletion(messages, enhancementModel);
-
-        // Validate the response
-        if (!enhancedPrompt || enhancedPrompt.trim().length === 0) {
-            console.error('⚠️ Empty enhancement response, using original prompt');
-            return userMessage; // Fallback to original
-        }
-
-        return enhancedPrompt.trim();
-
-    } catch (error) {
-        console.error('❌ Prompt enhancement failed:', error.message);
-        // Fallback to original prompt
-        return userMessage;
-    }
+    return enhancedPrompt.trim();
 }
 
 /**
@@ -295,7 +275,6 @@ function buildEnhancementPrompt(userMessage, imageContext, intent) {
 /**
  * Handles regular chat streaming
  */
-// In stream.js, wrap the streaming call:
 async function streamRegularChat(messages, model, res) {
     res.write(`data: ${JSON.stringify({ type: 'typing_start' })}\n\n`);
 
@@ -304,41 +283,9 @@ async function streamRegularChat(messages, model, res) {
         ? new ClaudeHandler(process.env.ANTHROPIC_API_KEY)
         : new OpenAIHandler(process.env.OPENAI_API_KEY);
 
-    let retryCount = 0;
-    const maxRetries = model.startsWith('gpt-5') ? 2 : 0; // Only retry for GPT-5
-
-    while (retryCount <= maxRetries) {
-        try {
-            let hasContent = false;
-
-            for await (const chunk of handler.streamChat(messages, model)) {
-                if (chunk.type === 'content') {
-                    hasContent = true;
-                }
-                res.write(`data: ${JSON.stringify(chunk)}\n\n`);
-                if (chunk.type === 'done' || chunk.type === 'error') break;
-            }
-
-            // Success - exit retry loop
-            if (hasContent) break;
-
-        } catch (error) {
-            retryCount++;
-
-            if (retryCount > maxRetries) {
-                console.error('❌ GPT-5 failed after', retryCount, 'retries');
-                res.write(`data: ${JSON.stringify({
-                    type: 'error',
-                    error: 'GPT-5 is currently experiencing delays. Please try again or use GPT-4 instead.'
-                })}\n\n`);
-                break;
-            }
-
-            // Exponential backoff
-            const delay = Math.min(1000 * Math.pow(2, retryCount), 10000);
-            console.log('⏳ Retrying GPT-5 after', delay / 1000, 'seconds (attempt', retryCount + 1, ')');
-            await new Promise(resolve => setTimeout(resolve, delay));
-        }
+    for await (const chunk of handler.streamChat(messages, model)) {
+        res.write(`data: ${JSON.stringify(chunk)}\n\n`);
+        if (chunk.type === 'done' || chunk.type === 'error') break;
     }
 }
 
