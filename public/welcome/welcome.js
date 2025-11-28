@@ -194,12 +194,17 @@ class WelcomePage {
             return;
         }
 
+        console.log('✅ Setting up Prolific validation');
+
         const validateInput = () => {
             const value = input.value.trim();
             const isValid = this.core.validateProlificId(value);
 
+            console.log('🔍 Validating input:', { value, isValid });
+
             if (continueBtn) {
                 continueBtn.disabled = !isValid;
+                console.log('🎯 Button disabled state:', continueBtn.disabled);
             }
 
             if (errorDiv) {
@@ -216,7 +221,7 @@ class WelcomePage {
         validateInput();
 
         // Focus the input
-        setTimeout(() => input.focus(), 100);
+        setTimeout(() => {input.focus(); console.log('✅ Input focused');}, 100);
     }
 
     async handleProlificSubmission() {
