@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acronym Building Task - AI Chatbot Study</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+
+<body>
+    <!-- Main Application Container -->
+    <div class="app-container">
+        <!-- Sidebar for conversation history -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <button id="sidebar-toggle" class="sidebar-toggle">☰</button>
+            </div>
+
+            <div class="conversation-section">
+                <div class="new-chat-container">
+                    <button id="new-chat-btn" class="new-chat-btn">
+                        <span class="plus-icon">+</span>
+                        <span class="new-chat-label">New Chat</span>
+                    </button>
+                </div>
+
+                <div class="conversation-list" id="conversation-list">
+                    <!-- Conversations will be dynamically added here -->
+                </div>
+            </div>
+
+            <!-- Finish Study Button (different for final task) -->
+            <button id="finish-btn" class="finish-btn final-task" aria-label="Finish study">
+                🏁 Finish Study
+            </button>
+
+            <div class="sidebar-footer">
+                <div class="theme-toggle">
+                    <input type="checkbox" id="theme-switch" class="theme-checkbox">
+                    <label for="theme-switch" class="theme-label">
+                        <span class="theme-icon-dark">🌙</span>
+                        <span class="theme-icon-light">☀️</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="main-content">
+            <!-- Header Section -->
+            <div class="header">
+                <button id="mobile-sidebar-toggle" class="mobile-sidebar-toggle">☰</button>
+                <h1 id="bot-name" class="bot-name">Acronym Building Task</h1>
+
+                <!-- User info -->
+                <div class="header-actions">
+                    <div class="user-info-stack">
+                        <div class="participant-display" id="participant-display">
+                            <span style="font-size: 12px; color: var(--text-secondary-dark); margin-right: 8px;">ID:</span>
+                            <span style="font-family: monospace; font-weight: bold;" id="header-participant-id">------</span>
+                        </div>
+                        <div class="session-timer" id="session-timer">
+                            <span class="timer-text" id="timer-display">00:00:00</span>
+                        </div>
+                    </div>
+                    <button id="save-chat-btn" class="save-btn" title="Save Current Chat">💾</button>
+                </div>
+            </div>
+
+            <!-- Chat Container -->
+            <div id="chat-container" class="chat-container">
+                <div id="messages" class="messages">
+                    <!-- Messages will be dynamically added here -->
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <div class="input-container">
+                    <textarea id="message-input" class="message-input" placeholder="Type your message..."
+                        rows="1"></textarea>
+                    <button id="send-btn" class="send-btn" title="Send message">
+                        <span class="send-icon">➤</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Study Completion Confirmation Modal -->
+    <div id="finish-confirmation-modal" class="modal-backdrop" style="display: none;">
+        <div class="finish-confirmation-dialog">
+            <h3>🏁 Finish Study?</h3>
+            <p>This will complete your final task and the entire study. Your complete dataset will be downloaded for you to upload to Tally.</p>
+            <p class="finish-warning">You won't be able to return after completing.</p>
+            <div class="finish-buttons">
+                <button id="finish-cancel-btn" class="finish-button finish-cancel">Cancel</button>
+                <button id="finish-confirm-btn" class="finish-button finish-confirm">Finish Study</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Finish Loading Indicator -->
+    <div id="finish-loading-indicator" class="finish-loading-indicator" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>Preparing your study data...</p>
+    </div>
+
+    <!-- Load shared modules -->
+    <script src="/shared/core.js"></script>
+    <script src="/shared/chat.js"></script>
+
+    <!-- Task-specific initialization -->
+    <script src="/acro-build/task.js"></script>
+</body>
+
+</html>
