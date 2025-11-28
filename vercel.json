@@ -2,6 +2,7 @@
   "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": ".",
+
   "routes": [
     {
       "src": "/api/(.*)",
@@ -17,5 +18,12 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
+  ],
+
+  "rewrites": [
+    { "source": "/welcome", "destination": "/welcome/index.html" },
+    { "source": "/image-gen/:pid", "destination": "/image-gen/index.html" },
+    { "source": "/outreach-msg/:pid", "destination": "/outreach-msg/index.html" },
+    { "source": "/acro-build/:pid", "destination": "/acro-build/index.html" }
   ]
 }

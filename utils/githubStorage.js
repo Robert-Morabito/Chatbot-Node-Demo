@@ -523,6 +523,241 @@ class GitHubStorage {
             throw new Error(`Image save failed for ${imageInfo.filename}: ${error.message}`);
         }
     }
+
+    // Add these methods to the GitHubStorage class
+
+    // ===================================================================
+    // PER-TASK DATA MANAGEMENT
+    // ===================================================================
+
+    /**
+     * Save task-specific data to GitHub
+     * @param {string} participantId - Participant identifier
+     * @param {string} taskName - Task name (image-generation, outreach-msg, acro-build)
+     * @param {Object} taskData - Task data to save
+     * @returns {Promise<Object>} Save result
+     */
+    async saveTaskData(participantId, taskName, taskData) {
+        try {
+            console.log('💾 Saving task data:', { participantId, taskName });
+
+            const fileName = `${this.paths.participants}/${participantId}/task-${taskName}.json`;
+            const content = JSON.stringify(taskData, null, 2);
+            const encodedContent = Buffer.from(content).toString('base64');
+
+            // Get existing file SHA if updating (for auto-save overwrites)
+            const sha = await this._getFileSha(fileName);
+
+            const url = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${fileName}`;
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${this.token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.github.v3+json',
+                },
+                body: JSON.stringify({
+                    message: `${sha ? 'Update' : 'Create'} task data: ${participantId}/${taskName} - ${new Date().toISOString()}`,
+                    content: encodedContent,
+                    branch: this.branch,
+                    ...(sha && { sha })
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`GitHub API error: ${response.status} - ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log('✅ Task data saved:', fileName);
+
+            return {
+                success: true,
+                fileName,
+                sha: result.content.sha
+            };
+
+        } catch (error) {
+            console.error('❌ Task data save failed:', error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * Get all task data for a participant
+     * @param {string} participantId - Participant identifier
+     * @returns {Promise<Object>} All task data
+     */
+    async getParticipantTaskData(participantId) {
+        try {
+            console.log('📋 Fetching all task data for:', participantId);
+
+            const tasks = ['image-generation', 'outreach-msg', 'acro-build'];
+            const taskData = {};
+
+            for (const task of tasks) {
+                const fileName = `${this.paths.participants}/${participantId}/task-${task}.json`;
+
+                try {
+                    const url = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${fileName}`;
+                    const response = await fetch(url, {
+                        headers: {
+                            'Authorization': `token ${this.token}`,
+                            'Accept': 'application/vnd.github.v3+json',
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const content = Buffer.from(data.content, 'base64').toString('utf-8');
+                        taskData[task] = JSON.parse(content);
+                        console.log(`✅ Found task data: ${task}`);
+                    } else {
+                        console.log(`📭 No data found for task: ${task}`);
+                        taskData[task] = null;
+                    }
+                } catch (error) {
+                    console.log(`⚠️ Error fetching ${task}:`, error.message);
+                    taskData[task] = null;
+                }
+            }
+
+            return taskData;
+
+        } catch (error) {
+            console.error('❌ Failed to fetch participant task data:', error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * Save final compiled data to "finished" folder
+     * @param {string} participantId - Participant identifier
+     * @param {Object} compiledData - Complete study data
+     * @returns {Promise<Object>} Save result
+     */
+    async saveFinishedStudyData(participantId, compiledData) {
+        try {
+            console.log('🏁 Saving finished study data:', participantId);
+
+            const fileName = `finished/${participantId}/complete-study-data.json`;
+            const content = JSON.stringify(compiledData, null, 2);
+            const encodedContent = Buffer.from(content).toString('base64');
+
+            const sha = await this._getFileSha(fileName);
+
+            const url = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${fileName}`;
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${this.token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.github.v3+json',
+                },
+                body: JSON.stringify({
+                    message: `Finished study: ${participantId} - ${new Date().toISOString()}`,
+                    content: encodedContent,
+                    branch: this.branch,
+                    ...(sha && { sha })
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`GitHub API error: ${response.status} - ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log('✅ Finished study data saved:', fileName);
+
+            // Also save images to finished folder
+            await this.saveFinishedImages(participantId, compiledData);
+
+            return {
+                success: true,
+                fileName,
+                sha: result.content.sha
+            };
+
+        } catch (error) {
+            console.error('❌ Finished study save failed:', error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * Save images to finished folder
+     * @param {string} participantId - Participant identifier  
+     * @param {Object} compiledData - Complete study data
+     */
+    async saveFinishedImages(participantId, compiledData) {
+        try {
+            // Extract and save images from image-generation task
+            const imageGenData = compiledData.tasks?.['image-generation'];
+            if (!imageGenData?.conversations) return;
+
+            const imageUrls = this._extractImageUrls({ conversations: { 'image-generation': imageGenData.conversations } });
+
+            for (const imageInfo of imageUrls) {
+                try {
+                    await this._saveImageToFinished(participantId, imageInfo);
+                } catch (error) {
+                    console.error(`⚠️ Failed to save finished image ${imageInfo.filename}:`, error.message);
+                }
+            }
+
+            console.log(`✅ Saved ${imageUrls.length} images to finished folder`);
+
+        } catch (error) {
+            console.error('⚠️ Error saving finished images:', error.message);
+        }
+    }
+
+    /**
+     * Save a single image to finished folder
+     * @private
+     */
+    async _saveImageToFinished(participantId, imageInfo) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+        const imageResponse = await fetch(imageInfo.url, {
+            signal: controller.signal,
+            headers: { 'User-Agent': 'ChatBot-Study/1.0' }
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!imageResponse.ok) {
+            throw new Error(`Failed to download: ${imageResponse.status}`);
+        }
+
+        const imageBuffer = await imageResponse.arrayBuffer();
+        const base64Image = Buffer.from(imageBuffer).toString('base64');
+
+        const imagePath = `finished/${participantId}/images/${imageInfo.filename}`;
+
+        const url = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${imagePath}`;
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${this.token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/vnd.github.v3+json',
+            },
+            body: JSON.stringify({
+                message: `Save finished image: ${participantId}/${imageInfo.filename}`,
+                content: base64Image,
+                branch: this.branch
+            })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Upload failed: ${response.status}`);
+        }
+    }
 }
 
 export default GitHubStorage;
