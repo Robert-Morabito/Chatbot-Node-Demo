@@ -16,13 +16,13 @@ class StudyCore {
         this.participantId = null;
         this.allocation = null;
         this.config = null;
-        
+
         // Auto-save state
         this.autoSaveInterval = null;
         this.lastSaveTime = null;
         this.saveInProgress = false;
         this.hasUnsavedChanges = false;
-        
+
         // Error types (consistent across pages)
         this.errorTypes = {
             NETWORK_TIMEOUT: 'network_timeout',
@@ -49,12 +49,12 @@ class StudyCore {
      */
     extractParticipantIdFromUrl() {
         const pathParts = window.location.pathname.split('/').filter(Boolean);
-        
+
         // URL structure: /task-name/prolificid
         // pathParts[0] = task-name, pathParts[1] = prolificid
         if (pathParts.length >= 2) {
             const pid = pathParts[1];
-            
+
             // Validate format (24 alphanumeric characters for Prolific)
             if (this.validateProlificId(pid)) {
                 console.log('✅ Participant ID extracted from URL:', pid);
@@ -64,7 +64,7 @@ class StudyCore {
                 console.warn('⚠️ Invalid participant ID format in URL:', pid);
             }
         }
-        
+
         console.warn('⚠️ No participant ID found in URL path');
         return null;
     }
@@ -97,19 +97,19 @@ class StudyCore {
 
         try {
             const response = await fetch(`/api/allocation/status?user_id=${encodeURIComponent(this.participantId)}`);
-            
+
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                
+
                 if (response.status === 404) {
                     throw new Error('ALLOCATION_NOT_FOUND: No allocation found for this participant ID');
                 }
-                
+
                 throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
             }
 
             const allocation = await response.json();
-            
+
             console.log('✅ Allocation verified:', {
                 id: allocation.id,
                 shownModel: allocation.shown_model,
@@ -117,7 +117,7 @@ class StudyCore {
             });
 
             this.allocation = allocation;
-            
+
             // Map to config format used by chat system
             this.config = {
                 givenModel: allocation.shown_model,
@@ -242,13 +242,19 @@ class StudyCore {
                 savedAt: new Date().toISOString()
             };
 
+            console.log('📤 Sending save request to /api/chat/save-task...'); // ADD THIS
+
             const response = await fetch('/api/chat/save-task', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(savePayload)
             });
 
+            console.log('📥 Save response status:', response.status); // ADD THIS
+
             const result = await response.json();
+
+            console.log('📥 Save response body:', result); // ADD THIS
 
             if (!response.ok) {
                 throw new Error(result.error || 'Save failed');
@@ -267,7 +273,8 @@ class StudyCore {
 
         } catch (error) {
             console.error('❌ Task data save failed:', error.message);
-            
+            console.error('❌ Full error:', error); // ADD THIS
+
             if (showIndicator) {
                 this.showSaveIndicator('error');
             }
@@ -310,7 +317,7 @@ class StudyCore {
      */
     showSaveIndicator(status) {
         let indicator = document.getElementById('save-indicator');
-        
+
         if (!indicator) {
             indicator = document.createElement('div');
             indicator.id = 'save-indicator';
@@ -449,7 +456,7 @@ class StudyCore {
     showError(error) {
         const errorType = this.classifyError(error);
         const errorInfo = this.getErrorInfo(errorType);
-        
+
         console.error('📛 Showing error:', { errorType, error: error.message });
 
         // Create error overlay
@@ -546,8 +553,8 @@ class StudyCore {
      */
     getModelIcon() {
         const model = this.config?.displayName || '';
-        return model.toLowerCase().includes('claude') 
-            ? '/images/claude.png' 
+        return model.toLowerCase().includes('claude')
+            ? '/images/claude.png'
             : '/images/gpt.png';
     }
 
@@ -561,7 +568,7 @@ class StudyCore {
         const hours = Math.floor(totalSeconds / 3600);
         const minutes = Math.floor((totalSeconds % 3600) / 60);
         const seconds = totalSeconds % 60;
-        
+
         return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
 }

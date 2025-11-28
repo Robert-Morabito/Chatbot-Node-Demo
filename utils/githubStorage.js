@@ -530,6 +530,8 @@ class GitHubStorage {
     // PER-TASK DATA MANAGEMENT
     // ===================================================================
 
+    // Add these methods to the GitHubStorage class (after the existing saveParticipantData method)
+
     /**
      * Save task-specific data to GitHub
      * @param {string} participantId - Participant identifier
@@ -539,7 +541,7 @@ class GitHubStorage {
      */
     async saveTaskData(participantId, taskName, taskData) {
         try {
-            console.log('💾 Saving task data:', { participantId, taskName });
+            console.log('💾 Saving task data to GitHub:', { participantId, taskName });
 
             const fileName = `${this.paths.participants}/${participantId}/task-${taskName}.json`;
             const content = JSON.stringify(taskData, null, 2);
@@ -549,6 +551,13 @@ class GitHubStorage {
             const sha = await this._getFileSha(fileName);
 
             const url = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${fileName}`;
+
+            console.log('📤 GitHub API request:', {
+                url,
+                fileName,
+                hasExistingSha: !!sha
+            });
+
             const response = await fetch(url, {
                 method: 'PUT',
                 headers: {
@@ -564,13 +573,16 @@ class GitHubStorage {
                 })
             });
 
+            console.log('📥 GitHub API response status:', response.status);
+
             if (!response.ok) {
                 const errorText = await response.text();
-                throw new Error(`GitHub API error: ${response.status} - ${errorText}`);
+                console.error('❌ GitHub API error response:', errorText);
+                throw new Error(`GitHub API error: ${response.status} - ${errorText.substring(0, 200)}`);
             }
 
             const result = await response.json();
-            console.log('✅ Task data saved:', fileName);
+            console.log('✅ Task data saved to GitHub:', fileName);
 
             return {
                 success: true,
@@ -579,7 +591,7 @@ class GitHubStorage {
             };
 
         } catch (error) {
-            console.error('❌ Task data save failed:', error.message);
+            console.error('❌ GitHub task data save failed:', error.message);
             throw error;
         }
     }
