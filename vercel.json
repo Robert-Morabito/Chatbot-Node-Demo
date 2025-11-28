@@ -8,22 +8,34 @@
       "src": "/api/(.*)",
       "dest": "/api/$1"
     },
+
     {
       "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))$",
       "headers": {
         "cache-control": "public, max-age=31536000, immutable"
       }
     },
+
+    {
+      "src": "/welcome(/.*)?",
+      "dest": "/welcome/index.html"
+    },
+    {
+      "src": "/image-gen/(.*)",
+      "dest": "/image-gen/index.html"
+    },
+    {
+      "src": "/outreach-msg/(.*)",
+      "dest": "/outreach-msg/index.html"
+    },
+    {
+      "src": "/acro-build/(.*)",
+      "dest": "/acro-build/index.html"
+    },
+
     {
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-
-  "rewrites": [
-    { "source": "/welcome", "destination": "/welcome/index.html" },
-    { "source": "/image-gen/:pid", "destination": "/image-gen/index.html" },
-    { "source": "/outreach-msg/:pid", "destination": "/outreach-msg/index.html" },
-    { "source": "/acro-build/:pid", "destination": "/acro-build/index.html" }
   ]
 }
