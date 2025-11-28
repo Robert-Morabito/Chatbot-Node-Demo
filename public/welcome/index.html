@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Welcome - AI Chatbot Research</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body>
+    <!-- Welcome Experience -->
+    <div id="welcome-experience" class="welcome-experience active">
+        <div class="welcome-backdrop"></div>
+        <div class="welcome-container">
+            <!-- Progress System -->
+            <div class="progress-system">
+                <div class="progress-track">
+                    <div class="progress-indicator" id="progress-indicator"></div>
+                </div>
+                <div class="progress-counter">
+                    <span id="current-step">1</span>
+                    <span class="step-separator">/</span>
+                    <span>2</span>
+                </div>
+            </div>
+
+            <!-- Content Container -->
+            <div class="content-stage" id="content-stage">
+                <!-- Step 1: Prolific ID Entry -->
+                <div class="content-panel id-panel active">
+                    <div class="content-card">
+                        <h1 class="content-title">Exploring Human-LLM Interaction for Task Completion</h1>
+                        <p class="content-subtitle">Welcome to our research study</p>
+
+                        <!-- ID Entry -->
+                        <div class="id-input-system" style="margin-top: 2rem;">
+                            <div class="input-group">
+                                <input type="text" id="prolific-input" class="input-field"
+                                    placeholder="24-character Prolific ID" maxlength="24" autocomplete="off">
+                                <div id="input-error" class="input-error"></div>
+                                <div class="input-hint">Enter your Prolific participant ID to begin</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Model Comparison (shows assigned model) -->
+                <div class="content-panel comparison-panel">
+                    <div class="comparison-container">
+                        <div class="comparison-title">
+                            <h2>Meet Your Chatbot</h2>
+                        </div>
+
+                        <div class="model-comparison-container" id="model-comparison-container">
+                            <!-- Model Card 1 -->
+                            <div class="model-card" data-model="0">
+                                <div class="model-header-card">
+                                    <h3 class="model-name-card" id="model-name-card-0">GPT-3.5</h3>
+                                    <p class="model-year-card" id="model-year-card-0">2022</p>
+                                </div>
+                                <div class="capability-item" data-capability="reasoning">
+                                    <div class="capability-item-label"><span>Reasoning</span></div>
+                                    <div class="capability-icons-inline"></div>
+                                </div>
+                                <div class="capability-item" data-capability="speed">
+                                    <div class="capability-item-label"><span>Speed</span></div>
+                                    <div class="capability-icons-inline"></div>
+                                </div>
+                                <div class="capability-item" data-capability="creativity">
+                                    <div class="capability-item-label"><span>Creativity</span></div>
+                                    <div class="capability-icons-inline"></div>
+                                </div>
+                                <div class="capability-item" data-capability="knowledge">
+                                    <div class="capability-item-label">
+                                        <p><span>Knows about</span><br>events up until</p>
+                                    </div>
+                                    <div class="knowledge-date-inline">Sept 2021</div>
+                                </div>
+                            </div>
+
+                            <!-- Model Card 2 -->
+                            <div class="model-card" data-model="1">
+                                <div class="model-header-card">
+                                    <h3 class="model-name-card" id="model-name-card-1">GPT-4</h3>
+                                    <p class="model-year-card" id="model-year-card-1">2023</p>
+                                </div>
+                                <div class="capability-item" data-capability="reasoning">
+                                    <div class="capability-item-label"><span>Reasoning</span></div>
+                                    <div class="capability-icons-inline"></div>
+                                </div>
+                                <div class="capability-item" data-capability="speed">
+                                    <div class="capability-item-label"><span>Speed</span></div>
+                                    <div class="capability-icons-inline"></div>
+                                </div>
+                                <div class="capability-item" data-capability="creativity">
+                                    <div class="capability-item-label"><span>Creativity</span></div>
+                                    <div class="capability-icons-inline"></div>
+                                </div>
+                                <div class="capability-item" data-capability="knowledge">
+                                    <div class="capability-item-label">
+                                        <p><span>Knows about</span><br>events up until</p>
+                                    </div>
+                                    <div class="knowledge-date-inline">Dec 2023</div>
+                                </div>
+                            </div>
+
+                            <!-- Model Card 3 -->
+                            <div class="model-card" data-model="2">
+                                <div class="model-header-card">
+                                    <h3 class="model-name-card" id="model-name-card-2">GPT-5</h3>
+                                    <p class="model-year-card" id="model-year-card-2">2025</p>
+                                </div>
+                                <div class="capability-item" data-capability="reasoning">
+                                    <div class="capability-item-label"><span>Reasoning</span></div>
+                                    <div class="capability-icons-inline"></div>
+                                </div>
+                                <div class="capability-item" data-capability="speed">
+                                    <div class="capability-item-label"><span>Speed</span></div>
+                                    <div class="capability-icons-inline"></div>
+                                </div>
+                                <div class="capability-item" data-capability="creativity">
+                                    <div class="capability-item-label"><span>Creativity</span></div>
+                                    <div class="capability-icons-inline"></div>
+                                </div>
+                                <div class="capability-item" data-capability="knowledge">
+                                    <div class="capability-item-label">
+                                        <p><span>Knows about</span><br>events up until</p>
+                                    </div>
+                                    <div class="knowledge-date-inline">Sept 2024</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Assignment popup -->
+                        <div class="assignment-popup" id="assignment-popup">
+                            <div class="popup-content">
+                                <div class="popup-text">This is your Chatbot for today</div>
+                            </div>
+                        </div>
+
+                        <!-- Capability cards -->
+                        <div class="capability-cards-wrapper" id="capability-cards-wrapper">
+                            <div class="capability-arrow" id="capability-arrow">
+                                <div class="arrow-head">▲</div>
+                            </div>
+                            <div class="capability-cards" id="capability-cards">
+                                <div class="capability-card strength-card">
+                                    <div class="card-indicator"></div>
+                                    <h4>Strengths</h4>
+                                    <p id="strength-text">Excellent capabilities for various tasks.</p>
+                                </div>
+                                <div class="capability-card weakness-card">
+                                    <div class="card-indicator"></div>
+                                    <h4>Weaknesses</h4>
+                                    <p id="weakness-text">May have slower response times for complex requests.</p>
+                                </div>
+                                <div class="capability-card usecase-card">
+                                    <div class="card-indicator"></div>
+                                    <h4>Best Use Cases</h4>
+                                    <p id="usecase-text">General purpose conversations and task completion.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation System -->
+            <div class="navigation-system">
+                <button id="nav-back" class="nav-button nav-secondary" style="display: none;">
+                    <svg class="nav-icon" viewBox="0 0 24 24" style="transform: rotate(180deg);">
+                        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z" />
+                    </svg>
+                    Back
+                </button>
+                <button id="nav-continue" class="nav-button nav-primary" disabled>
+                    Continue
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simple Error Display -->
+    <div id="simple-error-display" class="simple-error" style="display: none;">
+        <div class="error-content">
+            <div class="error-header">
+                <span class="error-icon">⚠️</span>
+                <span class="error-title" id="error-title">Connection Error</span>
+                <button class="error-close" id="simple-error-close">×</button>
+            </div>
+            <div class="error-body">
+                <p id="error-message">Unable to connect to the study system.</p>
+                <div class="error-code-box">
+                    <strong>Error Code:</strong> <span id="error-code-display">UNKNOWN</span>
+                </div>
+                <p class="error-instruction">Please screenshot this error and report it to the researchers.</p>
+            </div>
+            <div class="error-actions">
+                <button id="error-retry" class="error-btn error-primary">Try Again</button>
+                <button id="error-report" class="error-btn error-secondary">How to Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load shared core utilities -->
+    <script src="/shared/core.js"></script>
+    
+    <!-- Welcome page script -->
+    <script src="welcome.js"></script>
+</body>
+
+</html>
