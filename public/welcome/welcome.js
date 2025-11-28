@@ -159,11 +159,28 @@ class WelcomePage {
         continueBtn.style.opacity = '1';
         continueBtn.disabled = false;
 
+        // Remove any existing onclick to prevent duplicates
+        continueBtn.onclick = null;
+
         // Step 0: Prolific ID entry
         if (this.welcomeState.currentStep === 0) {
             continueBtn.innerHTML = 'Continue <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
             continueBtn.disabled = true; // Disabled by default
-            continueBtn.onclick = () => this.handleProlificSubmission();
+
+            // Use mousedown instead of click to prevent focus issues
+            continueBtn.onmousedown = (e) => {
+                e.preventDefault(); // Prevent focus loss
+                if (continueBtn.dataset.canSubmit === 'true') {
+                    this.handleProlificSubmission();
+                }
+            };
+
+            // Also keep click as fallback
+            continueBtn.onclick = () => {
+                if (continueBtn.dataset.canSubmit === 'true') {
+                    this.handleProlificSubmission();
+                }
+            };
         }
         // Step 1: Model comparison
         else if (this.welcomeState.currentStep === 1) {
@@ -200,11 +217,11 @@ class WelcomePage {
             const value = input.value.trim();
             const isValid = this.core.validateProlificId(value);
 
-            console.log('🔍 Validating input:', { value, isValid });
-
             if (continueBtn) {
                 continueBtn.disabled = !isValid;
-                console.log('🎯 Button disabled state:', continueBtn.disabled);
+
+                // Store validation state on button for click handler
+                continueBtn.dataset.canSubmit = isValid ? 'true' : 'false';
             }
 
             if (errorDiv) {
@@ -217,11 +234,20 @@ class WelcomePage {
             }
         };
 
+        // Validate on input
         input.addEventListener('input', validateInput);
+
+        // Validate on focus/blur to handle edge cases
+        input.addEventListener('blur', validateInput);
+        input.addEventListener('focus', validateInput);
+
+        // Initial validation
         validateInput();
 
         // Focus the input
-        setTimeout(() => {input.focus(); console.log('✅ Input focused');}, 100);
+        setTimeout(() => {
+            input.focus();
+        }, 100);
     }
 
     async handleProlificSubmission() {
@@ -232,22 +258,72 @@ class WelcomePage {
 
         const continueBtn = document.getElementById('nav-continue');
         const originalContent = continueBtn.innerHTML;
-        continueBtn.innerHTML = 'Claiming allocation...';
+        continueBtn.innerHTML = 'Checking allocation...';
         continueBtn.disabled = true;
 
         try {
-            // Claim allocation via API
-            await this.claimAllocation(prolificId);
+            // First, try to retrieve existing allocation
+            console.log('🔍 Checking for existing allocation...');
+
+            try {
+                await this.retrieveExistingAllocation(prolificId);
+                console.log('✅ Found existing allocation, using it');
+            } catch (error) {
+                // If no existing allocation found, claim a new one
+                if (error.message.includes('404') || error.message.includes('not found')) {
+                    console.log('📝 No existing allocation, claiming new one...');
+                    continueBtn.innerHTML = 'Claiming allocation...';
+                    await this.claimAllocation(prolificId);
+                } else {
+                    // Other errors should be thrown
+                    throw error;
+                }
+            }
 
             // Move to model comparison screen
             this.renderStep(1);
 
         } catch (error) {
-            console.error('❌ Allocation claim failed:', error);
+            console.error('❌ Allocation handling failed:', error);
             this.showAllocationError(error);
             continueBtn.innerHTML = originalContent;
             continueBtn.disabled = false;
         }
+    }
+
+    async retrieveExistingAllocation(prolificId) {
+        console.log('🔍 Retrieving existing allocation for:', prolificId);
+
+        const response = await fetch(`/api/allocation/status?user_id=${encodeURIComponent(prolificId)}`);
+
+        if (!response.ok) {
+            if (response.status === 404) {
+                throw new Error('404: No existing allocation found');
+            }
+            const errorData = await response.json().catch(() => ({}));
+            const error = new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+            error.status = response.status;
+            throw error;
+        }
+
+        this.allocation = await response.json();
+
+        // Set participant ID in core
+        this.core.participantId = prolificId;
+
+        // Map allocation to config format
+        this.core.allocation = this.allocation;
+        this.core.config = {
+            givenModel: this.allocation.shown_model,
+            trueModel: this.allocation.source_model,
+            displayName: this.allocation.shown_model
+        };
+
+        console.log('✅ Retrieved existing allocation:', {
+            id: this.allocation.id,
+            shownModel: this.allocation.shown_model,
+            sourceModel: this.allocation.source_model
+        });
     }
 
     async claimAllocation(prolificId) {
@@ -559,79 +635,69 @@ class WelcomePage {
     // ===================================================================
 
     showNextStepsPage() {
-        // Build task URLs with participant ID
-        const baseUrl = window.location.origin;
-        const pid = this.core.participantId;
+        // Stop any animations/timers
+        this.welcomeState.isAnimating = false;
 
-        const taskUrls = {
-            imageGen: `${baseUrl}/image-gen/${pid}`,
-            outreach: `${baseUrl}/outreach-msg/${pid}`,
-            acronym: `${baseUrl}/acro-build/${pid}`
-        };
-
-        // Show completion page with links
-        const container = document.querySelector('.welcome-container');
-        container.innerHTML = `
-            <div class="content-card" style="max-width: 700px; margin: auto;">
-                <h1 class="content-title">Welcome Complete! ✅</h1>
-                <p class="content-subtitle">You've been assigned <strong>${this.allocation.shown_model}</strong></p>
-
-                <div class="info-grid" style="margin: 2rem 0;">
-                    <div class="info-item-with-header">
-                        <div class="info-item-top-bar"></div>
-                        <div class="info-item-content">
-                            <div class="info-item-dot"></div>
-                            <div class="info-item-text">
-                                <h4>Next Steps</h4>
-                                <p>Return to the study instructions. You will be provided with links to each task in order. Use the links below only when instructed.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="info-item-with-header">
-                        <div class="info-item-top-bar"></div>
-                        <div class="info-item-content">
-                            <div class="info-item-dot"></div>
-                            <div class="info-item-text">
-                                <h4>Important</h4>
-                                <p><strong>Complete tasks in order.</strong> Each link below corresponds to a specific task. Only open a link when you've been instructed to do so in the study materials.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div style="margin: 2rem 0; padding: 1.5rem; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: 8px;">
-                    <h3 style="margin: 0 0 1rem 0; color: rgba(249, 250, 251, 0.95);">Your Task Links</h3>
-                    
-                    <div style="margin: 0.75rem 0;">
-                        <strong style="color: rgba(249, 250, 251, 0.9);">Task 1: Image Generation</strong><br>
-                        <input type="text" readonly value="${taskUrls.imageGen}" style="width: 100%; padding: 0.5rem; margin-top: 0.25rem; font-family: monospace; font-size: 0.875rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: rgba(249, 250, 251, 0.95); border-radius: 4px;" onclick="this.select()">
-                    </div>
-
-                    <div style="margin: 0.75rem 0;">
-                        <strong style="color: rgba(249, 250, 251, 0.9);">Task 2: Outreach Message</strong><br>
-                        <input type="text" readonly value="${taskUrls.outreach}" style="width: 100%; padding: 0.5rem; margin-top: 0.25rem; font-family: monospace; font-size: 0.875rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: rgba(249, 250, 251, 0.95); border-radius: 4px;" onclick="this.select()">
-                    </div>
-
-                    <div style="margin: 0.75rem 0;">
-                        <strong style="color: rgba(249, 250, 251, 0.9);">Task 3: Acronym Building</strong><br>
-                        <input type="text" readonly value="${taskUrls.acronym}" style="width: 100%; padding: 0.5rem; margin-top: 0.25rem; font-family: monospace; font-size: 0.875rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: rgba(249, 250, 251, 0.95); border-radius: 4px;" onclick="this.select()">
-                    </div>
-
-                    <p style="margin: 1rem 0 0 0; font-size: 0.875rem; color: rgba(209, 213, 219, 0.8); font-style: italic;">
-                        💡 Click any link to select and copy it. You can also bookmark these links.
+        // Show simple completion message
+        const welcomeExperience = document.getElementById('welcome-experience');
+        welcomeExperience.innerHTML = `
+        <div style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            color: #f3f4f6;
+            text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            padding: 2rem;
+        ">
+            <div style="max-width: 600px;">
+                <h1 style="color: #10b981; margin-bottom: 20px; font-size: 2.5rem;">✅ Welcome Complete!</h1>
+                
+                <div style="
+                    background: rgba(59, 130, 246, 0.1);
+                    border: 2px solid rgba(59, 130, 246, 0.3);
+                    border-radius: 12px;
+                    padding: 2rem;
+                    margin: 2rem 0;
+                ">
+                    <p style="font-size: 1.25rem; margin-bottom: 1rem; color: #e5e7eb;">
+                        You have been assigned to use <strong style="color: #60a5fa;">${this.allocation.shown_model}</strong>
+                    </p>
+                    <p style="font-size: 1rem; color: #9ca3af; margin: 0;">
+                        Participant ID: <code style="
+                            background: rgba(0,0,0,0.3);
+                            padding: 0.25rem 0.5rem;
+                            border-radius: 4px;
+                            font-family: monospace;
+                            color: #d1d5db;
+                        ">${this.core.participantId}</code>
                     </p>
                 </div>
 
-                <div style="text-align: center; margin-top: 2rem;">
-                    <p style="color: rgba(209, 213, 219, 0.8); font-size: 0.9375rem;">
-                        Return to the study instructions to continue.
+                <div style="
+                    background: rgba(16, 185, 129, 0.1);
+                    border: 1px solid rgba(16, 185, 129, 0.3);
+                    border-radius: 8px;
+                    padding: 1.5rem;
+                    margin: 2rem 0;
+                    text-align: left;
+                ">
+                    <p style="font-size: 1.125rem; line-height: 1.6; margin: 0; color: #d1d5db;">
+                        <strong style="color: #10b981;">Next Steps:</strong><br><br>
+                        You may close this window and proceed back to Tally for further instructions.
                     </p>
                 </div>
+
+                <p style="color: #6b7280; font-size: 0.9375rem; margin-top: 2rem; font-style: italic;">
+                    💡 You can always return to this page and enter your Prolific ID again to see your assigned model details.
+                </p>
             </div>
-        `;
+        </div>
+    `;
     }
-
+    
     // ===================================================================
     // EVENT LISTENERS
     // ===================================================================
