@@ -20,6 +20,21 @@
     },
 
     {
+      "src": "/image-gen/(.*\\.(js|css))$",
+      "dest": "/image-gen/$1"
+    },
+
+    {
+      "src": "/outreach-msg/(.*\\.(js|css))$",
+      "dest": "/outreach-msg/$1"
+    },
+
+    {
+      "src": "/acro-build/(.*\\.(js|css))$",
+      "dest": "/acro-build/$1"
+    },
+
+    {
       "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))$",
       "headers": {
         "cache-control": "public, max-age=31536000, immutable"
