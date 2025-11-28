@@ -36,6 +36,14 @@ class WelcomePage {
     // ===================================================================
 
     initialize() {
+        const experience = document.getElementById('welcome-experience');
+        if (experience) {
+            experience.style.display = 'block';
+            requestAnimationFrame(() => {
+                experience.classList.add('active');
+            });
+        }
+
         this.setupEventListeners();
         this.updateProgress();
         this.setupProlificValidation();
@@ -115,7 +123,7 @@ class WelcomePage {
         panels.forEach((panel, index) => {
             if (index === stepIndex) {
                 panel.classList.add('active');
-                
+
                 // Handle special step logic
                 if (stepIndex === 1) {
                     this.startModelComparison();
@@ -255,10 +263,10 @@ class WelcomePage {
         }
 
         this.allocation = await response.json();
-        
+
         // Set participant ID in core
         this.core.participantId = prolificId;
-        
+
         // Map allocation to config format
         this.core.allocation = this.allocation;
         this.core.config = {
@@ -277,7 +285,7 @@ class WelcomePage {
     showAllocationError(error) {
         const errorType = this.core.classifyError(error);
         const errorInfo = this.core.getErrorInfo(errorType);
-        
+
         const errorDisplay = document.getElementById('simple-error-display');
         const errorTitle = document.getElementById('error-title');
         const errorMessage = document.getElementById('error-message');
@@ -335,7 +343,7 @@ class WelcomePage {
 
     startModelComparison() {
         this.welcomeState.isAnimating = true;
-        
+
         const comparisonData = this.getComparisonData();
         this.populateModelComparison(comparisonData);
         this.runComparisonAnimation(comparisonData);
@@ -345,7 +353,7 @@ class WelcomePage {
         const assignedModel = this.allocation.source_model;
         const family = assignedModel.includes('claude') ? 'claude' : 'openai';
         const models = this.modelData[family];
-        
+
         const assignedIndex = models.findIndex(m => m.name === this.allocation.shown_model);
 
         return {
@@ -422,7 +430,7 @@ class WelcomePage {
 
     runComparisonAnimation(comparisonData) {
         const { assignedIndex } = comparisonData;
-        
+
         const timeline = [
             () => this.animateModelCards(),
             () => this.animateCardCapabilities(),
@@ -549,7 +557,7 @@ class WelcomePage {
         // Build task URLs with participant ID
         const baseUrl = window.location.origin;
         const pid = this.core.participantId;
-        
+
         const taskUrls = {
             imageGen: `${baseUrl}/image-gen/${pid}`,
             outreach: `${baseUrl}/outreach-msg/${pid}`,
