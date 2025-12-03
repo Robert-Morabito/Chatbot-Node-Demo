@@ -412,9 +412,15 @@ class GitHubStorage {
 
                     while ((match = imageRegex.exec(message.content)) !== null) {
                         const imageUrl = match[1];
+
+                        // Skip if not a data URL (shouldn't happen, but safety check)
+                        if (!imageUrl.startsWith('data:image')) {
+                            console.warn('⚠️ Found non-data URL image, skipping:', imageUrl.substring(0, 50));
+                            continue;
+                        }
+
                         imageCounter++;
 
-                        // Simple, clear filename: chat1_msg3_img1.png
                         // Use message.msg_id if available, otherwise use index + 1
                         const messageNumber = message.msg_id || (messageIndex + 1);
 
@@ -446,40 +452,33 @@ class GitHubStorage {
     }
 
     /**
-     * Download and save a single image to GitHub
-     * @private
-     * @param {string} participantId - Participant identifier
-     * @param {Object} imageInfo - Image information object
-     * @returns {Promise<Object>} Save result
-     */
+ * Download and save a single image to GitHub
+ * @private
+ * @param {string} participantId - Participant identifier
+ * @param {Object} imageInfo - Image information object
+ * @returns {Promise<Object>} Save result
+ */
     async _saveImage(participantId, imageInfo) {
         try {
-            console.log('📸 Downloading image:', imageInfo.filename);
+            console.log('📸 Processing image:', imageInfo.filename);
 
-            // Download the image with timeout
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+            // Extract base64 from data URL
+            const base64Match = imageInfo.url.match(/^data:image\/\w+;base64,(.+)$/);
 
-            const imageResponse = await fetch(imageInfo.url, {
-                signal: controller.signal,
-                headers: {
-                    'User-Agent': 'ChatBot-Study/1.0'
-                }
-            });
-
-            clearTimeout(timeoutId);
-
-            if (!imageResponse.ok) {
-                throw new Error(`Failed to download image: ${imageResponse.status} ${imageResponse.statusText}`);
+            if (!base64Match) {
+                throw new Error('Invalid data URL format');
             }
 
-            const imageBuffer = await imageResponse.arrayBuffer();
-            const base64Image = Buffer.from(imageBuffer).toString('base64');
+            const base64Data = base64Match[1];
+            const sizeKB = (base64Data.length * 0.75 / 1024).toFixed(2); // Base64 is ~33% larger than binary
 
-            console.log(`📸 Downloaded ${imageBuffer.byteLength} bytes for ${imageInfo.filename}`);
+            console.log(`📸 Image size: ${sizeKB} KB`);
 
             // Prepare GitHub path: images/participantId/filename
             const imagePath = `images/${participantId}/${imageInfo.filename}`;
+
+            // Check if already exists (shouldn't happen, but safety check)
+            const existingSha = await this._getFileSha(imagePath);
 
             // Save to GitHub
             const url = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${imagePath}`;
@@ -492,8 +491,9 @@ class GitHubStorage {
                 },
                 body: JSON.stringify({
                     message: `Save participant image: ${participantId}/${imageInfo.filename}`,
-                    content: base64Image,
-                    branch: this.branch
+                    content: base64Data,
+                    branch: this.branch,
+                    ...(existingSha && { sha: existingSha })
                 })
             });
 
@@ -512,15 +512,13 @@ class GitHubStorage {
                 githubPath: imagePath,
                 githubUrl: result.content.html_url,
                 sha: result.content.sha,
-                size: imageBuffer.byteLength,
-                originalUrl: imageInfo.url
+                size: base64Data.length,
+                originalUrl: imageInfo.url.substring(0, 100) + '...' // Truncate for logging
             };
 
         } catch (error) {
-            if (error.name === 'AbortError') {
-                throw new Error(`Image download timeout for ${imageInfo.filename}`);
-            }
-            throw new Error(`Image save failed for ${imageInfo.filename}: ${error.message}`);
+            console.error(`❌ Image save failed for ${imageInfo.filename}:`, error.message);
+            throw error;
         }
     }
 

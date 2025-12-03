@@ -228,6 +228,12 @@ class StudyCore {
                 participant: this.participantId,
                 dataSize: JSON.stringify(taskData).length
             });
+            
+            // Count images in data (for logging)
+            const imageCount = JSON.stringify(taskData).match(/data:image/g)?.length || 0;
+            if (imageCount > 0) {
+                console.log(`🖼️ Task contains ${imageCount} image(s)`);
+            }
 
             if (showIndicator) {
                 this.showSaveIndicator('saving');

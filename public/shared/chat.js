@@ -14,25 +14,25 @@ class TaskChat {
     constructor(studyCore, taskConfig) {
         this.core = studyCore;
         this.taskConfig = taskConfig;
-        
+
         // Conversation state
         this.conversations = new Map();
         this.currentConversationId = null;
         this.currentChatlog = [];
         this.msgWidgets = {};
         this.messageIdCounter = 0;
-        
+
         // Image context (for image-gen task)
         this.imageContext = {
             lastPrompt: null,
             lastImageUrl: null,
             conversationHasImage: false
         };
-        
+
         // Session timing
         this.sessionStartTime = Date.now();
         this.timerInterval = null;
-        
+
         // Behavioral metrics
         this.behaviorMetrics = {
             backspaceCount: 0,
@@ -70,13 +70,13 @@ class TaskChat {
         this.createNewConversation();
         this.setupTextareaAutoResize();
         this.updateUI();
-        
+
         // Start auto-save
         this.core.startAutoSave(() => this.getExportData(), 60000);
-        
+
         // Setup page close handler
         this.setupPageCloseHandler();
-        
+
         console.log('✅ Chat interface initialized');
     }
 
@@ -89,13 +89,13 @@ class TaskChat {
         if (botNameEl) {
             botNameEl.textContent = `Chatting with ${this.core.config.displayName}`;
         }
-        
+
         // Update participant ID display
         const pidEl = document.getElementById('header-participant-id');
         if (pidEl) {
             pidEl.textContent = this.core.participantId;
         }
-        
+
         // Update page title
         document.title = `${this.taskConfig.name} - ${this.core.config.displayName}`;
     }
@@ -109,7 +109,7 @@ class TaskChat {
      */
     createNewConversation() {
         const conversationId = `${this.core.taskName}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        
+
         const conversation = {
             id: conversationId,
             task: this.core.taskName,
@@ -131,7 +131,7 @@ class TaskChat {
 
         this.behaviorMetrics.conversationCount++;
         this.core.markUnsavedChanges();
-        
+
         console.log('📝 New conversation created:', conversationId);
     }
 
@@ -196,7 +196,7 @@ class TaskChat {
      */
     showWelcomeMessage() {
         const messagesContainer = document.getElementById('messages');
-        
+
         messagesContainer.innerHTML = `
             <div class="welcome-message">
                 <div class="welcome-content">
@@ -309,7 +309,7 @@ class TaskChat {
 
         // Update conversation title
         this.updateConversationTitle(message);
-        
+
         // Mark unsaved and show typing
         this.core.markUnsavedChanges();
         this.showIndicator('typing');
@@ -375,15 +375,31 @@ class TaskChat {
         let fullResponse = '';
         let isImageGeneration = false;
 
+        // Buffer for accumulating incomplete SSE events
+        let buffer = '';
+
         while (true) {
             const { done, value } = await reader.read();
             if (done) break;
 
+            // Decode chunk and add to buffer
             const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split('\n');
+            buffer += chunk;
 
-            for (const line of lines) {
-                if (line.startsWith('data: ')) {
+            // Process complete SSE events (terminated by \n\n)
+            const events = buffer.split('\n\n');
+
+            // Keep the last incomplete event in buffer
+            buffer = events.pop() || '';
+
+            // Process each complete event
+            for (const event of events) {
+                if (!event.trim()) continue;
+
+                const lines = event.split('\n');
+                for (const line of lines) {
+                    if (!line.startsWith('data: ')) continue;
+
                     try {
                         const data = JSON.parse(line.slice(6));
 
@@ -428,7 +444,10 @@ class TaskChat {
                                 return;
                         }
                     } catch (parseError) {
-                        console.error('Stream parse error:', parseError.message);
+                        // Skip parse errors for incomplete events
+                        if (line.trim() && !line.includes('server_log')) {
+                            console.warn('Parse error:', parseError.message);
+                        }
                     }
                 }
             }
@@ -866,7 +885,7 @@ class TaskChat {
 
         // Save final data
         const result = await this.core.saveTaskData(this.getExportData(), true);
-        
+
         if (!result.success) {
             this.showNotification('Failed to save data. Please try again.', 'error');
             return;
@@ -978,7 +997,7 @@ class TaskChat {
     }
 
     /**
-     * Show image in modal
+     * Show image in modal with download button
      */
     showImageModal(imageSrc, altText) {
         const existingModal = document.querySelector('.image-modal-overlay');
@@ -987,34 +1006,113 @@ class TaskChat {
         const modal = document.createElement('div');
         modal.className = 'image-modal-overlay';
         modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            cursor: pointer;
-        `;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        cursor: pointer;
+        padding: 2rem;
+        box-sizing: border-box;
+    `;
+
+        const imageContainer = document.createElement('div');
+        imageContainer.style.cssText = `
+        max-width: 90%;
+        max-height: 80%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    `;
 
         const img = document.createElement('img');
         img.src = imageSrc;
         img.alt = altText || 'Generated image';
-        img.style.cssText = 'max-width: 90%; max-height: 90%; border-radius: 8px;';
+        img.style.cssText = `
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 8px;
+        cursor: default;
+    `;
 
-        modal.appendChild(img);
+        // Prevent closing modal when clicking image
+        img.addEventListener('click', (e) => e.stopPropagation());
+
+        const downloadBtn = document.createElement('button');
+        downloadBtn.className = 'image-download-btn';
+        downloadBtn.innerHTML = '💾 Save Image';
+        downloadBtn.style.cssText = `
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    `;
+
+        downloadBtn.addEventListener('mouseenter', () => {
+            downloadBtn.style.transform = 'translateY(-2px)';
+            downloadBtn.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)';
+        });
+
+        downloadBtn.addEventListener('mouseleave', () => {
+            downloadBtn.style.transform = 'translateY(0)';
+            downloadBtn.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+        });
+
+        downloadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.downloadImage(imageSrc);
+        });
+
+        imageContainer.appendChild(img);
+        imageContainer.appendChild(downloadBtn);
+        modal.appendChild(imageContainer);
         document.body.appendChild(modal);
 
         modal.addEventListener('click', () => modal.remove());
+
         document.addEventListener('keydown', function handler(e) {
             if (e.key === 'Escape') {
                 modal.remove();
                 document.removeEventListener('keydown', handler);
             }
         });
+    }
+
+    /**
+     * Download image with proper filename
+     */
+    downloadImage(imageSrc) {
+        try {
+            const link = document.createElement('a');
+            link.href = imageSrc;
+
+            // Generate filename with timestamp
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+            link.download = `generated-image-${timestamp}.png`;
+
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            this.showNotification('Image saved successfully!', 'info');
+        } catch (error) {
+            console.error('Download failed:', error);
+            this.showNotification('Download failed. Please try right-click > Save As', 'warning');
+        }
     }
 
     /**
@@ -1067,7 +1165,7 @@ class TaskChat {
     setupEventListeners() {
         // Send message
         document.getElementById('send-btn')?.addEventListener('click', () => this.sendMessage());
-        
+
         document.getElementById('message-input')?.addEventListener('keydown', (e) => {
             const input = document.getElementById('message-input');
             if (e.key === 'Enter' && !e.shiftKey && !input.disabled) {
