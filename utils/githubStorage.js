@@ -205,13 +205,6 @@ class GitHubStorage {
      * @param {Object} chatData - Complete chat data including conversations and metrics
      * @returns {Promise<Object>} Save result with success status and details
      */
-    /**
- * Save participant data to GitHub repository
- * @param {string} participantId - Unique participant identifier
- * @param {string} sessionId - Session identifier
- * @param {Object} chatData - Complete chat data including conversations and metrics
- * @returns {Promise<Object>} Save result with success status and details
- */
     async saveParticipantData(participantId, sessionId, chatData) {
         try {
             console.log('💾 Starting participant data save:', {
@@ -307,7 +300,62 @@ class GitHubStorage {
             };
         }
     }
-    // Add this after the existing saveParticipantData method
+    
+    /**
+     * Save image directly to GitHub from base64 data
+     * @param {string} participantId - Participant identifier
+     * @param {string} filename - Image filename
+     * @param {string} base64Data - Base64 encoded image data (without data: prefix)
+     * @returns {Promise<Object>} Save result
+     */
+    async saveImageDirect(participantId, filename, base64Data) {
+        try {
+            console.log(`📸 Saving image to GitHub: ${filename}`);
+
+            // Prepare GitHub path
+            const imagePath = `images/${participantId}/${filename}`;
+
+            // Check if file already exists (to avoid duplicates)
+            const sha = await this._getFileSha(imagePath);
+
+            // Upload to GitHub
+            const url = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${imagePath}`;
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${this.token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.github.v3+json',
+                },
+                body: JSON.stringify({
+                    message: `Save image: ${participantId}/${filename}`,
+                    content: base64Data,
+                    branch: this.branch,
+                    ...(sha && { sha }) // Only include if updating existing file
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`GitHub upload failed: ${response.status} - ${errorText.substring(0, 200)}`);
+            }
+
+            const result = await response.json();
+
+            console.log(`✅ Image saved to GitHub: ${imagePath}`);
+
+            return {
+                success: true,
+                path: imagePath,
+                sha: result.content.sha,
+                url: result.content.html_url
+            };
+
+        } catch (error) {
+            console.error(`❌ GitHub image save failed:`, error.message);
+            throw error;
+        }
+    }
 
     /**
      * Extract and save all images from participant conversations

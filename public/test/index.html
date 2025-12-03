@@ -88,7 +88,6 @@
             margin: 0 0 0.5rem 0;
             font-size: 2.5rem;
             color: #e5e7eb;
-            background: linear-gradient(135deg, #3b82f6, #60a5fa);
         }
 
         .test-section {
@@ -499,7 +498,8 @@
                             </div>
                         </div>
                         <div class="button-grid">
-                            <button class="test-button secondary" onclick="generateTestId()">🎲 Generate Test ID</button>
+                            <button class="test-button secondary" onclick="generateTestId()">🎲 Generate Test
+                                ID</button>
                             <button class="test-button secondary" onclick="resetTest()">🔄 Reset All</button>
                             <button class="test-button success" onclick="quickStart()">🚀 Quick Start</button>
                             <button class="test-button"
@@ -519,7 +519,8 @@
                         <div class="button-grid">
                             <button class="test-button" onclick="testAllocationClaim()">Claim Allocation</button>
                             <button class="test-button" onclick="testAllocationStatus()">Check Status</button>
-                            <button class="test-button danger" onclick="testAllocationRelease()">Release Allocation</button>
+                            <button class="test-button danger" onclick="testAllocationRelease()">Release
+                                Allocation</button>
                             <button class="test-button" onclick="testAllocationConfirm()">Confirm Allocation</button>
                         </div>
                         <div id="allocation-result" class="result-box" style="display: none;"></div>
@@ -541,9 +542,12 @@
                             <button class="test-button" onclick="testChat('gpt-3.5-turbo-0125')">Test GPT-3.5</button>
                             <button class="test-button" onclick="testChat('gpt-4-0125-preview')">Test GPT-4</button>
                             <button class="test-button" onclick="testChat('gpt-5-2025-08-07')">Test GPT-5</button>
-                            <button class="test-button" onclick="testChat('claude-3-haiku-20240307')">Test Claude 3</button>
-                            <button class="test-button" onclick="testChat('claude-3-5-haiku-20241022')">Test Claude 3.5</button>
-                            <button class="test-button" onclick="testChat('claude-sonnet-4-20250514')">Test Claude 4</button>
+                            <button class="test-button" onclick="testChat('claude-3-haiku-20240307')">Test Claude
+                                3</button>
+                            <button class="test-button" onclick="testChat('claude-3-5-haiku-20241022')">Test Claude
+                                3.5</button>
+                            <button class="test-button" onclick="testChat('claude-sonnet-4-20250514')">Test Claude
+                                4</button>
                         </div>
                         <div id="chat-result" style="display: none;">
                             <div class="response-display">
@@ -565,11 +569,24 @@
                             <textarea id="image-prompt"
                                 placeholder="Enter image generation prompt...">Generate an image of a sunset over mountains</textarea>
                         </div>
+
+                        <!-- Error simulation dropdown -->
+                        <div class="config-item" style="margin-top: 1rem;">
+                            <label for="error-simulation">Error Simulation (for testing retry logic)</label>
+                            <select id="error-simulation">
+                                <option value="none">No simulation - Normal generation</option>
+                                <option value="dalle-500">Simulate: DALL-E 500 server error</option>
+                                <option value="dalle-timeout">Simulate: DALL-E timeout</option>
+                                <option value="content-policy">Simulate: Content policy violation</option>
+                                <option value="download-failure">Simulate: Image download failure</option>
+                            </select>
+                        </div>
+
                         <div class="button-grid">
                             <button class="test-button" onclick="testImageGeneration()">Generate Image</button>
-                            <button class="test-button secondary" onclick="testImageError()">Test Error Handling</button>
-                            <button class="test-button secondary" onclick="testImageRetry()">Test Retry Logic</button>
-                            <button class="test-button" onclick="testBlobConversion()">Test Blob → Base64</button>
+                            <button class="test-button secondary" onclick="testImageRetry()">Test Retry Logic (3
+                                attempts)</button>
+                            <button class="test-button" onclick="testGitHubUpload()">Verify GitHub Upload</button>
                         </div>
                         <div id="image-result" style="display: none;">
                             <div class="response-display">
@@ -578,8 +595,8 @@
                                 <div id="image-preview" class="image-preview"></div>
                                 <div id="image-info" class="image-info"></div>
                                 <div class="button-grid" style="margin-top: 1rem;">
-                                    <button class="test-button success" onclick="testImageDownload()">Test Download</button>
-                                    <button class="test-button" onclick="testGitHubUpload()">Verify GitHub Upload</button>
+                                    <button class="test-button success" onclick="testImageDownload()">Test
+                                        Download</button>
                                 </div>
                             </div>
                         </div>
@@ -626,8 +643,10 @@
                         </div>
                         <div class="button-grid" style="margin-top: 1rem;">
                             <button class="test-button" onclick="startIdleTest()">Start Idle Timer (1min test)</button>
-                            <button class="test-button secondary" onclick="triggerIdleWarning()">Trigger Warning (25s)</button>
-                            <button class="test-button secondary" onclick="triggerIdleRelease()">Trigger Release (30s)</button>
+                            <button class="test-button secondary" onclick="triggerIdleWarning()">Trigger Warning
+                                (25s)</button>
+                            <button class="test-button secondary" onclick="triggerIdleRelease()">Trigger Release
+                                (30s)</button>
                             <button class="test-button danger" onclick="stopIdleTest()">Stop Timer</button>
                         </div>
                         <div id="idle-result" class="result-box" style="display: none;"></div>
@@ -645,7 +664,8 @@
                             <button class="test-button" onclick="testCompleteStudy()">Simulate Complete Study</button>
                             <button class="test-button" onclick="testFinalDownload()">Test Download</button>
                             <button class="test-button" onclick="testSanitization()">Test Data Sanitization</button>
-                            <button class="test-button" onclick="verifyGitHubFinished()">Verify GitHub /finished</button>
+                            <button class="test-button" onclick="verifyGitHubFinished()">Verify GitHub
+                                /finished</button>
                         </div>
                         <div id="final-result" class="result-box" style="display: none;"></div>
                         <div id="final-data-preview" style="display: none; margin-top: 1rem;">

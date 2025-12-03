@@ -237,7 +237,7 @@ function generateImageFilename(participantId, chatNumber, messageNumber) {
 
 /**
  * Generates image using DALL-E with error handling and retry logic
- * Returns blob URL for immediate display, saves base64 to GitHub async
+ * Converts to base64 on server to avoid CORS issues
  */
 async function generateImage(userMessage, model, imageContext, intent, res, conversationContext) {
     const MAX_RETRIES = 3;
@@ -264,9 +264,9 @@ async function generateImage(userMessage, model, imageContext, intent, res, conv
                 throw new Error('DALL-E returned no image URL');
             }
 
-            console.log(`✅ [${conversationContext.participantId}] DALL-E generated image: ${imageResult.url.substring(0, 50)}...`);
+            console.log(`✅ [${conversationContext.participantId}] DALL-E generated image`);
 
-            // Step 3: Check for error text in response
+            // Step 3: Check for error text in response (500 errors, etc.)
             const errorCheck = detectImageErrorInText(imageResult.revisedPrompt || enhancedPrompt);
 
             if (errorCheck.isError) {
@@ -291,36 +291,61 @@ async function generateImage(userMessage, model, imageContext, intent, res, conv
                 }
             }
 
-            // Step 4: Generate filename
+            // Step 4: Download and convert to base64 (server-side to avoid CORS)
+            console.log(`📥 [${conversationContext.participantId}] Downloading and converting to base64...`);
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+            const downloadResponse = await fetch(imageResult.url, {
+                signal: controller.signal,
+                headers: { 'User-Agent': 'ChatBot-Study/1.0' }
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!downloadResponse.ok) {
+                throw new Error(`Image download failed: HTTP ${downloadResponse.status}`);
+            }
+
+            const arrayBuffer = await downloadResponse.arrayBuffer();
+            const base64 = Buffer.from(arrayBuffer).toString('base64');
+            const dataUrl = `data:image/png;base64,${base64}`;
+            const sizeKB = (base64.length / 1024).toFixed(2);
+
+            console.log(`✅ [${conversationContext.participantId}] Converted to base64: ${sizeKB} KB`);
+
+            // Step 5: Generate filename
             const { participantId, chatNumber, messageNumber } = conversationContext;
             const filename = generateImageFilename(participantId, chatNumber, messageNumber);
             console.log(`📝 [${participantId}] Filename: ${filename}`);
 
-            // Step 5: Send blob URL to client immediately
+            // Step 6: Send base64 to client (in single message - properly escaped JSON)
             const messagePrefix = intent === 'modify_image'
                 ? `I've modified the image based on your request:`
                 : `I've generated an image for you:`;
 
-            const responseMessage = `${messagePrefix}\n\n![Generated Image](${imageResult.url})`;
+            const responseMessage = `${messagePrefix}\n\n![Generated Image](${dataUrl})`;
 
             res.write(`data: ${JSON.stringify({
                 type: 'content',
                 content: responseMessage,
                 fullContent: responseMessage,
-                imageUrl: imageResult.url,  // Blob URL for display
+                imageData: dataUrl,  // Full base64 data URL
                 imageFilename: filename,
                 imagePrompt: enhancedPrompt,
                 originalPrompt: userMessage,
-                revisedPrompt: imageResult.revisedPrompt
+                revisedPrompt: imageResult.revisedPrompt,
+                imageSizeKB: parseFloat(sizeKB)
             })}\n\n`);
 
             res.write(`data: ${JSON.stringify({ type: 'done', finishReason: 'image_generated' })}\n\n`);
 
-            console.log(`✅ [${participantId}] Image sent to client with blob URL`);
+            console.log(`✅ [${participantId}] Image sent to client with base64 data`);
 
-            // Step 6: Download and save to GitHub asynchronously (don't block)
+            // Step 7: Save to GitHub asynchronously (don't block)
             console.log(`💾 [${participantId}] Starting async GitHub upload...`);
-            downloadAndSaveImageToGitHub(imageResult.url, participantId, filename).catch(error => {
+            saveImageToGitHub(participantId, filename, base64).catch(error => {
                 console.error(`❌ [${participantId}] Async GitHub save failed:`, error.message);
             });
 
@@ -329,6 +354,11 @@ async function generateImage(userMessage, model, imageContext, intent, res, conv
         } catch (error) {
             lastError = error;
             console.error(`❌ [${conversationContext.participantId}] Attempt ${attempt} failed:`, error.message);
+
+            // Check if it's a 500 error from OpenAI
+            if (error.message && error.message.includes('500')) {
+                console.log(`⚠️ [${conversationContext.participantId}] OpenAI 500 error detected, will retry...`);
+            }
 
             if (attempt < MAX_RETRIES) {
                 console.log(`⏳ [${conversationContext.participantId}] Retrying in ${RETRY_DELAY}ms...`);
@@ -348,43 +378,18 @@ async function generateImage(userMessage, model, imageContext, intent, res, conv
 }
 
 /**
- * Download image from blob URL and save to GitHub asynchronously
+ * Save image to GitHub asynchronously
  */
-async function downloadAndSaveImageToGitHub(blobUrl, participantId, filename) {
+async function saveImageToGitHub(participantId, filename, base64Data) {
     try {
-        console.log(`📥 [${participantId}] Downloading image from blob URL...`);
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-        const response = await fetch(blobUrl, {
-            signal: controller.signal,
-            headers: { 'User-Agent': 'ChatBot-Study/1.0' }
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-            throw new Error(`Download failed: HTTP ${response.status}`);
-        }
-
-        const arrayBuffer = await response.arrayBuffer();
-        const base64 = Buffer.from(arrayBuffer).toString('base64');
-        const sizeKB = (base64.length / 1024).toFixed(2);
-
-        console.log(`✅ [${participantId}] Image downloaded: ${sizeKB} KB`);
-
-        // Save to GitHub
         const GitHubStorage = (await import('../../utils/githubStorage.js')).default;
         const storage = new GitHubStorage();
 
-        await storage.saveImageDirect(participantId, filename, base64);
-        console.log(`✅ [${participantId}] Image saved to GitHub: ${filename}`);
+        await storage.saveImageDirect(participantId, filename, base64Data);
+        console.log(`✅ [${participantId}] Image saved to GitHub successfully`);
 
     } catch (error) {
-        if (error.name === 'AbortError') {
-            throw new Error('Image download timeout after 30s');
-        }
+        console.error(`❌ [${participantId}] GitHub save failed:`, error.message);
         throw error;
     }
 }
