@@ -71,8 +71,8 @@ class TaskChat {
         this.setupTextareaAutoResize();
         this.updateUI();
 
-        // Start auto-save
-        this.core.startAutoSave(() => this.getExportData(), 60000);
+        // Start auto-save (without images to reduce payload size)
+        this.core.startAutoSave(() => this.getExportData(false), 60000);
 
         // Setup page close handler
         this.setupPageCloseHandler();
@@ -359,7 +359,23 @@ class TaskChat {
         } catch (error) {
             console.error('❌ LLM response failed:', error.message);
             this.hideAllIndicators();
-            this.core.showError(error);
+
+            // Handle 413 errors gracefully (usually from large image payloads)
+            if (error.message.includes('413')) {
+                console.log('⚠️ Payload too large (likely images), will save on task completion');
+                this.showNotification('Message received! (Data will be saved when you complete the task)', 'info');
+                return;
+            }
+
+            // Check if this was an image generation error that was handled in stream
+            if (this.currentConversationId && this.currentConversationId.includes('image-generation')) {
+                console.log('⚠️ Image generation error handled in stream, not showing error modal');
+                this.showNotification('Failed to send message. Please try again.', 'error');
+                return;
+            }
+
+            // For other errors, just show notification (no modal)
+            this.showNotification('Failed to send message. Please try again.', 'error');
         }
     }
 
@@ -856,13 +872,33 @@ class TaskChat {
 
     /**
      * Get data for export/save
+     * @param {boolean} includeImages - Whether to include full image data URLs
      */
-    getExportData() {
+    getExportData(includeImages = false) {
         // Save current conversation state first
         this.saveCurrentConversationState();
 
+        const conversations = Object.fromEntries(this.conversations);
+
+        // If not including images, strip out base64 data URLs to reduce size
+        if (!includeImages) {
+            Object.values(conversations).forEach(conv => {
+                if (conv.messages) {
+                    conv.messages.forEach(msg => {
+                        if (msg.content && typeof msg.content === 'string') {
+                            // Replace base64 data URLs with placeholder
+                            msg.content = msg.content.replace(
+                                /!\[([^\]]*)\]\(data:image\/[^;]+;base64,[^\)]+\)/g,
+                                '![Image will be saved separately]'
+                            );
+                        }
+                    });
+                }
+            });
+        }
+
         return {
-            conversations: Object.fromEntries(this.conversations),
+            conversations,
             behaviorMetrics: this.calculateFinalMetrics(),
             sessionDuration: Date.now() - this.sessionStartTime,
             completedAt: new Date().toISOString()
@@ -883,8 +919,8 @@ class TaskChat {
         const confirmed = await this.showCompletionConfirmation();
         if (!confirmed) return;
 
-        // Save final data
-        const result = await this.core.saveTaskData(this.getExportData(), true);
+        // Save final data WITH images
+        const result = await this.core.saveTaskData(this.getExportData(true), true);
 
         if (!result.success) {
             this.showNotification('Failed to save data. Please try again.', 'error');

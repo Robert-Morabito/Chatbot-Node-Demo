@@ -49,7 +49,7 @@ export class OpenAIHandler {
         const {
             model = "dall-e-3",
             size = "1024x1024",
-            quality = "standard",
+            quality = "low",
             n = 1
         } = options;
 
