@@ -442,37 +442,30 @@ async function testChat(model) {
 
 async function testImageGeneration() {
     const prompt = document.getElementById('image-prompt').value.trim();
-
+    
     if (!prompt) {
         log('error', 'No image prompt provided');
         alert('Please enter an image prompt first');
         return;
     }
-
+    
     log('test', 'Starting image generation', { prompt: prompt.substring(0, 100) });
-
+    
     const resultDiv = document.getElementById('image-result');
     const statusDiv = document.getElementById('image-status');
     const previewDiv = document.getElementById('image-preview');
     const infoDiv = document.getElementById('image-info');
-
+    
     resultDiv.style.display = 'block';
     statusDiv.innerHTML = '<span class="status-badge pending">Generating...</span>';
     previewDiv.innerHTML = '';
     infoDiv.innerHTML = '';
-
-    // Image chunk assembly
-    let imageChunks = [];
-    let totalChunks = 0;
-    let imageMetadata = null;
-
+    
     try {
-        const messages = [
-            { sender: 'User', content: prompt }
-        ];
-
-        log('network', 'Sending request to /api/chat/stream');
-
+        const messages = [{ sender: 'User', content: prompt }];
+        
+        log('network', 'POST /api/chat/stream');
+        
         const response = await fetch('/api/chat/stream', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -484,117 +477,76 @@ async function testImageGeneration() {
                 imageContext: null
             })
         });
-
+        
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-
-        log('network', 'Stream connected, waiting for data...');
-
-        // Handle SSE stream
+        
+        log('network', 'Stream connected');
+        
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
-        let receivedChunks = 0;
-
+        let imageData = null;
+        
         while (true) {
             const { done, value } = await reader.read();
             if (done) {
                 log('network', 'Stream closed');
                 break;
             }
-
+            
             const chunk = decoder.decode(value, { stream: true });
             const lines = chunk.split('\n');
-
+            
             for (const line of lines) {
                 if (line.startsWith('data: ')) {
                     try {
                         const data = JSON.parse(line.slice(6));
-
-                        switch (data.type) {
-                            case 'image_request_detected':
-                                log('image', 'Server detected image generation request');
-                                statusDiv.innerHTML = '<span class="status-badge pending">Server processing...</span>';
-                                break;
-
-                            case 'image_metadata':
-                                imageMetadata = data;
-                                totalChunks = data.totalChunks;
-                                imageChunks = new Array(totalChunks);
-
-                                log('image', `Metadata received: ${data.filename}`, {
-                                    sizeKB: data.sizeKB.toFixed(2),
-                                    chunks: totalChunks
-                                });
-                                statusDiv.innerHTML = `<span class="status-badge pending">Downloading (0/${totalChunks})...</span>`;
-                                break;
-
-                            case 'image_chunk':
-                                imageChunks[data.chunkIndex] = data.data;
-                                receivedChunks++;
-
-                                const progress = ((data.chunkIndex + 1) / data.totalChunks * 100).toFixed(0);
-                                statusDiv.innerHTML = `<span class="status-badge pending">Downloading (${data.chunkIndex + 1}/${data.totalChunks} - ${progress}%)...</span>`;
-
-                                // Log every 10 chunks or first/last
-                                if (data.chunkIndex === 0 || data.chunkIndex === data.totalChunks - 1 || data.chunkIndex % 10 === 0) {
-                                    log('data', `Chunk ${data.chunkIndex + 1}/${data.totalChunks} received`);
-                                }
-                                break;
-
-                            case 'image_complete':
-                                log('image', 'All chunks received, assembling...');
-
-                                // Assemble chunks
-                                const completeDataUrl = imageChunks.join('');
-
-                                statusDiv.innerHTML = '<span class="status-badge success">Image Generated!</span>';
-
-                                previewDiv.innerHTML = `<img src="${completeDataUrl}" alt="Generated image">`;
-
-                                infoDiv.innerHTML = `
-                                    <div class="info-badge">File: ${imageMetadata.filename}</div>
-                                    <div class="info-badge">Size: ${imageMetadata.sizeKB.toFixed(2)} KB</div>
-                                    <div class="info-badge">Chunks: ${totalChunks}</div>
-                                `;
-
-                                log('success', 'Image assembled and displayed', {
-                                    filename: imageMetadata.filename,
-                                    totalChunks: totalChunks
-                                });
-
-                                testState.generatedImages.push({
-                                    dataUrl: completeDataUrl,
-                                    metadata: imageMetadata
-                                });
-                                break;
-
-                            case 'content':
-                                // Only log text messages (not the markdown with base64)
-                                const contentPreview = data.content.substring(0, 100);
-                                if (!contentPreview.includes('data:image')) {
-                                    log('data', `Message: ${contentPreview}${data.content.length > 100 ? '...' : ''}`);
-                                }
-                                break;
-
-                            case 'error':
-                                throw new Error(data.error);
-
-                            case 'done':
-                                log('success', `Complete: ${data.finishReason}`);
-                                break;
+                        
+                        if (data.type === 'image_request_detected') {
+                            log('image', 'Server detected image request');
+                            statusDiv.innerHTML = '<span class="status-badge pending">Server processing...</span>';
+                            
+                        } else if (data.type === 'content' && data.imageUrl) {
+                            // Image generated!
+                            imageData = data;
+                            
+                            log('success', 'Image URL received', {
+                                filename: data.imageFilename,
+                                urlType: data.imageUrl.startsWith('data:') ? 'base64' : 'blob',
+                                urlPreview: data.imageUrl.substring(0, 80) + '...'
+                            });
+                            
+                            statusDiv.innerHTML = '<span class="status-badge success">Image Generated!</span>';
+                            
+                            previewDiv.innerHTML = `<img src="${data.imageUrl}" alt="Generated image" style="max-width: 100%; border-radius: 8px;">`;
+                            
+                            infoDiv.innerHTML = `
+                                <div class="info-badge">Filename: ${data.imageFilename}</div>
+                                <div class="info-badge">URL Type: ${data.imageUrl.startsWith('data:') ? 'Base64 Data URL' : 'Blob URL (will expire)'}</div>
+                                <div class="info-badge">Prompt: ${data.imagePrompt?.substring(0, 50)}...</div>
+                            `;
+                            
+                            testState.generatedImages.push(imageData);
+                            
+                        } else if (data.type === 'content') {
+                            const preview = data.content.substring(0, 100);
+                            log('data', `Message: ${preview}${data.content.length > 100 ? '...' : ''}`);
+                            
+                        } else if (data.type === 'error') {
+                            throw new Error(data.error);
+                            
+                        } else if (data.type === 'done') {
+                            log('success', `Complete: ${data.finishReason}`);
                         }
-
+                        
                     } catch (parseError) {
-                        log('error', 'Parse error in SSE stream', {
-                            error: parseError.message,
-                            linePreview: line.substring(0, 100)
-                        });
+                        log('error', 'Parse error', { error: parseError.message });
                     }
                 }
             }
         }
-
+        
     } catch (error) {
         log('error', 'Image generation failed', { error: error.message });
         statusDiv.innerHTML = `<span class="status-badge error">Error: ${error.message}</span>`;
@@ -634,20 +586,63 @@ async function testImageRetry() {
 
 async function testBlobConversion() {
     if (testState.generatedImages.length === 0) {
-        log('error', 'No images generated yet. Generate an image first.');
+        log('error', 'No images generated yet');
         alert('Please generate an image first');
         return;
     }
-
+    
     const lastImage = testState.generatedImages[testState.generatedImages.length - 1];
-
-    log('test', 'Testing blob to base64 conversion');
-    log('info', `Image URL type: ${lastImage.imageUrl.startsWith('data:') ? 'Already base64' : 'External blob'}`);
-
+    
+    log('test', 'Testing blob → base64 conversion');
+    
     if (lastImage.imageUrl.startsWith('data:')) {
-        log('success', 'Image is already in base64 format (no blob conversion needed)');
-    } else {
-        log('warning', 'Image is still using external URL (blob conversion not implemented yet)');
+        log('info', 'Image is already in base64 format');
+        return;
+    }
+    
+    try {
+        log('data', 'Fetching blob URL...');
+        
+        const response = await fetch(lastImage.imageUrl);
+        if (!response.ok) {
+            throw new Error(`Blob fetch failed: ${response.status}`);
+        }
+        
+        const blob = await response.blob();
+        log('data', `Blob fetched: ${(blob.size / 1024).toFixed(2)} KB`);
+        
+        // Convert to base64
+        const reader = new FileReader();
+        reader.onloadend = function() {
+            const base64data = reader.result;
+            log('success', 'Converted to base64', {
+                sizeKB: (base64data.length / 1024).toFixed(2),
+                preview: base64data.substring(0, 80) + '...'
+            });
+            
+            // Update the image to use base64
+            lastImage.imageUrl = base64data;
+            testState.generatedImages[testState.generatedImages.length - 1] = lastImage;
+            
+            // Update preview
+            const previewDiv = document.getElementById('image-preview');
+            if (previewDiv) {
+                previewDiv.innerHTML = `<img src="${base64data}" alt="Generated image" style="max-width: 100%; border-radius: 8px;">`;
+            }
+            
+            const infoDiv = document.getElementById('image-info');
+            if (infoDiv) {
+                infoDiv.innerHTML = `
+                    <div class="info-badge">Filename: ${lastImage.imageFilename}</div>
+                    <div class="info-badge">URL Type: Base64 Data URL (permanent)</div>
+                    <div class="info-badge">Size: ${(base64data.length / 1024).toFixed(2)} KB</div>
+                `;
+            }
+        };
+        reader.readAsDataURL(blob);
+        
+    } catch (error) {
+        log('error', 'Blob conversion failed', { error: error.message });
     }
 }
 
@@ -657,23 +652,24 @@ function testImageDownload() {
         alert('Please generate an image first');
         return;
     }
-
+    
     const lastImage = testState.generatedImages[testState.generatedImages.length - 1];
-
-    log('test', 'Testing image download functionality');
-
+    
+    log('test', 'Testing image download');
+    
     try {
         const link = document.createElement('a');
         link.href = lastImage.imageUrl;
-        link.download = `test-image-${Date.now()}.png`;
+        link.download = lastImage.imageFilename || `test-image-${Date.now()}.png`;
         link.style.display = 'none';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-
-        log('success', 'Image download triggered');
+        
+        log('success', 'Download triggered', { filename: link.download });
+        
     } catch (error) {
-        log('error', 'Image download failed', error.message);
+        log('error', 'Download failed', { error: error.message });
     }
 }
 
