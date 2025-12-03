@@ -228,7 +228,7 @@ class StudyCore {
                 participant: this.participantId,
                 dataSize: JSON.stringify(taskData).length
             });
-
+            
             // Count images in data (for logging)
             const imageCount = JSON.stringify(taskData).match(/data:image/g)?.length || 0;
             if (imageCount > 0) {
@@ -380,10 +380,6 @@ class StudyCore {
         if (error.message.includes('timeout')) {
             return this.errorTypes.NETWORK_TIMEOUT;
         }
-        // ADD THIS:
-        if (error.message.includes('413') || error.message.includes('Content Too Large')) {
-            return this.errorTypes.SAVE_ERROR;
-        }
         if (error.message.includes('ALLOCATION_NOT_FOUND')) {
             return this.errorTypes.ALLOCATION_NOT_FOUND;
         }
@@ -438,8 +434,8 @@ class StudyCore {
             },
             [this.errorTypes.SAVE_ERROR]: {
                 title: 'Save Error',
-                message: 'The data is too large to save right now.',
-                instruction: 'This happens when images are being saved. The data will be saved when you complete the task. You can continue chatting normally.',
+                message: 'Unable to save your data.',
+                instruction: 'Your conversation is still active. Please try the action again.',
                 recoverable: true
             },
             [this.errorTypes.SERVER_ERROR]: {
@@ -526,15 +522,26 @@ class StudyCore {
                     justify-content: center;
                     gap: 1rem;
                 ">
-                    <button onclick="document.getElementById('error-overlay').remove();" style="
-                        background: #ef4444;
-                        color: white;
-                        border: none;
+                    ${errorInfo.recoverable ? `
+                        <button onclick="location.reload()" style="
+                            background: #ef4444;
+                            color: white;
+                            border: none;
+                            padding: 0.75rem 1.5rem;
+                            border-radius: 6px;
+                            font-weight: 500;
+                            cursor: pointer;
+                        ">Try Again</button>
+                    ` : ''}
+                    <button onclick="window.close(); document.getElementById('error-overlay').remove();" style="
+                        background: transparent;
+                        color: #9ca3af;
+                        border: 1px solid #6b7280;
                         padding: 0.75rem 1.5rem;
                         border-radius: 6px;
                         font-weight: 500;
                         cursor: pointer;
-                    ">Close & Continue</button>
+                    ">Close</button>
                 </div>
             </div>
         `;

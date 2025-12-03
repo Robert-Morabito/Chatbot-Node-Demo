@@ -523,35 +523,6 @@ class GitHubStorage {
     }
 
     /**
-     * Strip base64 images from conversations to reduce payload size
-     * @private
-     */
-    _stripImagesFromConversations(taskData) {
-        const cleaned = JSON.parse(JSON.stringify(taskData)); // Deep copy
-
-        if (cleaned.conversations) {
-            Object.values(cleaned.conversations).forEach(conv => {
-                if (conv.messages) {
-                    conv.messages.forEach(msg => {
-                        if (msg.content && typeof msg.content === 'string') {
-                            // Replace base64 data URLs with reference
-                            msg.content = msg.content.replace(
-                                /!\[Generated Image\]\(data:image\/[^;]+;base64,[^\)]+\)/g,
-                                (match) => {
-                                    // Extract any filename if present, otherwise use placeholder
-                                    return '![Image saved to GitHub]';
-                                }
-                            );
-                        }
-                    });
-                }
-            });
-        }
-
-        return cleaned;
-    }
-
-    /**
      * Direct image upload (for testing and manual uploads)
      * @param {string} participantId - Participant identifier
      * @param {string} filename - Image filename
@@ -626,28 +597,6 @@ class GitHubStorage {
     async saveTaskData(participantId, taskName, taskData) {
         try {
             console.log('💾 Saving task data to GitHub:', { participantId, taskName });
-
-            // Extract and save images FIRST (for image-generation task)
-            if (taskName === 'image-generation' && taskData.conversations) {
-                console.log('🖼️ Extracting images from conversations...');
-                const imageUrls = this._extractImageUrls({ conversations: taskData.conversations });
-
-                if (imageUrls.length > 0) {
-                    console.log(`📸 Found ${imageUrls.length} images to save`);
-
-                    for (const imageInfo of imageUrls) {
-                        try {
-                            await this._saveImage(participantId, imageInfo);
-                        } catch (error) {
-                            console.error(`⚠️ Failed to save image ${imageInfo.filename}:`, error.message);
-                            // Continue with other images
-                        }
-                    }
-                }
-
-                // Now strip images from chatlog to reduce size
-                taskData = this._stripImagesFromConversations(taskData);
-            }
 
             const fileName = `${this.paths.participants}/${participantId}/task-${taskName}.json`;
             const content = JSON.stringify(taskData, null, 2);

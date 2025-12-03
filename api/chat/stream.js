@@ -22,7 +22,7 @@ import { ClaudeHandler } from '../../handlers/claudeHandler.js';
 
 const VALID_MODELS = {
     openai: ['gpt-3.5-turbo-0125', 'gpt-4-0125-preview', 'gpt-5-2025-08-07'],
-    claude: ['claude-3-haiku-20240307', 'claude-3-5-haiku-20241022', 'claude-sonnet-4-20250514']
+    claude: ['claude-3-haiku-20240307', '3-5-haiku-20241022', 'claude-sonnet-4-20250514']
 };
 
 // ===================================================================
@@ -649,7 +649,7 @@ async function streamRegularChat(messages, model, res) {
 
 export const config = {
     api: {
-        bodyParser: { sizeLimit: '20mb' },
+        bodyParser: { sizeLimit: '10mb' },
         responseLimit: false,
     },
 };
