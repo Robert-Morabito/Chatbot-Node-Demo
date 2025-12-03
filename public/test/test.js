@@ -420,6 +420,9 @@ async function testImageGeneration() {
         let imageData = null;
         let detectedImageRequest = false;
 
+        // Buffer for accumulating incomplete SSE events
+        let buffer = '';
+
         while (true) {
             const { done, value } = await reader.read();
             if (done) {
@@ -427,65 +430,82 @@ async function testImageGeneration() {
                 break;
             }
 
+            // Decode chunk and add to buffer
             const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split('\n');
+            buffer += chunk;
 
-            for (const line of lines) {
-                if (!line.startsWith('data: ')) continue;
+            // Process complete SSE events (terminated by \n\n)
+            const events = buffer.split('\n\n');
 
-                try {
-                    const data = JSON.parse(line.slice(6));
+            // Keep the last incomplete event in buffer
+            buffer = events.pop() || '';
 
-                    // Log server events to client
-                    if (data.type === 'server_log') {
-                        log('info', `[SERVER] ${data.message}`);
-                        continue;
-                    }
+            // Process each complete event
+            for (const event of events) {
+                if (!event.trim()) continue;
 
-                    if (data.type === 'image_request_detected') {
-                        detectedImageRequest = true;
-                        log('info', 'Image request detected by classifier');
+                const lines = event.split('\n');
+                for (const line of lines) {
+                    if (!line.startsWith('data: ')) continue;
 
-                    } else if (data.type === 'content' && data.imageUrl) {
-                        clearInterval(timerInterval);
-                        const totalTime = ((Date.now() - startTime) / 1000).toFixed(2);
+                    try {
+                        const data = JSON.parse(line.slice(6));
 
-                        imageData = data;
-
-                        const isBase64 = data.imageUrl.startsWith('data:');
-                        const format = data.imageFormat || (isBase64 ? 'base64' : 'blob');
-                        const sizeKB = data.imageSize || (data.imageUrl.length / 1024).toFixed(1);
-
-                        log('success', `Image generated in ${totalTime}s (${sizeKB} KB)`);
-                        log('info', `Format: ${format}`);
-
-                        if (data.imagePrompt) {
-                            log('info', `Enhanced: "${data.imagePrompt.substring(0, 60)}${data.imagePrompt.length > 60 ? '...' : ''}"`);
+                        // Log server events to client
+                        if (data.type === 'server_log') {
+                            log('info', `[SERVER] ${data.message}`);
+                            continue;
                         }
 
-                        if (data.revisedPrompt) {
-                            log('info', `DALL-E: "${data.revisedPrompt.substring(0, 60)}${data.revisedPrompt.length > 60 ? '...' : ''}"`);
+                        if (data.type === 'image_request_detected') {
+                            detectedImageRequest = true;
+                            log('info', 'Image request detected by classifier');
+
+                        } else if (data.type === 'content' && data.imageUrl) {
+                            clearInterval(timerInterval);
+                            const totalTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
+                            imageData = data;
+
+                            const isBase64 = data.imageUrl.startsWith('data:');
+                            const format = data.imageFormat || (isBase64 ? 'base64' : 'blob');
+                            const sizeKB = data.imageSize || (data.imageUrl.length / 1024).toFixed(1);
+
+                            log('success', `Image generated in ${totalTime}s (${sizeKB} KB)`);
+                            log('info', `Format: ${format}`);
+
+                            if (data.imagePrompt) {
+                                log('info', `Enhanced: "${data.imagePrompt.substring(0, 60)}${data.imagePrompt.length > 60 ? '...' : ''}"`);
+                            }
+
+                            if (data.revisedPrompt) {
+                                log('info', `DALL-E: "${data.revisedPrompt.substring(0, 60)}${data.revisedPrompt.length > 60 ? '...' : ''}"`);
+                            }
+
+                            // Display the image
+                            previewDiv.innerHTML = `<img src="${data.imageUrl}" alt="Generated" style="max-width: 100%; border-radius: 8px;">`;
+
+                            infoDiv.innerHTML = `
+                                <div class="info-badge">Time: ${totalTime}s</div>
+                                <div class="info-badge">Size: ${sizeKB} KB</div>
+                                <div class="info-badge">Format: ${format}</div>
+                                <div class="info-badge">Type: ${isBase64 ? '✅ Data URL' : '⚠️ External'}</div>
+                            `;
+
+                            testState.generatedImages.push(imageData);
+
+                        } else if (data.type === 'done') {
+                            log('info', 'Generation complete');
+
+                        } else if (data.type === 'error') {
+                            throw new Error(data.error);
                         }
-
-                        previewDiv.innerHTML = `<img src="${data.imageUrl}" alt="Generated" style="max-width: 100%; border-radius: 8px;">`;
-
-                        infoDiv.innerHTML = `
-                            <div class="info-badge">Time: ${totalTime}s</div>
-                            <div class="info-badge">Size: ${sizeKB} KB</div>
-                            <div class="info-badge">Format: ${format}</div>
-                            <div class="info-badge">Type: ${isBase64 ? '✅ Data URL' : '⚠️ External'}</div>
-                        `;
-
-                        testState.generatedImages.push(imageData);
-
-                    } else if (data.type === 'done') {
-                        log('info', 'Generation complete');
-
-                    } else if (data.type === 'error') {
-                        throw new Error(data.error);
+                    } catch (parseError) {
+                        // Only log if it's not just whitespace
+                        if (line.trim()) {
+                            console.warn('Parse error on line:', line.substring(0, 100));
+                        }
                     }
-                } catch (parseError) {
-                    // Skip parse errors for non-JSON lines
                 }
             }
         }
