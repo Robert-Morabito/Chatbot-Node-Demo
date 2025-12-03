@@ -294,50 +294,6 @@ function generateImageFilename(participantId, chatNumber, messageNumber) {
 }
 
 /**
- * Send large base64 data in chunks through SSE
- */
-function sendImageDataInChunks(res, imageData, metadata) {
-    const CHUNK_SIZE = 50000; // 50KB chunks
-    const base64Data = imageData.dataUrl;
-    const totalChunks = Math.ceil(base64Data.length / CHUNK_SIZE);
-
-    console.log(`📦 Sending image in ${totalChunks} chunks...`);
-
-    // Send metadata first
-    res.write(`data: ${JSON.stringify({
-        type: 'image_metadata',
-        filename: metadata.filename,
-        totalChunks: totalChunks,
-        sizeKB: metadata.sizeKB,
-        imagePrompt: metadata.imagePrompt,
-        originalPrompt: metadata.originalPrompt,
-        revisedPrompt: metadata.revisedPrompt
-    })}\n\n`);
-
-    // Send data in chunks
-    for (let i = 0; i < totalChunks; i++) {
-        const start = i * CHUNK_SIZE;
-        const end = Math.min(start + CHUNK_SIZE, base64Data.length);
-        const chunk = base64Data.slice(start, end);
-
-        res.write(`data: ${JSON.stringify({
-            type: 'image_chunk',
-            chunkIndex: i,
-            totalChunks: totalChunks,
-            data: chunk
-        })}\n\n`);
-    }
-
-    // Send completion
-    res.write(`data: ${JSON.stringify({
-        type: 'image_complete',
-        totalChunks: totalChunks
-    })}\n\n`);
-
-    console.log(`✅ Image sent in ${totalChunks} chunks`);
-}
-
-/**
  * Generates image using DALL-E with error handling and retry logic
  */
 async function generateImage(userMessage, model, imageContext, intent, res, conversationContext) {
@@ -351,11 +307,10 @@ async function generateImage(userMessage, model, imageContext, intent, res, conv
         attempt++;
 
         try {
-            console.log(`🎨 [Attempt ${attempt}/${MAX_RETRIES}] Generating image...`);
+            console.log(`🎨 Image generation attempt ${attempt}/${MAX_RETRIES}`);
 
             // Step 1: Enhance the prompt using the assigned model
             const enhancedPrompt = await enhanceImagePrompt(userMessage, model, imageContext, intent);
-            console.log(`📝 Enhanced prompt: ${enhancedPrompt.substring(0, 100)}...`);
 
             // Step 2: Generate image with DALL-E
             const imageHandler = new OpenAIHandler(process.env.OPENAI_API_KEY);
@@ -365,9 +320,7 @@ async function generateImage(userMessage, model, imageContext, intent, res, conv
                 throw new Error('Image generation failed or returned no URL');
             }
 
-            console.log(`✅ DALL-E returned image URL`);
-
-            // Step 3: Check if the result contains error text
+            // Step 3: Check if the result is actually an error message
             const errorCheck = detectImageErrorInText(imageResult.revisedPrompt || enhancedPrompt);
 
             if (errorCheck.isError) {
@@ -388,16 +341,15 @@ async function generateImage(userMessage, model, imageContext, intent, res, conv
 
                 if (errorCheck.shouldRetry && attempt < MAX_RETRIES) {
                     // Retry-able error
-                    console.log(`⚠️ Generation error detected in text, retrying in ${RETRY_DELAY}ms...`);
+                    console.log(`⚠️ Generation error detected, retrying in ${RETRY_DELAY}ms...`);
                     await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
                     continue; // Retry
                 }
             }
 
             // Step 4: Download and convert to base64
-            console.log('📥 Downloading image and converting to base64...');
+            console.log('📥 Converting image to base64...');
             const imageData = await downloadImageAsBase64(imageResult.url);
-            console.log(`✅ Image converted: ${imageData.sizeKB.toFixed(2)} KB`);
 
             // Step 5: Generate consistent filename
             const { participantId, chatNumber, messageNumber } = conversationContext || {};
@@ -407,34 +359,29 @@ async function generateImage(userMessage, model, imageContext, intent, res, conv
                 messageNumber || 1
             );
 
-            console.log(`📝 Generated filename: ${filename}`);
+            console.log(`📝 Image filename: ${filename}`);
 
-            // Step 6: Send image data in chunks
-            const messagePrefix = intent === 'modify_image'
-                ? `I've modified the image based on your request:`
-                : `I've generated an image for you:`;
+            // Step 6: Send response to client with base64 data
+            const responseMessage = intent === 'modify_image'
+                ? `I've modified the image based on your request:\n\n![Generated Image](${imageData.dataUrl})`
+                : `I've generated an image for you:\n\n![Generated Image](${imageData.dataUrl})`;
 
-            // Send text message first
-            res.write(`data: ${JSON.stringify({
+            const responseData = {
                 type: 'content',
-                content: messagePrefix,
-                fullContent: messagePrefix
-            })}\n\n`);
-
-            // Send image in chunks
-            sendImageDataInChunks(res, imageData, {
-                filename,
-                sizeKB: imageData.sizeKB,
+                content: responseMessage,
+                fullContent: responseMessage,
+                imageData: imageData.dataUrl, // Base64 data URL
+                imageFilename: filename,
                 imagePrompt: enhancedPrompt,
                 originalPrompt: userMessage,
-                revisedPrompt: imageResult.revisedPrompt
-            });
+                revisedPrompt: imageResult.revisedPrompt,
+                sizeKB: imageData.sizeKB
+            };
 
-            // Send completion
+            res.write(`data: ${JSON.stringify(responseData)}\n\n`);
             res.write(`data: ${JSON.stringify({ type: 'done', finishReason: 'image_generated' })}\n\n`);
 
             // Step 7: Save to GitHub asynchronously (don't block response)
-            console.log('💾 Starting async GitHub upload...');
             saveImageToGitHub(participantId, filename, imageData.base64).catch(error => {
                 console.error('⚠️ Async GitHub save failed:', error.message);
                 // Log but don't fail the response - participant already has the image
@@ -444,7 +391,7 @@ async function generateImage(userMessage, model, imageContext, intent, res, conv
 
         } catch (error) {
             lastError = error;
-            console.error(`❌ Attempt ${attempt} failed:`, error.message);
+            console.error(`❌ Image generation attempt ${attempt} failed:`, error.message);
 
             if (attempt < MAX_RETRIES) {
                 console.log(`⏳ Retrying in ${RETRY_DELAY}ms...`);
@@ -454,9 +401,9 @@ async function generateImage(userMessage, model, imageContext, intent, res, conv
     }
 
     // All retries failed
-    console.error('❌ All image generation attempts exhausted');
+    console.error('❌ All image generation attempts failed');
 
-    const errorMessage = `I apologize, but I encountered an error while generating the image after ${MAX_RETRIES} attempts. Please try again. Error: ${lastError?.message || 'Unknown error'}`;
+    const errorMessage = `I apologize, but I encountered an error while generating the image. Please try again with a different prompt. Error: ${lastError?.message || 'Unknown error'}`;
     res.write(`data: ${JSON.stringify({ type: 'content', content: errorMessage, fullContent: errorMessage })}\n\n`);
     res.write(`data: ${JSON.stringify({ type: 'done', finishReason: 'error' })}\n\n`);
 

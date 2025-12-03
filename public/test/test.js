@@ -15,57 +15,6 @@ let testState = {
     idleStartTime: null
 };
 
-// ===================================================================
-// INTERCEPT CONSOLE FOR TEST LOGGING
-// ===================================================================
-
-(function interceptConsole() {
-    const originalConsole = {
-        log: console.log,
-        error: console.error,
-        warn: console.warn,
-        info: console.info
-    };
-
-    console.error = function (...args) {
-        originalConsole.error.apply(console, args);
-
-        // Log to test UI
-        const message = args.map(arg =>
-            typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
-        ).join(' ');
-
-        log('error', `Console Error: ${message}`);
-    };
-
-    console.warn = function (...args) {
-        originalConsole.warn.apply(console, args);
-
-        const message = args.map(arg =>
-            typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
-        ).join(' ');
-
-        log('warning', `Console Warning: ${message}`);
-    };
-
-    // Intercept unhandled promise rejections
-    window.addEventListener('unhandledrejection', function (event) {
-        log('error', `Unhandled Promise Rejection: ${event.reason?.message || event.reason}`);
-        console.error('Unhandled rejection:', event.reason);
-    });
-
-    // Intercept global errors
-    window.addEventListener('error', function (event) {
-        log('error', `Global Error: ${event.message} at ${event.filename}:${event.lineno}`);
-    });
-})();
-
-// Initialize on load
-document.addEventListener('DOMContentLoaded', () => {
-    log('info', 'Test suite initialized');
-    // ... rest of initialization
-});
-
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
     log('info', 'Test suite initialized');
@@ -88,11 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 function log(type, message, details = null) {
     const logContainer = document.getElementById('test-log');
-    if (!logContainer) {
-        console.warn('Log container not found');
-        return;
-    }
-
     const timestamp = new Date().toLocaleTimeString();
 
     const icons = {
@@ -108,27 +52,16 @@ function log(type, message, details = null) {
 
     const entry = document.createElement('div');
     entry.className = 'log-entry';
-
-    let detailsHtml = '';
-    if (details) {
-        const detailsStr = typeof details === 'object'
-            ? JSON.stringify(details, null, 2)
-            : String(details);
-        detailsHtml = `<pre style="margin: 0.5rem 0 0 0; font-size: 0.75rem; color: #9ca3af; white-space: pre-wrap; word-break: break-word;">${detailsStr}</pre>`;
-    }
-
     entry.innerHTML = `
         <span class="log-time">${timestamp}</span>
         <span class="log-icon">${icons[type] || 'ℹ️'}</span>
-        <span class="log-message">${message}${detailsHtml}</span>
+        <span class="log-message">${message}${details ? `\n${JSON.stringify(details, null, 2)}` : ''}</span>
     `;
 
     logContainer.appendChild(entry);
     logContainer.scrollTop = logContainer.scrollHeight;
 
-    // Also log to console for debugging
-    const consoleMethod = type === 'error' ? 'error' : type === 'warning' ? 'warn' : 'log';
-    console[consoleMethod](`[${type.toUpperCase()}] ${message}`, details || '');
+    console.log(`[${type.toUpperCase()}] ${message}`, details || '');
 }
 
 /**
@@ -492,24 +425,17 @@ async function testImageGeneration() {
     previewDiv.innerHTML = '';
     infoDiv.innerHTML = '';
 
-    // Image chunk assembly
-    let imageChunks = [];
-    let totalChunks = 0;
-    let imageMetadata = null;
-
     try {
         const messages = [
             { sender: 'User', content: prompt }
         ];
-
-        log('network', 'Sending image generation request...');
 
         const response = await fetch('/api/chat/stream', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messages,
-                model: 'gpt-4-0125-preview',
+                model: 'gpt-4-0125-preview', // Use GPT-4 for image gen
                 sessionId: testState.allocationId || 'test-session',
                 conversationId: `image-generation_${Date.now()}`,
                 imageContext: null
@@ -520,18 +446,14 @@ async function testImageGeneration() {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        log('network', 'SSE stream connected, waiting for response...');
-
         // Handle SSE stream
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
+        let imageData = null;
 
         while (true) {
             const { done, value } = await reader.read();
-            if (done) {
-                log('network', 'SSE stream closed');
-                break;
-            }
+            if (done) break;
 
             const chunk = decoder.decode(value, { stream: true });
             const lines = chunk.split('\n');
@@ -542,73 +464,34 @@ async function testImageGeneration() {
                         const data = JSON.parse(line.slice(6));
 
                         if (data.type === 'image_request_detected') {
-                            log('image', 'Image request detected by server');
-                            statusDiv.innerHTML = '<span class="status-badge pending">Processing request...</span>';
-
-                        } else if (data.type === 'image_metadata') {
-                            // Store metadata
-                            imageMetadata = data;
-                            totalChunks = data.totalChunks;
-                            imageChunks = new Array(totalChunks);
-
-                            log('image', `Image metadata received: ${data.filename} (${data.sizeKB.toFixed(2)} KB, ${totalChunks} chunks)`);
-                            statusDiv.innerHTML = `<span class="status-badge pending">Downloading image (0/${totalChunks} chunks)...</span>`;
-
-                        } else if (data.type === 'image_chunk') {
-                            // Store chunk
-                            imageChunks[data.chunkIndex] = data.data;
-
-                            const progress = ((data.chunkIndex + 1) / data.totalChunks * 100).toFixed(0);
-                            statusDiv.innerHTML = `<span class="status-badge pending">Downloading image (${data.chunkIndex + 1}/${data.totalChunks} chunks - ${progress}%)...</span>`;
-
-                            if (data.chunkIndex % 5 === 0) { // Log every 5 chunks
-                                log('data', `Received chunk ${data.chunkIndex + 1}/${data.totalChunks}`);
-                            }
-
-                        } else if (data.type === 'image_complete') {
-                            // Assemble chunks
-                            log('image', 'All chunks received, assembling image...');
-
-                            const completeDataUrl = imageChunks.join('');
+                            statusDiv.innerHTML = '<span class="status-badge pending">Image request detected...</span>';
+                        } else if (data.type === 'content' && data.imageUrl) {
+                            imageData = data;
 
                             statusDiv.innerHTML = '<span class="status-badge success">Image Generated!</span>';
 
                             previewDiv.innerHTML = `
-                                <img src="${completeDataUrl}" alt="Generated image">
+                                <img src="${data.imageUrl}" alt="Generated image">
                             `;
 
                             infoDiv.innerHTML = `
-                                <div class="info-badge">Filename: ${imageMetadata.filename}</div>
-                                <div class="info-badge">Size: ${imageMetadata.sizeKB.toFixed(2)} KB</div>
-                                <div class="info-badge">Chunks: ${totalChunks}</div>
-                                <div class="info-badge">Enhanced Prompt: ${imageMetadata.imagePrompt?.substring(0, 50)}...</div>
+                                <div class="info-badge">Prompt: ${data.imagePrompt || 'N/A'}</div>
+                                <div class="info-badge">URL Type: ${data.imageUrl.startsWith('data:') ? 'Base64' : 'External'}</div>
+                                <div class="info-badge">Size: ${(data.imageUrl.length / 1024).toFixed(2)} KB</div>
                             `;
 
-                            log('success', 'Image generated and assembled successfully', {
-                                filename: imageMetadata.filename,
-                                sizeKB: imageMetadata.sizeKB,
-                                totalChunks: totalChunks
+                            log('success', 'Image generated successfully', {
+                                originalPrompt: data.originalPrompt,
+                                enhancedPrompt: data.imagePrompt,
+                                urlType: data.imageUrl.startsWith('data:') ? 'base64' : 'external'
                             });
 
-                            testState.generatedImages.push({
-                                dataUrl: completeDataUrl,
-                                metadata: imageMetadata
-                            });
-
-                        } else if (data.type === 'content') {
-                            log('data', `Server message: ${data.content.substring(0, 100)}${data.content.length > 100 ? '...' : ''}`);
-
+                            testState.generatedImages.push(imageData);
                         } else if (data.type === 'error') {
                             throw new Error(data.error);
-
-                        } else if (data.type === 'done') {
-                            log('success', `Generation complete: ${data.finishReason}`);
                         }
-
                     } catch (parseError) {
-                        log('error', 'Failed to parse SSE message', parseError.message);
                         console.error('Parse error:', parseError);
-                        console.error('Problematic line:', line.substring(0, 200));
                     }
                 }
             }
@@ -617,7 +500,6 @@ async function testImageGeneration() {
     } catch (error) {
         log('error', 'Image generation failed', error.message);
         statusDiv.innerHTML = `<span class="status-badge error">Error: ${error.message}</span>`;
-        console.error('Full error:', error);
     }
 }
 
