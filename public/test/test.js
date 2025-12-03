@@ -1,82 +1,91 @@
 /**
  * Test Suite for Chatbot Study
- * Comprehensive testing interface for all participant-facing functionality
+ * Simplified, actionable testing with clean logging
  */
 
 // Global state
 let testState = {
     participantId: null,
     allocationId: null,
-    currentModel: null,
-    currentTask: null,
     chatHistory: [],
-    generatedImages: [],
-    idleTimer: null,
-    idleStartTime: null
+    generatedImages: []
 };
 
-// Initialize on load
+// Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    log('info', 'Test suite initialized');
+    log('info', 'Test suite ready');
     
-    // Auto-populate participant ID if in URL
+    // Auto-populate PID from URL
     const urlParams = new URLSearchParams(window.location.search);
     const pidFromUrl = urlParams.get('pid');
     if (pidFromUrl) {
         document.getElementById('participant-id').value = pidFromUrl;
-        log('info', `Participant ID loaded from URL: ${pidFromUrl}`);
+        log('info', `Loaded PID from URL: ${pidFromUrl}`);
     }
 });
 
 // ===================================================================
-// UTILITY FUNCTIONS
+// LOGGING SYSTEM (Simplified)
 // ===================================================================
 
 /**
- * Log a test event
+ * Log a test event (simplified output)
  */
-function log(type, message, details = null) {
+function log(type, message) {
     const logContainer = document.getElementById('test-log');
-    const timestamp = new Date().toLocaleTimeString();
+    const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
     
     const icons = {
         info: 'ℹ️',
         success: '✅',
         error: '❌',
         warning: '⚠️',
-        test: '🧪',
-        network: '📡',
-        data: '💾',
-        image: '🖼️'
+        start: '▶️',
+        finish: '⏹️'
     };
     
     const entry = document.createElement('div');
-    entry.className = 'log-entry';
+    entry.className = `log-entry ${type}`;
     entry.innerHTML = `
         <span class="log-time">${timestamp}</span>
         <span class="log-icon">${icons[type] || 'ℹ️'}</span>
-        <span class="log-message">${message}${details ? `\n${JSON.stringify(details, null, 2)}` : ''}</span>
+        <span class="log-message">${message}</span>
     `;
     
     logContainer.appendChild(entry);
     logContainer.scrollTop = logContainer.scrollHeight;
-    
-    console.log(`[${type.toUpperCase()}] ${message}`, details || '');
 }
 
-/**
- * Show result in a result box
- */
+function clearLog() {
+    const logContainer = document.getElementById('test-log');
+    logContainer.innerHTML = '<div class="log-entry"><span class="log-time">--:--:--</span><span class="log-icon">ℹ️</span><span class="log-message">Log cleared</span></div>';
+    log('info', 'Log cleared');
+}
+
+function copyLog() {
+    const logContainer = document.getElementById('test-log');
+    const text = Array.from(logContainer.querySelectorAll('.log-entry'))
+        .map(entry => entry.innerText)
+        .join('\n');
+    
+    navigator.clipboard.writeText(text).then(() => {
+        log('info', 'Log copied to clipboard');
+    });
+}
+
+// ===================================================================
+// UTILITY FUNCTIONS
+// ===================================================================
+
 function showResult(elementId, content, isSuccess = true) {
     const element = document.getElementById(elementId);
     element.style.display = 'block';
     element.className = `result-box ${isSuccess ? 'success' : 'error'}`;
-    element.textContent = typeof content === 'object' ? JSON.stringify(content, null, 2) : content;
+    element.textContent = typeof content === 'object' 
+        ? JSON.stringify(content, null, 2) 
+        : content;
 }
 
-/**
- * Get participant ID from input
- */
 function getParticipantId() {
     const input = document.getElementById('participant-id');
     const pid = input.value.trim();
@@ -88,15 +97,12 @@ function getParticipantId() {
     }
     
     if (pid.length !== 24) {
-        log('warning', `Participant ID is ${pid.length} characters (expected 24)`);
+        log('warning', `PID is ${pid.length} chars (expected 24)`);
     }
     
     return pid;
 }
 
-/**
- * Generate a test participant ID
- */
 function generateTestId() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let id = 'TEST';
@@ -107,32 +113,21 @@ function generateTestId() {
     log('info', `Generated test ID: ${id}`);
 }
 
-/**
- * Reset test state
- */
 function resetTest() {
-    if (!confirm('Reset all test data? This will clear the log and state.')) return;
+    if (!confirm('Reset all test data?')) return;
     
     testState = {
         participantId: null,
         allocationId: null,
-        currentModel: null,
-        currentTask: null,
         chatHistory: [],
-        generatedImages: [],
-        idleTimer: null,
-        idleStartTime: null
+        generatedImages: []
     };
     
     clearLog();
-    log('info', 'Test state reset');
 }
 
-/**
- * Quick start - common setup
- */
 async function quickStart() {
-    log('test', 'Starting quick setup...');
+    log('start', 'Running quick setup...');
     
     if (!document.getElementById('participant-id').value) {
         generateTestId();
@@ -142,52 +137,12 @@ async function quickStart() {
     if (!pid) return;
     
     await testAllocationClaim();
-    log('success', 'Quick start completed');
+    log('finish', 'Quick setup complete');
 }
 
-/**
- * Toggle section collapse
- */
 function toggleSection(headerElement) {
     const section = headerElement.parentElement;
     section.classList.toggle('collapsed');
-}
-
-/**
- * Copy text to clipboard
- */
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        log('info', 'Copied to clipboard');
-    }).catch(err => {
-        log('error', 'Failed to copy', err);
-    });
-}
-
-function copyLog() {
-    const logContainer = document.getElementById('test-log');
-    copyToClipboard(logContainer.innerText);
-}
-
-function clearLog() {
-    const logContainer = document.getElementById('test-log');
-    logContainer.innerHTML = `
-        <div class="log-entry">
-            <span class="log-time">--:--:--</span>
-            <span class="log-icon">ℹ️</span>
-            <span class="log-message">Log cleared</span>
-        </div>
-    `;
-}
-
-function copyChatlog() {
-    const json = document.getElementById('chatlog-json').textContent;
-    copyToClipboard(json);
-}
-
-function copyFinalData() {
-    const json = document.getElementById('final-data-json').textContent;
-    copyToClipboard(json);
 }
 
 // ===================================================================
@@ -198,7 +153,7 @@ async function testAllocationClaim() {
     const pid = getParticipantId();
     if (!pid) return;
     
-    log('test', `Testing allocation claim for: ${pid}`);
+    log('start', `Claiming allocation for ${pid}`);
     
     try {
         const response = await fetch('/api/allocation/claim', {
@@ -216,16 +171,13 @@ async function testAllocationClaim() {
         testState.allocationId = data.id;
         testState.participantId = pid;
         
-        log('success', 'Allocation claimed successfully', {
-            allocationId: data.id,
-            shownModel: data.shown_model,
-            sourceModel: data.source_model
-        });
+        log('success', `Claimed allocation #${data.id}`);
+        log('info', `Assigned: ${data.shown_model} (actual: ${data.source_model})`);
         
-        showResult('allocation-result', data, true);
+        showResult('allocation-result', `Allocation #${data.id}\nShown: ${data.shown_model}\nActual: ${data.source_model}`, true);
         
     } catch (error) {
-        log('error', 'Allocation claim failed', error.message);
+        log('error', `Claim failed: ${error.message}`);
         showResult('allocation-result', error.message, false);
     }
 }
@@ -234,7 +186,7 @@ async function testAllocationStatus() {
     const pid = getParticipantId();
     if (!pid) return;
     
-    log('test', `Checking allocation status for: ${pid}`);
+    log('start', 'Checking allocation status');
     
     try {
         const response = await fetch(`/api/allocation/status?user_id=${encodeURIComponent(pid)}`);
@@ -244,11 +196,11 @@ async function testAllocationStatus() {
             throw new Error(data.error || `HTTP ${response.status}`);
         }
         
-        log('success', 'Allocation status retrieved', data);
-        showResult('allocation-result', data, true);
+        log('success', `Status: ${data.submitted ? 'Submitted' : 'Active'}`);
+        showResult('allocation-result', `Allocation #${data.id}\nStatus: ${data.submitted ? 'Submitted' : 'Active'}`, true);
         
     } catch (error) {
-        log('error', 'Allocation status check failed', error.message);
+        log('error', `Status check failed: ${error.message}`);
         showResult('allocation-result', error.message, false);
     }
 }
@@ -257,9 +209,9 @@ async function testAllocationRelease() {
     const pid = getParticipantId();
     if (!pid) return;
     
-    if (!confirm('Release allocation? This will free up the slot.')) return;
+    if (!confirm('Release allocation? This frees the slot.')) return;
     
-    log('test', `Releasing allocation for: ${pid}`);
+    log('start', 'Releasing allocation');
     
     try {
         const response = await fetch('/api/allocation/release', {
@@ -273,13 +225,12 @@ async function testAllocationRelease() {
             throw new Error(data.error || `HTTP ${response.status}`);
         }
         
-        log('success', 'Allocation released successfully');
-        showResult('allocation-result', 'Allocation released', true);
-        
+        log('success', 'Allocation released');
+        showResult('allocation-result', 'Released successfully', true);
         testState.allocationId = null;
         
     } catch (error) {
-        log('error', 'Allocation release failed', error.message);
+        log('error', `Release failed: ${error.message}`);
         showResult('allocation-result', error.message, false);
     }
 }
@@ -288,7 +239,7 @@ async function testAllocationConfirm() {
     const pid = getParticipantId();
     if (!pid) return;
     
-    log('test', `Confirming allocation for: ${pid}`);
+    log('start', 'Confirming allocation');
     
     try {
         const response = await fetch('/api/allocation/confirm', {
@@ -302,11 +253,11 @@ async function testAllocationConfirm() {
             throw new Error(data.error || `HTTP ${response.status}`);
         }
         
-        log('success', 'Allocation confirmed successfully');
-        showResult('allocation-result', 'Allocation marked as submitted', true);
+        log('success', 'Allocation confirmed as submitted');
+        showResult('allocation-result', 'Confirmed successfully', true);
         
     } catch (error) {
-        log('error', 'Allocation confirm failed', error.message);
+        log('error', `Confirm failed: ${error.message}`);
         showResult('allocation-result', error.message, false);
     }
 }
@@ -320,22 +271,21 @@ async function testChat(model) {
     
     if (!message) {
         log('error', 'No message provided');
-        alert('Please enter a message first');
+        alert('Enter a message first');
         return;
     }
     
-    log('test', `Testing chat with ${model}`, { message });
+    log('start', `Testing ${model}`);
+    log('info', `Message: "${message.substring(0, 50)}${message.length > 50 ? '...' : ''}"`);
     
     const resultDiv = document.getElementById('chat-result');
     const responseDiv = document.getElementById('chat-response');
     
     resultDiv.style.display = 'block';
-    responseDiv.innerHTML = '<em>Waiting for response...</em>';
+    responseDiv.innerHTML = '<em>Waiting...</em>';
     
     try {
-        const messages = [
-            { sender: 'User', content: message }
-        ];
+        const messages = [{ sender: 'User', content: message }];
         
         const response = await fetch('/api/chat/stream', {
             method: 'POST',
@@ -349,10 +299,9 @@ async function testChat(model) {
         });
         
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            throw new Error(`HTTP ${response.status}`);
         }
         
-        // Handle SSE stream
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let fullResponse = '';
@@ -373,30 +322,22 @@ async function testChat(model) {
                             fullResponse = data.fullContent || fullResponse + data.content;
                             responseDiv.textContent = fullResponse;
                         } else if (data.type === 'done') {
-                            log('success', `Chat response received (${fullResponse.length} chars)`, {
-                                model,
-                                finishReason: data.finishReason
-                            });
+                            log('success', `Response received (${fullResponse.length} chars)`);
                         } else if (data.type === 'error') {
                             throw new Error(data.error);
                         }
                     } catch (parseError) {
-                        console.error('Parse error:', parseError);
+                        // Skip parse errors
                     }
                 }
             }
         }
         
-        testState.chatHistory.push({
-            model,
-            message,
-            response: fullResponse,
-            timestamp: new Date().toISOString()
-        });
+        testState.chatHistory.push({ model, message, response: fullResponse });
         
     } catch (error) {
-        log('error', `Chat test failed with ${model}`, error.message);
-        responseDiv.innerHTML = `<span style="color: #ef4444;">Error: ${error.message}</span>`;
+        log('error', `Chat failed: ${error.message}`);
+        responseDiv.innerHTML = `<span style="color: #fca5a5;">Error: ${error.message}</span>`;
     }
 }
 
@@ -408,34 +349,31 @@ async function testImageGeneration() {
     const prompt = document.getElementById('image-prompt').value.trim();
     
     if (!prompt) {
-        log('error', 'No image prompt provided');
-        alert('Please enter an image prompt first');
+        log('error', 'No image prompt');
+        alert('Enter a prompt first');
         return;
     }
     
-    log('test', 'Testing image generation', { prompt });
+    log('start', 'Generating image');
+    log('info', `Prompt: "${prompt.substring(0, 50)}${prompt.length > 50 ? '...' : ''}"`);
     
     const resultDiv = document.getElementById('image-result');
-    const statusDiv = document.getElementById('image-status');
     const previewDiv = document.getElementById('image-preview');
     const infoDiv = document.getElementById('image-info');
     
     resultDiv.style.display = 'block';
-    statusDiv.innerHTML = '<span class="status-badge pending">Generating...</span>';
-    previewDiv.innerHTML = '';
+    previewDiv.innerHTML = '<em>Generating...</em>';
     infoDiv.innerHTML = '';
     
     try {
-        const messages = [
-            { sender: 'User', content: prompt }
-        ];
+        const messages = [{ sender: 'User', content: prompt }];
         
         const response = await fetch('/api/chat/stream', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messages,
-                model: 'gpt-4-0125-preview', // Use GPT-4 for image gen
+                model: 'gpt-4-0125-preview',
                 sessionId: testState.allocationId || 'test-session',
                 conversationId: `image-generation_${Date.now()}`,
                 imageContext: null
@@ -443,10 +381,9 @@ async function testImageGeneration() {
         });
         
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            throw new Error(`HTTP ${response.status}`);
         }
         
-        // Handle SSE stream
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let imageData = null;
@@ -464,100 +401,65 @@ async function testImageGeneration() {
                         const data = JSON.parse(line.slice(6));
                         
                         if (data.type === 'image_request_detected') {
-                            statusDiv.innerHTML = '<span class="status-badge pending">Image request detected...</span>';
+                            log('info', 'Image request detected');
                         } else if (data.type === 'content' && data.imageUrl) {
                             imageData = data;
                             
-                            statusDiv.innerHTML = '<span class="status-badge success">Image Generated!</span>';
+                            const isBase64 = data.imageUrl.startsWith('data:');
+                            const sizeKB = (data.imageUrl.length / 1024).toFixed(1);
                             
-                            previewDiv.innerHTML = `
-                                <img src="${data.imageUrl}" alt="Generated image">
-                            `;
+                            log('success', `Image generated (${sizeKB} KB)`);
+                            log('info', `Format: ${isBase64 ? 'Base64' : 'External URL'}`);
+                            
+                            previewDiv.innerHTML = `<img src="${data.imageUrl}" alt="Generated">`;
                             
                             infoDiv.innerHTML = `
-                                <div class="info-badge">Prompt: ${data.imagePrompt || 'N/A'}</div>
-                                <div class="info-badge">URL Type: ${data.imageUrl.startsWith('data:') ? 'Base64' : 'External'}</div>
-                                <div class="info-badge">Size: ${(data.imageUrl.length / 1024).toFixed(2)} KB</div>
+                                <div class="info-badge">Size: ${sizeKB} KB</div>
+                                <div class="info-badge">${isBase64 ? 'Base64' : 'External'}</div>
                             `;
-                            
-                            log('success', 'Image generated successfully', {
-                                originalPrompt: data.originalPrompt,
-                                enhancedPrompt: data.imagePrompt,
-                                urlType: data.imageUrl.startsWith('data:') ? 'base64' : 'external'
-                            });
                             
                             testState.generatedImages.push(imageData);
                         } else if (data.type === 'error') {
                             throw new Error(data.error);
                         }
                     } catch (parseError) {
-                        console.error('Parse error:', parseError);
+                        // Skip
                     }
                 }
             }
         }
         
     } catch (error) {
-        log('error', 'Image generation failed', error.message);
-        statusDiv.innerHTML = `<span class="status-badge error">Error: ${error.message}</span>`;
+        log('error', `Image generation failed: ${error.message}`);
+        previewDiv.innerHTML = `<span style="color: #fca5a5;">Error: ${error.message}</span>`;
     }
 }
 
 async function testImageError() {
-    log('test', 'Testing image error handling with invalid prompt');
-    
-    // Save original prompt
+    log('info', 'Testing error handling with policy violation');
     const originalPrompt = document.getElementById('image-prompt').value;
-    
-    // Use a prompt that should trigger DALL-E content policy
-    document.getElementById('image-prompt').value = 'Generate an image that violates content policy';
-    
+    document.getElementById('image-prompt').value = 'Generate violent content';
     await testImageGeneration();
-    
-    // Restore original prompt
     setTimeout(() => {
         document.getElementById('image-prompt').value = originalPrompt;
     }, 1000);
 }
 
 async function testImageRetry() {
-    log('test', 'Testing image retry logic (simulated)');
-    log('info', 'Note: This tests the retry flow by observing server logs');
-    
-    // This would need server-side instrumentation to properly test
-    // For now, we'll just generate an image and observe
+    log('info', 'Testing retry logic (observe server logs)');
     await testImageGeneration();
-}
-
-async function testBlobConversion() {
-    if (testState.generatedImages.length === 0) {
-        log('error', 'No images generated yet. Generate an image first.');
-        alert('Please generate an image first');
-        return;
-    }
-    
-    const lastImage = testState.generatedImages[testState.generatedImages.length - 1];
-    
-    log('test', 'Testing blob to base64 conversion');
-    log('info', `Image URL type: ${lastImage.imageUrl.startsWith('data:') ? 'Already base64' : 'External blob'}`);
-    
-    if (lastImage.imageUrl.startsWith('data:')) {
-        log('success', 'Image is already in base64 format (no blob conversion needed)');
-    } else {
-        log('warning', 'Image is still using external URL (blob conversion not implemented yet)');
-    }
 }
 
 function testImageDownload() {
     if (testState.generatedImages.length === 0) {
         log('error', 'No images to download');
-        alert('Please generate an image first');
+        alert('Generate an image first');
         return;
     }
     
     const lastImage = testState.generatedImages[testState.generatedImages.length - 1];
     
-    log('test', 'Testing image download functionality');
+    log('start', 'Testing download');
     
     try {
         const link = document.createElement('a');
@@ -568,16 +470,10 @@ function testImageDownload() {
         link.click();
         document.body.removeChild(link);
         
-        log('success', 'Image download triggered');
+        log('success', 'Download triggered');
     } catch (error) {
-        log('error', 'Image download failed', error.message);
+        log('error', `Download failed: ${error.message}`);
     }
-}
-
-async function testGitHubUpload() {
-    log('test', 'Verifying GitHub upload');
-    log('info', 'Note: GitHub uploads happen server-side during save operations');
-    log('info', 'Check your GitHub repo manually at: Chatbot-Node-Storage/images/');
 }
 
 // ===================================================================
@@ -588,23 +484,20 @@ async function testAutoSave() {
     const pid = getParticipantId();
     if (!pid) return;
     
-    log('test', 'Testing auto-save functionality');
+    log('start', 'Testing auto-save');
     
     const taskData = {
         conversations: {
-            [`test-conversation-${Date.now()}`]: {
-                id: `test_${Date.now()}`,
+            [`test_${Date.now()}`]: {
                 messages: testState.chatHistory.map((chat, i) => ({
                     msg_id: i + 1,
                     sender: 'User',
-                    content: chat.message,
-                    timestamp: chat.timestamp
+                    content: chat.message
                 }))
             }
         },
         behaviorMetrics: {
-            messageCount: testState.chatHistory.length,
-            sessionDuration: Date.now() - testState.idleStartTime || 0
+            messageCount: testState.chatHistory.length
         },
         savedAt: new Date().toISOString()
     };
@@ -631,24 +524,20 @@ async function testAutoSave() {
             throw new Error(result.error || `HTTP ${response.status}`);
         }
         
-        log('success', 'Auto-save successful', result);
-        showResult('save-result', result, true);
+        log('success', 'Auto-save successful');
+        showResult('save-result', 'Task data saved to GitHub', true);
         
     } catch (error) {
-        log('error', 'Auto-save failed', error.message);
+        log('error', `Auto-save failed: ${error.message}`);
         showResult('save-result', error.message, false);
     }
-}
-
-async function testManualSave() {
-    await testAutoSave(); // Same logic for manual save
 }
 
 async function testTaskRetrieval() {
     const pid = getParticipantId();
     if (!pid) return;
     
-    log('test', 'Testing task data retrieval');
+    log('start', 'Retrieving task data');
     
     try {
         const response = await fetch(`/api/chat/participant-data?pid=${encodeURIComponent(pid)}`);
@@ -658,19 +547,13 @@ async function testTaskRetrieval() {
             throw new Error(data.error || `HTTP ${response.status}`);
         }
         
-        log('success', 'Task data retrieved', {
-            participantId: data.participantId,
-            tasksFound: Object.keys(data.tasks || {}).length
-        });
+        const taskCount = Object.keys(data.tasks || {}).length;
+        log('success', `Retrieved ${taskCount} task(s)`);
         
-        showResult('save-result', data, true);
-        
-        // Show chatlog preview
-        document.getElementById('chatlog-preview').style.display = 'block';
-        document.getElementById('chatlog-json').textContent = JSON.stringify(data, null, 2);
+        showResult('save-result', `Found ${taskCount} task file(s) for ${pid}`, true);
         
     } catch (error) {
-        log('error', 'Task retrieval failed', error.message);
+        log('error', `Retrieval failed: ${error.message}`);
         showResult('save-result', error.message, false);
     }
 }
@@ -679,85 +562,10 @@ async function testFinalCompilation() {
     const pid = getParticipantId();
     if (!pid) return;
     
-    log('test', 'Testing final data compilation');
+    log('start', 'Testing final compilation');
+    log('info', 'This simulates the acro-build page logic');
     
-    try {
-        // First retrieve all task data
-        await testTaskRetrieval();
-        
-        // Then simulate compilation (this happens in acro-build task.js)
-        log('info', 'Final compilation happens in the acro-build page');
-        log('info', 'Check the "Final Task Tests" section for simulation');
-        
-    } catch (error) {
-        log('error', 'Final compilation test failed', error.message);
-    }
-}
-
-// ===================================================================
-// IDLE DETECTION TESTS
-// ===================================================================
-
-function startIdleTest() {
-    log('test', 'Starting idle detection test (accelerated: 30s real = 30min simulated)');
-    
-    testState.idleStartTime = Date.now();
-    
-    if (testState.idleTimer) {
-        clearInterval(testState.idleTimer);
-    }
-    
-    const resultDiv = document.getElementById('idle-result');
-    resultDiv.style.display = 'block';
-    resultDiv.className = 'result-box';
-    resultDiv.textContent = 'Idle timer started. Warning at 25s, auto-release at 30s.';
-    
-    testState.idleTimer = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - testState.idleStartTime) / 1000);
-        document.getElementById('idle-time').textContent = `${elapsed}s`;
-        
-        const progress = (elapsed / 30) * 100;
-        document.getElementById('idle-progress').style.width = `${Math.min(progress, 100)}%`;
-        
-        if (elapsed === 25) {
-            triggerIdleWarning();
-        } else if (elapsed >= 30) {
-            triggerIdleRelease();
-            stopIdleTest();
-        }
-    }, 1000);
-}
-
-function triggerIdleWarning() {
-    log('warning', 'Idle warning triggered (25 minutes simulated)');
-    
-    const resultDiv = document.getElementById('idle-result');
-    resultDiv.className = 'result-box error';
-    resultDiv.textContent = '⚠️ IDLE WARNING: You have been idle for 25 minutes. Click to continue or you will be logged out in 5 minutes.';
-    
-    // Show modal (simulated)
-    if (confirm('⚠️ Idle Warning\n\nYou have been idle for 25 minutes.\nYou will lose your position in 5 minutes.\n\nClick OK to stay active.')) {
-        log('info', 'User clicked to stay active');
-        stopIdleTest();
-    }
-}
-
-function triggerIdleRelease() {
-    log('error', 'Auto-release triggered (30 minutes simulated)');
-    
-    const resultDiv = document.getElementById('idle-result');
-    resultDiv.className = 'result-box error';
-    resultDiv.textContent = '❌ AUTO-RELEASE: Position released due to 30 minutes of inactivity.';
-    
-    // Would call testAllocationRelease() in production
-}
-
-function stopIdleTest() {
-    if (testState.idleTimer) {
-        clearInterval(testState.idleTimer);
-        testState.idleTimer = null;
-        log('info', 'Idle timer stopped');
-    }
+    await testTaskRetrieval();
 }
 
 // ===================================================================
@@ -768,20 +576,18 @@ async function testCompleteStudy() {
     const pid = getParticipantId();
     if (!pid) return;
     
-    log('test', 'Simulating complete study workflow');
+    log('start', 'Simulating study completion');
     
     try {
-        // 1. Retrieve all task data
-        log('info', 'Step 1: Retrieving all task data...');
+        log('info', 'Step 1: Retrieving all tasks');
         const response = await fetch(`/api/chat/participant-data?pid=${encodeURIComponent(pid)}`);
         const allTasksData = await response.json();
         
         if (!response.ok) {
-            throw new Error('Failed to retrieve task data');
+            throw new Error('Failed to retrieve tasks');
         }
         
-        // 2. Compile complete dataset
-        log('info', 'Step 2: Compiling complete dataset...');
+        log('info', 'Step 2: Compiling dataset');
         const completeData = {
             participantId: pid,
             sessionId: testState.allocationId || 'test-session',
@@ -790,12 +596,10 @@ async function testCompleteStudy() {
                 actualModel: 'gpt-4-0125-preview'
             },
             tasks: allTasksData.tasks,
-            completedAt: new Date().toISOString(),
-            studyVersion: '2.0'
+            completedAt: new Date().toISOString()
         };
         
-        // 3. Save to finished folder
-        log('info', 'Step 3: Saving to finished folder...');
+        log('info', 'Step 3: Saving to /finished');
         const saveResponse = await fetch('/api/chat/save-finished', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -805,29 +609,26 @@ async function testCompleteStudy() {
         const saveResult = await saveResponse.json();
         
         if (!saveResponse.ok) {
-            throw new Error(saveResult.error || 'Failed to save finished data');
+            throw new Error(saveResult.error || 'Save failed');
         }
         
-        log('success', 'Complete study simulation successful', saveResult);
-        showResult('final-result', saveResult, true);
+        log('success', 'Study completion successful');
+        log('info', 'Data saved to GitHub: finished/{pid}/complete-study-data.json');
         
-        // Show preview
-        document.getElementById('final-data-preview').style.display = 'block';
-        document.getElementById('final-data-json').textContent = JSON.stringify(completeData, null, 2);
+        showResult('final-result', 'Complete study simulation succeeded', true);
         
     } catch (error) {
-        log('error', 'Complete study simulation failed', error.message);
+        log('error', `Study completion failed: ${error.message}`);
         showResult('final-result', error.message, false);
     }
 }
 
 function testFinalDownload() {
-    log('test', 'Testing final data download');
-    
     const pid = getParticipantId();
     if (!pid) return;
     
-    // Simulate download
+    log('start', 'Testing download');
+    
     const mockData = {
         participantId: pid,
         sessionId: testState.allocationId,
@@ -849,36 +650,28 @@ function testFinalDownload() {
     
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     
-    log('success', 'Final data downloaded');
+    log('success', 'Download triggered');
 }
 
 function testSanitization() {
-    log('test', 'Testing data sanitization (removing trueModel fields)');
+    log('start', 'Testing data sanitization');
     
     const rawData = {
         participantId: 'TEST123',
         modelConfig: {
             displayedModel: 'GPT-4',
             actualModel: 'gpt-4-0125-preview', // Should be removed
-            trueModel: 'gpt-4-0125-preview', // Should be removed
-            givenModel: 'GPT-4'
+            trueModel: 'gpt-4-0125-preview' // Should be removed
         }
     };
     
-    // Sanitize
     const sanitized = JSON.parse(JSON.stringify(rawData));
     delete sanitized.modelConfig.actualModel;
     delete sanitized.modelConfig.trueModel;
     
-    log('success', 'Data sanitized successfully');
-    showResult('final-result', {
-        before: rawData,
-        after: sanitized
-    }, true);
-}
-
-async function verifyGitHubFinished() {
-    log('test', 'Verifying GitHub /finished folder');
-    log('info', 'Please manually check: https://github.com/YOUR_USERNAME/Chatbot-Node-Storage/tree/main/finished');
-    log('info', 'Look for folder: finished/{participantId}/complete-study-data.json');
+    log('success', 'Sensitive fields removed');
+    log('info', 'Before: displayedModel, actualModel, trueModel');
+    log('info', 'After: displayedModel only');
+    
+    showResult('final-result', 'Sanitization successful', true);
 }
