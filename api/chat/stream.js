@@ -293,7 +293,7 @@ async function generateImage(userMessage, model, imageContext, intent, res, conv
 
             // Step 4: Download and convert to base64 (server-side to avoid CORS)
             console.log(`📥 [${conversationContext.participantId}] Downloading and converting to base64...`);
-            
+
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 30000);
 
@@ -320,7 +320,16 @@ async function generateImage(userMessage, model, imageContext, intent, res, conv
             const filename = generateImageFilename(participantId, chatNumber, messageNumber);
             console.log(`📝 [${participantId}] Filename: ${filename}`);
 
-            // Step 6: Send base64 to client (in single message - properly escaped JSON)
+            // Step 6: Send metadata first (NO base64 in JSON - too large)
+            res.write(`data: ${JSON.stringify({
+                type: 'image_generated',
+                imageFilename: filename,
+                imageSizeKB: parseFloat(sizeKB),
+                imagePrompt: enhancedPrompt.substring(0, 100),
+                originalPrompt: userMessage.substring(0, 100)
+            })}\n\n`);
+
+            // Step 7: Send the actual content with image markdown
             const messagePrefix = intent === 'modify_image'
                 ? `I've modified the image based on your request:`
                 : `I've generated an image for you:`;
@@ -330,18 +339,12 @@ async function generateImage(userMessage, model, imageContext, intent, res, conv
             res.write(`data: ${JSON.stringify({
                 type: 'content',
                 content: responseMessage,
-                fullContent: responseMessage,
-                imageData: dataUrl,  // Full base64 data URL
-                imageFilename: filename,
-                imagePrompt: enhancedPrompt,
-                originalPrompt: userMessage,
-                revisedPrompt: imageResult.revisedPrompt,
-                imageSizeKB: parseFloat(sizeKB)
+                fullContent: responseMessage
             })}\n\n`);
 
             res.write(`data: ${JSON.stringify({ type: 'done', finishReason: 'image_generated' })}\n\n`);
 
-            console.log(`✅ [${participantId}] Image sent to client with base64 data`);
+            console.log(`✅ [${participantId}] Image sent to client (${sizeKB} KB)`);
 
             // Step 7: Save to GitHub asynchronously (don't block)
             console.log(`💾 [${participantId}] Starting async GitHub upload...`);
