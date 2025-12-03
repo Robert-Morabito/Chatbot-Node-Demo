@@ -15,6 +15,7 @@
 
 import { OpenAIHandler } from '../../handlers/openaiHandler.js';
 import { ClaudeHandler } from '../../handlers/claudeHandler.js';
+import GitHubStorage from '../../utils/githubStorage.js';
 
 // ===================================================================
 // CONFIGURATION
@@ -58,13 +59,13 @@ export default async function handler(req, res) {
 
                 // ✅ FIXED: Now properly passes req
                 const imageGenerated = await generateImageWithRetry(
-                    lastMessage.content, 
-                    model, 
-                    imageContext, 
-                    imageIntent, 
-                    res, 
-                    req, // ← Added req parameter
-                    3 // maxRetries
+                    lastMessage.content,
+                    model,
+                    imageContext,
+                    imageIntent,
+                    res,
+                    req,
+                    3
                 );
 
                 if (imageGenerated) {
@@ -440,7 +441,16 @@ async function generateImageWithRetry(userMessage, model, imageContext, intent, 
             console.log(`🎨 Image generation attempt ${attempt}/${maxRetries}`);
             if (res) streamLog(res, `🎨 Attempt ${attempt}/${maxRetries}`);
 
-            const success = await generateImage(userMessage, model, imageContext, intent, res, req);
+            const success = await generateImage(
+                userMessage,
+                model,
+                imageContext,
+                intent,
+                res,
+                req,
+                req.body?.participantId || 'unknown',
+                req.body?.conversationId || 'unknown'
+            );
 
             if (success) {
                 if (attempt > 1) {
@@ -506,6 +516,7 @@ async function generateImageWithRetry(userMessage, model, imageContext, intent, 
 
 /**
  * Generates image using DALL-E with prompt enhancement
+ * Immediately uploads to GitHub and returns filename reference
  * 
  * @param {string} userMessage - Original user message
  * @param {string} model - Model for enhancement
@@ -513,9 +524,11 @@ async function generateImageWithRetry(userMessage, model, imageContext, intent, 
  * @param {string} intent - new_image or modify_image
  * @param {Response} res - Response object
  * @param {Request} req - Request object (for error simulation)
+ * @param {string} participantId - Participant ID for filename
+ * @param {string} conversationId - Conversation ID for chat number
  * @returns {Promise<boolean>} Success status
  */
-async function generateImage(userMessage, model, imageContext, intent, res, req = null) {
+async function generateImage(userMessage, model, imageContext, intent, res, req = null, participantId = null, conversationId = null) {
     try {
         // Simulate error if testing
         if (req) {
@@ -543,31 +556,44 @@ async function generateImage(userMessage, model, imageContext, intent, res, req 
         console.log('✅ DALL-E returned blob URL');
         streamLog(res, '✅ DALL-E returned blob URL');
 
-        // Step 3: Download and convert blob to base64 (BLOCKING - critical!)
-        console.log('🔄 Converting blob to base64 data URL...');
-        streamLog(res, '🔄 Converting blob to base64 data URL...');
+        // Step 3: Download and convert blob to base64
+        console.log('🔄 Converting blob to base64...');
+        streamLog(res, '🔄 Converting blob to base64...');
 
         const imageData = await downloadAndConvertToBase64(imageResult.url, userMessage, res);
 
-        // Step 4: Send response to client with base64 data URL
+        // Step 4: Generate filename and upload to GitHub immediately
+        const filename = generateImageFilename(participantId, conversationId, imageContext);
+
+        console.log(`☁️ Uploading to GitHub as: ${filename}`);
+        streamLog(res, `☁️ Uploading to GitHub as: ${filename}`);
+
+        const githubStorage = new GitHubStorage();
+        await githubStorage.uploadImageDirect(participantId, filename, imageData.base64);
+
+        console.log(`✅ Image uploaded to GitHub: ${filename}`);
+        streamLog(res, `✅ Image uploaded to GitHub: ${filename}`);
+
+        // Step 5: Send response with FILENAME reference (not base64)
         const responseMessage = intent === 'modify_image'
-            ? `I've modified the image based on your request:\n\n![Generated Image](${imageData.dataUrl})`
-            : `I've generated an image for you:\n\n![Generated Image](${imageData.dataUrl})`;
+            ? `I've modified the image based on your request:\n\n![Generated Image](${filename})`
+            : `I've generated an image for you:\n\n![Generated Image](${filename})`;
 
         const responseData = {
             type: 'content',
             content: responseMessage,
             fullContent: responseMessage,
-            imageUrl: imageData.dataUrl,
-            imageFormat: 'base64',
+            imageUrl: filename, // ✅ Just the filename, not base64
+            imageFormat: 'png',
             imageSize: imageData.sizeKB,
             imagePrompt: enhancedPrompt,
             originalPrompt: userMessage,
-            revisedPrompt: imageResult.revisedPrompt
+            revisedPrompt: imageResult.revisedPrompt,
+            githubPath: `images/${participantId}/${filename}` // For reference
         };
 
-        console.log(`✅ Image response sent (${imageData.sizeKB} KB base64)`);
-        streamLog(res, `✅ Image response sent (${imageData.sizeKB} KB base64)`);
+        console.log(`✅ Image response sent with filename: ${filename}`);
+        streamLog(res, `✅ Image response sent with filename: ${filename}`);
 
         res.write(`data: ${JSON.stringify(responseData)}\n\n`);
         res.write(`data: ${JSON.stringify({ type: 'done', finishReason: 'image_generated' })}\n\n`);
@@ -581,6 +607,20 @@ async function generateImage(userMessage, model, imageContext, intent, res, req 
         // Re-throw so retry handler can classify and handle
         throw error;
     }
+}
+
+/**
+ * Generate standardized image filename
+ * Format: {participantId}_chat{n}_msg{m}.png
+ */
+function generateImageFilename(participantId, conversationId, imageContext) {
+    // Extract chat number from conversation messages count
+    const chatNumber = (imageContext?.conversationCount || 1);
+
+    // Extract message number from current conversation length
+    const messageNumber = (imageContext?.messageCount || 1);
+
+    return `${participantId}_chat${chatNumber}_msg${messageNumber}.png`;
 }
 
 /**

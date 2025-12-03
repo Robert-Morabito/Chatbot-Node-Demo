@@ -341,6 +341,7 @@ class TaskChat {
                 model: this.core.config.trueModel,
                 sessionId: this.core.allocation?.id,
                 conversationId: this.currentConversationId,
+                participantId: this.core.participantId, // ✅ Added for image uploads
                 imageContext: this.taskConfig.enableImageGeneration ? this.imageContext : null
             };
 
@@ -470,10 +471,19 @@ class TaskChat {
      * Update image context after generation
      */
     updateImageContext(data) {
+        // Count messages in current conversation for next image
+        const currentConv = this.conversations.get(this.currentConversationId);
+        const messageCount = currentConv?.messages?.length || 0;
+
+        // Count conversations for chat numbering
+        const conversationCount = this.conversations.size;
+
         this.imageContext = {
             lastPrompt: data.imagePrompt,
             lastImageUrl: data.imageUrl,
-            conversationHasImage: true
+            conversationHasImage: true,
+            messageCount: messageCount + 1, // Next message
+            conversationCount: conversationCount
         };
     }
 

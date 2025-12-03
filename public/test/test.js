@@ -413,7 +413,11 @@ async function testImageGeneration() {
                 model: 'gpt-4-0125-preview',
                 sessionId: testState.allocationId || 'test-session',
                 conversationId: `image-generation_${Date.now()}`,
-                imageContext: null
+                participantId: pid, // ✅ Added
+                imageContext: {
+                    conversationCount: 1,
+                    messageCount: testState.generatedImages.length + 1
+                }
             })
         });
 

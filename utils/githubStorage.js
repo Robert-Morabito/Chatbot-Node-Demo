@@ -226,9 +226,8 @@ class GitHubStorage {
                 throw new Error('GitHub connection test failed - cannot save data');
             }
 
-            // Save images first (before main data save)
-            console.log('🖼️ Processing images...');
-            const imageResults = await this.saveParticipantImages(participantId, chatData);
+            // Images are already uploaded during generation, no need to extract
+            console.log('💾 Saving chatlog (images already uploaded)...');
 
             // Prepare file path and content for main data
             const fileName = `${this.paths.participants}/chatlog_${participantId}.json`;
@@ -272,8 +271,6 @@ class GitHubStorage {
                 path: result.content.path,
                 sha: result.content.sha.substring(0, 8) + '...',
                 size: content.length + ' bytes',
-                imagesProcessed: imageResults.imagesProcessed,
-                imagesSaved: imageResults.successfulSaves
             });
 
             return {
