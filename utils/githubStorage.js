@@ -524,14 +524,71 @@ class GitHubStorage {
         }
     }
 
-    // Add these methods to the GitHubStorage class
+    /**
+     * Direct image upload (for testing and manual uploads)
+     * @param {string} participantId - Participant identifier
+     * @param {string} filename - Image filename
+     * @param {string} base64 - Base64 image data (without data URL prefix)
+     * @param {Object} metadata - Optional metadata
+     * @returns {Promise<Object>} Upload result
+     */
+    async uploadImageDirect(participantId, filename, base64, metadata = null) {
+        try {
+            console.log('📤 Direct upload:', {
+                participantId,
+                filename,
+                size: `${(base64.length / 1024).toFixed(2)} KB`
+            });
+
+            // Prepare GitHub path
+            const imagePath = `images/${participantId}/${filename}`;
+
+            // Check if file already exists
+            const sha = await this._getFileSha(imagePath);
+
+            // Upload to GitHub
+            const url = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${imagePath}`;
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${this.token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.github.v3+json',
+                },
+                body: JSON.stringify({
+                    message: `Upload image: ${participantId}/${filename}${metadata ? ' (test)' : ''}`,
+                    content: base64,
+                    branch: this.branch,
+                    ...(sha && { sha })
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`GitHub upload failed: ${response.status} - ${errorText.substring(0, 200)}`);
+            }
+
+            const result = await response.json();
+
+            console.log('✅ Direct upload successful:', imagePath);
+
+            return {
+                success: true,
+                filename,
+                githubPath: imagePath,
+                sha: result.content.sha,
+                size: base64.length
+            };
+
+        } catch (error) {
+            console.error('❌ Direct upload failed:', error.message);
+            throw error;
+        }
+    }
 
     // ===================================================================
     // PER-TASK DATA MANAGEMENT
     // ===================================================================
-
-    // Add these methods to the GitHubStorage class (after the existing saveParticipantData method)
-
     /**
      * Save task-specific data to GitHub
      * @param {string} participantId - Participant identifier

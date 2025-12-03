@@ -496,6 +496,73 @@ function testImageDownload() {
     }
 }
 
+async function testGitHubUpload() {
+    if (testState.generatedImages.length === 0) {
+        log('error', 'No images to upload');
+        alert('Generate an image first');
+        return;
+    }
+    
+    const pid = getParticipantId();
+    if (!pid) return;
+    
+    const lastImage = testState.generatedImages[testState.generatedImages.length - 1];
+    
+    log('start', 'Testing GitHub upload (simulating task save)');
+    log('info', 'This uses the same path as task completion');
+    
+    try {
+        // Extract base64 from data URL
+        const base64Data = lastImage.imageUrl.replace(/^data:image\/\w+;base64,/, '');
+        
+        // Generate test filename
+        const timestamp = Date.now();
+        const filename = `${pid}_chat1_msg1_test.png`;
+        
+        log('info', `Uploading as: ${filename}`);
+        log('info', `Size: ${lastImage.imageSize || 'unknown'} KB`);
+        
+        // Upload to GitHub using your existing endpoint
+        const response = await fetch('/api/test/upload-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                participantId: pid,
+                filename: filename,
+                base64: base64Data,
+                metadata: {
+                    originalPrompt: lastImage.originalPrompt,
+                    enhancedPrompt: lastImage.imagePrompt,
+                    size: lastImage.imageSize
+                }
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || `HTTP ${response.status}`);
+        }
+        
+        log('success', `Image uploaded to GitHub`);
+        log('info', `Path: images/${pid}/${filename}`);
+        log('info', `SHA: ${result.sha?.substring(0, 8)}...`);
+        
+        // Show success in UI
+        const infoDiv = document.getElementById('image-info');
+        const uploadBadge = document.createElement('div');
+        uploadBadge.className = 'info-badge';
+        uploadBadge.style.background = 'rgba(16, 185, 129, 0.2)';
+        uploadBadge.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+        uploadBadge.textContent = '✅ Uploaded to GitHub';
+        infoDiv.appendChild(uploadBadge);
+        
+    } catch (error) {
+        log('error', `GitHub upload failed: ${error.message}`);
+        alert(`Upload failed: ${error.message}`);
+    }
+}
+
 // ===================================================================
 // SAVE/LOAD TESTS (Routes through /api/chat/save-task - SAME as core.js)
 // ===================================================================

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -405,6 +406,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="test-layout">
         <!-- Left: Scrollable Test Controls -->
@@ -480,7 +482,8 @@
                 </div>
                 <div class="section-content">
                     <div class="message-input-area">
-                        <textarea id="chat-message" placeholder="Test message...">Hello! Can you help me test this?</textarea>
+                        <textarea id="chat-message"
+                            placeholder="Test message...">Hello! Can you help me test this?</textarea>
                     </div>
                     <div class="button-grid">
                         <button class="test-button" onclick="testChat('gpt-3.5-turbo-0125')">GPT-3.5</button>
@@ -507,7 +510,8 @@
                 </div>
                 <div class="section-content">
                     <div class="message-input-area">
-                        <textarea id="image-prompt" placeholder="Image prompt...">A sunset over mountains with vivid colors</textarea>
+                        <textarea id="image-prompt"
+                            placeholder="Image prompt...">A sunset over mountains with vivid colors</textarea>
                     </div>
                     <div class="button-grid">
                         <button class="test-button" onclick="testImageGeneration()">Generate</button>
@@ -518,7 +522,8 @@
                         <div id="image-preview" class="image-preview"></div>
                         <div id="image-info" class="image-info"></div>
                         <div class="button-grid" style="margin-top: 0.875rem;">
-                            <button class="test-button success" onclick="testImageDownload()">Download</button>
+                            <button class="test-button success" onclick="testImageDownload()">📥 Download</button>
+                            <button class="test-button" onclick="testGitHubUpload()">☁️ Upload to GitHub</button>
                         </div>
                     </div>
                 </div>
@@ -536,7 +541,7 @@
                         <button class="test-button" onclick="testManualSave()">Manual Save</button>
                         <button class="test-button" onclick="testAutoSave()">Auto-Save</button>
                     </div>
-                    
+
                     <!-- Data Selection & Retrieval -->
                     <div style="margin-top: 1rem;">
                         <div class="config-item">
@@ -569,7 +574,8 @@
                     <div class="button-grid">
                         <button class="test-button" onclick="testCompleteTask()">Complete Task</button>
                         <button class="test-button" onclick="testFinishStudy()">Finish Study</button>
-                        <button class="test-button success" onclick="automateFullStudy()">🤖 Automate Full Study</button>
+                        <button class="test-button success" onclick="automateFullStudy()">🤖 Automate Full
+                            Study</button>
                     </div>
                     <div id="final-result" class="result-box" style="display: none;"></div>
                 </div>
@@ -597,4 +603,5 @@
 
     <script src="/test/test.js"></script>
 </body>
+
 </html>
