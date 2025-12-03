@@ -448,8 +448,7 @@ async function generateImageWithRetry(userMessage, model, imageContext, intent, 
                 intent,
                 res,
                 req,
-                req.body?.participantId || 'unknown',
-                req.body?.conversationId || 'unknown'
+                req.body?.participantId || 'unknown'
             );
 
             if (success) {
@@ -528,7 +527,7 @@ async function generateImageWithRetry(userMessage, model, imageContext, intent, 
  * @param {string} conversationId - Conversation ID for chat number
  * @returns {Promise<boolean>} Success status
  */
-async function generateImage(userMessage, model, imageContext, intent, res, req = null, participantId = null, conversationId = null) {
+async function generateImage(userMessage, model, imageContext, intent, res, req = null, participantId = null) {
     try {
         // Simulate error if testing
         if (req) {
@@ -563,7 +562,7 @@ async function generateImage(userMessage, model, imageContext, intent, res, req 
         const imageData = await downloadAndConvertToBase64(imageResult.url, userMessage, res);
 
         // Step 4: Generate filename and upload to GitHub immediately
-        const filename = generateImageFilename(participantId, conversationId, imageContext);
+        const filename = generateImageFilename(participantId, imageContext);
 
         console.log(`☁️ Uploading to GitHub as: ${filename}`);
         streamLog(res, `☁️ Uploading to GitHub as: ${filename}`);
@@ -574,22 +573,23 @@ async function generateImage(userMessage, model, imageContext, intent, res, req 
         console.log(`✅ Image uploaded to GitHub: ${filename}`);
         streamLog(res, `✅ Image uploaded to GitHub: ${filename}`);
 
-        // Step 5: Send response with FILENAME reference (not base64)
+        // Step 5: Send response with BOTH data URL (for display) and filename (for saving)
         const responseMessage = intent === 'modify_image'
-            ? `I've modified the image based on your request:\n\n![Generated Image](${filename})`
-            : `I've generated an image for you:\n\n![Generated Image](${filename})`;
+            ? `I've modified the image based on your request:\n\n![Generated Image](${imageData.dataUrl})`
+            : `I've generated an image for you:\n\n![Generated Image](${imageData.dataUrl})`;
 
         const responseData = {
             type: 'content',
             content: responseMessage,
             fullContent: responseMessage,
-            imageUrl: filename, // ✅ Just the filename, not base64
+            imageUrl: imageData.dataUrl,      // ✅ Data URL for display
+            imageFilename: filename,           // ✅ Filename for saving
             imageFormat: 'png',
             imageSize: imageData.sizeKB,
             imagePrompt: enhancedPrompt,
             originalPrompt: userMessage,
             revisedPrompt: imageResult.revisedPrompt,
-            githubPath: `images/${participantId}/${filename}` // For reference
+            githubPath: `images/${participantId}/${filename}`
         };
 
         console.log(`✅ Image response sent with filename: ${filename}`);
@@ -613,12 +613,9 @@ async function generateImage(userMessage, model, imageContext, intent, res, req 
  * Generate standardized image filename
  * Format: {participantId}_chat{n}_msg{m}.png
  */
-function generateImageFilename(participantId, conversationId, imageContext) {
-    // Extract chat number from conversation messages count
-    const chatNumber = (imageContext?.conversationCount || 1);
-
-    // Extract message number from current conversation length
-    const messageNumber = (imageContext?.messageCount || 1);
+function generateImageFilename(participantId, imageContext) {
+    const chatNumber = imageContext?.chatNumber || 1;
+    const messageNumber = imageContext?.messageNumber || 1;
 
     return `${participantId}_chat${chatNumber}_msg${messageNumber}.png`;
 }

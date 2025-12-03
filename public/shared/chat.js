@@ -310,6 +310,10 @@ class TaskChat {
         // Update conversation title
         this.updateConversationTitle(message);
 
+        // ✅ Calculate proper chat and message numbers for image naming
+        const chatNumber = Array.from(this.conversations.keys()).indexOf(this.currentConversationId) + 1;
+        const messageNumber = this.currentChatlog.length + 1;
+
         // Mark unsaved and show typing
         this.core.markUnsavedChanges();
         this.showIndicator('typing');
@@ -334,15 +338,19 @@ class TaskChat {
     /**
      * Get response from LLM
      */
-    async getLLMResponse() {
+    async getLLMResponse(chatNumber = 1, messageNumber = 1) {
         try {
             const requestData = {
                 messages: this.currentChatlog,
                 model: this.core.config.trueModel,
                 sessionId: this.core.allocation?.id,
                 conversationId: this.currentConversationId,
-                participantId: this.core.participantId, // ✅ Added for image uploads
-                imageContext: this.taskConfig.enableImageGeneration ? this.imageContext : null
+                participantId: this.core.participantId,
+                imageContext: this.taskConfig.enableImageGeneration ? {
+                    ...this.imageContext,
+                    chatNumber: chatNumber,        // ✅ Added
+                    messageNumber: messageNumber    // ✅ Added
+                } : null
             };
 
             const response = await fetch('/api/chat/stream', {
@@ -865,18 +873,67 @@ class TaskChat {
     // ===================================================================
 
     /**
-     * Get data for export/save
-     */
+ * Get data for export/save
+ */
     getExportData() {
         // Save current conversation state first
         this.saveCurrentConversationState();
 
+        // ✅ Strip data URLs from conversations before exporting
+        const cleanedConversations = this.stripDataUrlsFromConversations();
+
         return {
-            conversations: Object.fromEntries(this.conversations),
+            conversations: cleanedConversations,
             behaviorMetrics: this.calculateFinalMetrics(),
             sessionDuration: Date.now() - this.sessionStartTime,
             completedAt: new Date().toISOString()
         };
+    }
+
+    /**
+     * Strip data URLs from conversations and replace with filenames
+     * This prevents 413 errors from huge base64 strings
+     */
+    stripDataUrlsFromConversations() {
+        const cleaned = {};
+
+        for (const [convId, conversation] of this.conversations.entries()) {
+            cleaned[convId] = {
+                ...conversation,
+                messages: conversation.messages.map(msg => {
+                    // If message has an image with data URL, replace with filename
+                    if (msg.content && msg.content.includes('data:image')) {
+                        // Extract filename from markdown if it exists
+                        const filenameMatch = msg.content.match(/!\[.*?\]\(([^)]+)\)/);
+                        if (filenameMatch) {
+                            const originalUrl = filenameMatch[1];
+                            // If it's a data URL and we have a filename stored, use that
+                            if (originalUrl.startsWith('data:image')) {
+                                // Look for imageFilename in message metadata (if available)
+                                // For now, we'll keep the data URL in content but note the issue
+                                // The filename should already be in GitHub from the upload
+
+                                // Extract participant ID and construct filename reference
+                                // This is a fallback - ideally we track this better
+                                const pid = this.core.participantId;
+                                const convIndex = Array.from(this.conversations.keys()).indexOf(convId) + 1;
+                                const msgIndex = conversation.messages.indexOf(msg) + 1;
+                                const filename = `${pid}_chat${convIndex}_msg${msgIndex}.png`;
+
+                                // Replace data URL with filename reference
+                                return {
+                                    ...msg,
+                                    content: msg.content.replace(/!\[.*?\]\(data:image[^)]+\)/, `![Generated Image](${filename})`)
+                                };
+                            }
+                        }
+                    }
+                    return msg;
+                })
+            };
+        }
+
+        return cleaned;
     }
 
     // ===================================================================
