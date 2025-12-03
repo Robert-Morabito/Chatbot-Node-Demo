@@ -10,16 +10,32 @@ import { OpenAIHandler } from '../../handlers/openaiHandler.js';
 import { ClaudeHandler } from '../../handlers/claudeHandler.js';
 
 /**
+ * Send server log through SSE stream (for testing/debugging)
+ * @param {Response} res - Response object
+ * @param {string} message - Log message
+ */
+function streamLog(res, message) {
+    if (!res.headersSent) return; // Only log after stream started
+
+    try {
+        res.write(`data: ${JSON.stringify({ type: 'server_log', message })}\n\n`);
+    } catch (error) {
+        // Silently fail if stream is closed
+    }
+}
+
+/**
  * Download blob image and convert to base64 data URL
  * @param {string} blobUrl - DALL-E blob URL
  * @param {string} prompt - Original prompt for logging
  * @returns {Promise<Object>} Image data with base64 URL
  */
-async function downloadAndConvertToBase64(blobUrl, prompt) {
+async function downloadAndConvertToBase64(blobUrl, prompt, res = null) {
     console.log('🖼️ Downloading image blob...');
+    if (res) streamLog(res, '🖼️ Downloading image blob...');
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
 
     try {
         const response = await fetch(blobUrl, {
@@ -40,6 +56,8 @@ async function downloadAndConvertToBase64(blobUrl, prompt) {
 
         const sizeKB = (buffer.length / 1024).toFixed(2);
         console.log(`✅ Image converted to base64 (${sizeKB} KB)`);
+        if (res) streamLog(res, `✅ Image converted to base64 (${sizeKB} KB)`);
+
         console.log(`📝 Prompt: "${prompt.substring(0, 80)}${prompt.length > 80 ? '...' : ''}"`);
 
         return {
@@ -178,6 +196,8 @@ async function classifyImageIntent(userMessage, imageContext) {
 
         const classifier = new OpenAIHandler(process.env.OPENAI_API_KEY);
 
+        console.log('🔍 Classifying user intent...');
+
         // Build classification prompt based on context
         const prompt = buildClassificationPrompt(userMessage, imageContext);
         const messages = [{ sender: 'User', content: prompt }];
@@ -187,7 +207,9 @@ async function classifyImageIntent(userMessage, imageContext) {
             includeSystemPrompt: false
         });
 
-        return parseClassificationResult(classification.trim().toUpperCase(), imageContext);
+        const result = parseClassificationResult(classification.trim().toUpperCase(), imageContext);
+        console.log(`✅ Intent classified as: ${result}`);
+        return result;
 
     } catch (error) {
         console.error('Image classification failed:', error.message);
@@ -248,12 +270,16 @@ function parseClassificationResult(classification, imageContext) {
 async function generateImage(userMessage, model, imageContext, intent, res) {
     try {
         // Step 1: Enhance the prompt using the assigned model
-        const enhancedPrompt = await enhanceImagePrompt(userMessage, model, imageContext, intent);
+        const enhancedPrompt = await enhanceImagePrompt(userMessage, model, imageContext, intent, res);
 
         // Step 2: Generate image with DALL-E
         const imageHandler = new OpenAIHandler(process.env.OPENAI_API_KEY);
         console.log('🎨 Requesting image from DALL-E...');
-        console.log(`📝 Enhanced prompt: "${enhancedPrompt.substring(0, 100)}${enhancedPrompt.length > 100 ? '...' : ''}"`);
+        streamLog(res, '🎨 Requesting image from DALL-E...');
+
+        const promptPreview = `${enhancedPrompt.substring(0, 100)}${enhancedPrompt.length > 100 ? '...' : ''}`;
+        console.log(`📝 Enhanced prompt: "${promptPreview}"`);
+        streamLog(res, `📝 Enhanced prompt: "${promptPreview}"`);
 
         const imageResult = await imageHandler.generateImage(enhancedPrompt);
 
@@ -262,10 +288,13 @@ async function generateImage(userMessage, model, imageContext, intent, res) {
         }
 
         console.log('✅ DALL-E returned blob URL');
+        streamLog(res, '✅ DALL-E returned blob URL');
 
         // Step 2.5: Download and convert blob to base64 (BLOCKING - critical!)
         console.log('🔄 Converting blob to base64 data URL...');
-        const imageData = await downloadAndConvertToBase64(imageResult.url, userMessage);
+        streamLog(res, '🔄 Converting blob to base64 data URL...');
+
+        const imageData = await downloadAndConvertToBase64(imageResult.url, userMessage, res);
 
         // Step 3: Send response to client with base64 data URL
         const responseMessage = intent === 'modify_image'
@@ -284,7 +313,7 @@ async function generateImage(userMessage, model, imageContext, intent, res) {
             revisedPrompt: imageResult.revisedPrompt
         };
 
-        console.log(`✅ Image response sent (${imageData.sizeKB} KB base64)`);
+        streamLog(res, `✅ Image response sent (${imageData.sizeKB} KB base64)`);
 
         res.write(`data: ${JSON.stringify(responseData)}\n\n`);
         res.write(`data: ${JSON.stringify({ type: 'done', finishReason: 'image_generated' })}\n\n`);
@@ -305,7 +334,10 @@ async function generateImage(userMessage, model, imageContext, intent, res) {
 /**
  * Enhances user prompt for DALL-E using the assigned model
  */
-async function enhanceImagePrompt(userMessage, model, imageContext, intent) {
+async function enhanceImagePrompt(userMessage, model, imageContext, intent, res = null) {
+    console.log(`🔄 Enhancing prompt with ${model}...`);
+    if (res) streamLog(res, `🔄 Enhancing prompt with ${model}...`);
+
     const enhancementPrompt = buildEnhancementPrompt(userMessage, imageContext, intent);
     const messages = [{ sender: 'User', content: enhancementPrompt }];
 
@@ -315,6 +347,9 @@ async function enhanceImagePrompt(userMessage, model, imageContext, intent) {
         : new OpenAIHandler(process.env.OPENAI_API_KEY);
 
     const enhancedPrompt = await handler.getCompletion(messages, model);
+
+    console.log('✅ Prompt enhancement complete');
+    if (res) streamLog(res, '✅ Prompt enhancement complete');
 
     return enhancedPrompt.trim();
 }

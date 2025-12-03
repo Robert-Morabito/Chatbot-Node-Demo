@@ -375,8 +375,26 @@ async function testImageGeneration() {
     const infoDiv = document.getElementById('image-info');
 
     resultDiv.style.display = 'block';
-    previewDiv.innerHTML = '<em>Generating...</em>';
+
+    // Add timer display
+    previewDiv.innerHTML = `
+        <div style="text-align: center; padding: 2rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">⏳</div>
+            <div style="color: #9ca3af; margin-bottom: 0.5rem;">Generating image...</div>
+            <div style="font-family: monospace; font-size: 1.5rem; color: #60a5fa;" id="generation-timer">0.0s</div>
+        </div>
+    `;
     infoDiv.innerHTML = '';
+
+    // Start timer
+    const startTime = Date.now();
+    const timerInterval = setInterval(() => {
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        const timerEl = document.getElementById('generation-timer');
+        if (timerEl) {
+            timerEl.textContent = `${elapsed}s`;
+        }
+    }, 100);
 
     try {
         const messages = [{ sender: 'User', content: prompt }];
@@ -400,56 +418,86 @@ async function testImageGeneration() {
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let imageData = null;
+        let detectedImageRequest = false;
 
         while (true) {
             const { done, value } = await reader.read();
-            if (done) break;
+            if (done) {
+                log('info', 'Stream ended');
+                break;
+            }
 
             const chunk = decoder.decode(value, { stream: true });
             const lines = chunk.split('\n');
 
             for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                    try {
-                        const data = JSON.parse(line.slice(6));
+                if (!line.startsWith('data: ')) continue;
 
-                        if (data.type === 'image_request_detected') {
-                            log('info', 'Image request detected');
-                        } else if (data.type === 'content' && data.imageUrl) {
-                            imageData = data;
+                try {
+                    const data = JSON.parse(line.slice(6));
 
-                            const isBase64 = data.imageUrl.startsWith('data:');
-                            const format = data.imageFormat || (isBase64 ? 'base64' : 'blob');
-                            const sizeKB = data.imageSize || (data.imageUrl.length / 1024).toFixed(1);
-
-                            log('success', `Image generated (${sizeKB} KB)`);
-                            log('info', `Format: ${format}`);
-                            log('info', `Enhanced prompt: "${data.imagePrompt?.substring(0, 60)}${data.imagePrompt?.length > 60 ? '...' : ''}"`);
-
-                            if (data.revisedPrompt) {
-                                log('info', `DALL-E revision: "${data.revisedPrompt.substring(0, 60)}${data.revisedPrompt.length > 60 ? '...' : ''}"`);
-                            }
-
-                            previewDiv.innerHTML = `<img src="${data.imageUrl}" alt="Generated" style="max-width: 100%; border-radius: 8px;">`;
-
-                            infoDiv.innerHTML = `
-                                <div class="info-badge">Size: ${sizeKB} KB</div>
-                                <div class="info-badge">Format: ${format}</div>
-                                <div class="info-badge">Type: ${isBase64 ? '✅ Data URL' : '⚠️ External'}</div>
-                            `;
-
-                            testState.generatedImages.push(imageData);
-                        } else if (data.type === 'error') {
-                            throw new Error(data.error);
-                        }
-                    } catch (parseError) {
-                        // Skip
+                    // Log server events to client
+                    if (data.type === 'server_log') {
+                        log('info', `[SERVER] ${data.message}`);
+                        continue;
                     }
+
+                    if (data.type === 'image_request_detected') {
+                        detectedImageRequest = true;
+                        log('info', 'Image request detected by classifier');
+
+                    } else if (data.type === 'content' && data.imageUrl) {
+                        clearInterval(timerInterval);
+                        const totalTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
+                        imageData = data;
+
+                        const isBase64 = data.imageUrl.startsWith('data:');
+                        const format = data.imageFormat || (isBase64 ? 'base64' : 'blob');
+                        const sizeKB = data.imageSize || (data.imageUrl.length / 1024).toFixed(1);
+
+                        log('success', `Image generated in ${totalTime}s (${sizeKB} KB)`);
+                        log('info', `Format: ${format}`);
+
+                        if (data.imagePrompt) {
+                            log('info', `Enhanced: "${data.imagePrompt.substring(0, 60)}${data.imagePrompt.length > 60 ? '...' : ''}"`);
+                        }
+
+                        if (data.revisedPrompt) {
+                            log('info', `DALL-E: "${data.revisedPrompt.substring(0, 60)}${data.revisedPrompt.length > 60 ? '...' : ''}"`);
+                        }
+
+                        previewDiv.innerHTML = `<img src="${data.imageUrl}" alt="Generated" style="max-width: 100%; border-radius: 8px;">`;
+
+                        infoDiv.innerHTML = `
+                            <div class="info-badge">Time: ${totalTime}s</div>
+                            <div class="info-badge">Size: ${sizeKB} KB</div>
+                            <div class="info-badge">Format: ${format}</div>
+                            <div class="info-badge">Type: ${isBase64 ? '✅ Data URL' : '⚠️ External'}</div>
+                        `;
+
+                        testState.generatedImages.push(imageData);
+
+                    } else if (data.type === 'done') {
+                        log('info', 'Generation complete');
+
+                    } else if (data.type === 'error') {
+                        throw new Error(data.error);
+                    }
+                } catch (parseError) {
+                    // Skip parse errors for non-JSON lines
                 }
             }
         }
 
+        clearInterval(timerInterval);
+
+        if (!imageData) {
+            throw new Error('No image data received from stream');
+        }
+
     } catch (error) {
+        clearInterval(timerInterval);
         log('error', `Image generation failed: ${error.message}`);
         previewDiv.innerHTML = `<span style="color: #fca5a5;">Error: ${error.message}</span>`;
     }
@@ -502,26 +550,26 @@ async function testGitHubUpload() {
         alert('Generate an image first');
         return;
     }
-    
+
     const pid = getParticipantId();
     if (!pid) return;
-    
+
     const lastImage = testState.generatedImages[testState.generatedImages.length - 1];
-    
+
     log('start', 'Testing GitHub upload (simulating task save)');
     log('info', 'This uses the same path as task completion');
-    
+
     try {
         // Extract base64 from data URL
         const base64Data = lastImage.imageUrl.replace(/^data:image\/\w+;base64,/, '');
-        
+
         // Generate test filename
         const timestamp = Date.now();
         const filename = `${pid}_chat1_msg1_test.png`;
-        
+
         log('info', `Uploading as: ${filename}`);
         log('info', `Size: ${lastImage.imageSize || 'unknown'} KB`);
-        
+
         // Upload to GitHub using your existing endpoint
         const response = await fetch('/api/test/upload-image', {
             method: 'POST',
@@ -537,17 +585,17 @@ async function testGitHubUpload() {
                 }
             })
         });
-        
+
         const result = await response.json();
-        
+
         if (!response.ok) {
             throw new Error(result.error || `HTTP ${response.status}`);
         }
-        
+
         log('success', `Image uploaded to GitHub`);
         log('info', `Path: images/${pid}/${filename}`);
         log('info', `SHA: ${result.sha?.substring(0, 8)}...`);
-        
+
         // Show success in UI
         const infoDiv = document.getElementById('image-info');
         const uploadBadge = document.createElement('div');
@@ -556,7 +604,7 @@ async function testGitHubUpload() {
         uploadBadge.style.borderColor = 'rgba(16, 185, 129, 0.5)';
         uploadBadge.textContent = '✅ Uploaded to GitHub';
         infoDiv.appendChild(uploadBadge);
-        
+
     } catch (error) {
         log('error', `GitHub upload failed: ${error.message}`);
         alert(`Upload failed: ${error.message}`);
