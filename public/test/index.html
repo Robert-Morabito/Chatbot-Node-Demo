@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,68 +12,15 @@
             color: #f3f4f6;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
             margin: 0;
-            padding: 0;
-            overflow: hidden;
-            height: 100vh;
-            display: flex;
-        }
-
-        .test-layout {
-            display: flex;
-            width: 100%;
-            height: 100vh;
-        }
-
-        .test-main {
-            flex: 1;
-            overflow-y: auto;
             padding: 20px;
-        }
-
-        .test-sidebar {
-            width: 400px;
-            background: rgba(17, 24, 39, 0.95);
-            border-left: 2px solid rgba(75, 85, 99, 0.5);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .sidebar-header {
-            padding: 1rem 1.5rem;
-            background: rgba(55, 65, 81, 0.5);
-            border-bottom: 2px solid rgba(75, 85, 99, 0.5);
-        }
-
-        .sidebar-header h3 {
-            margin: 0;
-            font-size: 1.125rem;
-            color: #60a5fa;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .sidebar-controls {
-            padding: 0.75rem 1.5rem;
-            background: rgba(31, 41, 55, 0.8);
-            display: flex;
-            gap: 0.5rem;
-            border-bottom: 1px solid rgba(75, 85, 99, 0.3);
-        }
-
-        .sidebar-log {
-            flex: 1;
             overflow-y: auto;
-            padding: 1rem;
         }
 
         .test-container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
-        /* Rest of the styles remain the same... */
         .test-header {
             text-align: center;
             padding: 2rem;
@@ -87,7 +33,6 @@
         .test-header h1 {
             margin: 0 0 0.5rem 0;
             font-size: 2.5rem;
-            color: #e5e7eb;
             background: linear-gradient(135deg, #3b82f6, #60a5fa);
             -webkit-text-fill-color: transparent;
         }
@@ -158,9 +103,6 @@
             max-height: 0;
             padding: 0 1.5rem;
         }
-
-        /* All other existing styles continue... */
-        /* (Keep all the existing button, input, result box styles) */
 
         .config-grid {
             display: grid;
@@ -274,7 +216,6 @@
             display: flex;
             gap: 0.75rem;
             align-items: flex-start;
-            font-size: 0.8125rem;
         }
 
         .log-entry:last-child {
@@ -283,37 +224,18 @@
 
         .log-time {
             color: #6b7280;
-            font-size: 0.6875rem;
+            font-size: 0.75rem;
             flex-shrink: 0;
-            font-family: monospace;
         }
 
         .log-message {
             flex: 1;
-            word-break: break-word;
         }
 
         .log-icon {
             flex-shrink: 0;
         }
 
-        .copy-button {
-            padding: 0.5rem 1rem;
-            background: rgba(75, 85, 99, 0.5);
-            border: 1px solid rgba(107, 114, 128, 0.5);
-            border-radius: 6px;
-            color: #9ca3af;
-            font-size: 0.8125rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .copy-button:hover {
-            background: rgba(75, 85, 99, 0.7);
-            color: #f3f4f6;
-        }
-
-        /* Keep all other existing styles for message input, images, etc. */
         .message-input-area {
             display: flex;
             gap: 0.75rem;
@@ -426,6 +348,22 @@
             overflow-y: auto;
         }
 
+        .copy-button {
+            padding: 0.5rem 1rem;
+            background: rgba(75, 85, 99, 0.5);
+            border: 1px solid rgba(107, 114, 128, 0.5);
+            border-radius: 6px;
+            color: #9ca3af;
+            font-size: 0.8125rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-button:hover {
+            background: rgba(75, 85, 99, 0.7);
+            color: #f3f4f6;
+        }
+
         .idle-timer-display {
             font-size: 1.5rem;
             text-align: center;
@@ -452,248 +390,225 @@
         }
     </style>
 </head>
-
 <body>
-    <div class="test-layout">
-        <!-- Main content area -->
-        <div class="test-main">
-            <div class="test-container">
-                <!-- Header -->
-                <div class="test-header">
-                    <h1>🧪 Chatbot Study Testing Suite</h1>
-                    <p style="margin: 0.5rem 0 0 0; color: #9ca3af;">
-                        Comprehensive testing interface for participant experience validation
-                    </p>
-                </div>
+    <div class="test-container">
+        <!-- Header -->
+        <div class="test-header">
+            <h1>🧪 Chatbot Study Testing Suite</h1>
+            <p style="margin: 0.5rem 0 0 0; color: #9ca3af;">
+                Comprehensive testing interface for participant experience validation
+            </p>
+        </div>
 
-                <!-- Configuration Section -->
-                <!-- Configuration Section -->
-                <div class="test-section">
-                    <div class="section-header" onclick="toggleSection(this)">
-                        <h3><span class="section-icon">⚙️</span> Configuration</h3>
-                        <span class="collapse-indicator">▼</span>
+        <!-- Configuration Section -->
+        <div class="test-section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h3><span class="section-icon">⚙️</span> Configuration</h3>
+                <span class="collapse-indicator">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="config-grid">
+                    <div class="config-item">
+                        <label for="participant-id">Participant ID (24 chars)</label>
+                        <input type="text" id="participant-id" maxlength="24" placeholder="ABC123DEF456GHI789JK">
                     </div>
-                    <div class="section-content">
-                        <div class="config-grid">
-                            <div class="config-item">
-                                <label for="participant-id">Participant ID (24 chars)</label>
-                                <input type="text" id="participant-id" maxlength="24"
-                                    placeholder="ABC123DEF456GHI789JK">
-                            </div>
-                            <div class="config-item">
-                                <label for="model-select">Model Selection</label>
-                                <select id="model-select">
-                                    <option value="gpt-3.5-turbo-0125">GPT-3.5 Turbo</option>
-                                    <option value="gpt-4-0125-preview">GPT-4</option>
-                                    <option value="gpt-5-2025-08-07">GPT-5</option>
-                                    <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
-                                    <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku</option>
-                                    <option value="claude-sonnet-4-20250514">Claude Sonnet 4</option>
-                                </select>
-                            </div>
-                            <div class="config-item">
-                                <label for="task-select">Task Context</label>
-                                <select id="task-select">
-                                    <option value="image-generation">Image Generation</option>
-                                    <option value="outreach-msg">Outreach Message</option>
-                                    <option value="acro-build">Acronym Building</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="button-grid">
-                            <button class="test-button secondary" onclick="generateTestId()">🎲 Generate Test
-                                ID</button>
-                            <button class="test-button secondary" onclick="resetTest()">🔄 Reset All</button>
-                            <button class="test-button success" onclick="quickStart()">🚀 Quick Start</button>
-                            <button class="test-button"
-                                onclick="window.open('https://github.com/Robert-Morabito/Chatbot-Node-Storage', '_blank')">📊
-                                View GitHub Repo</button>
-                        </div>
+                    <div class="config-item">
+                        <label for="model-select">Model Selection</label>
+                        <select id="model-select">
+                            <option value="gpt-3.5-turbo-0125">GPT-3.5 Turbo</option>
+                            <option value="gpt-4-0125-preview">GPT-4</option>
+                            <option value="gpt-5-2025-08-07">GPT-5</option>
+                            <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
+                            <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku</option>
+                            <option value="claude-sonnet-4-20250514">Claude Sonnet 4</option>
+                        </select>
+                    </div>
+                    <div class="config-item">
+                        <label for="task-select">Task Context</label>
+                        <select id="task-select">
+                            <option value="image-generation">Image Generation</option>
+                            <option value="outreach-msg">Outreach Message</option>
+                            <option value="acro-build">Acronym Building</option>
+                        </select>
                     </div>
                 </div>
-
-                <!-- Allocation Tests -->
-                <div class="test-section">
-                    <div class="section-header" onclick="toggleSection(this)">
-                        <h3><span class="section-icon">🔐</span> Allocation Tests</h3>
-                        <span class="collapse-indicator">▼</span>
-                    </div>
-                    <div class="section-content">
-                        <div class="button-grid">
-                            <button class="test-button" onclick="testAllocationClaim()">Claim Allocation</button>
-                            <button class="test-button" onclick="testAllocationStatus()">Check Status</button>
-                            <button class="test-button danger" onclick="testAllocationRelease()">Release
-                                Allocation</button>
-                            <button class="test-button" onclick="testAllocationConfirm()">Confirm Allocation</button>
-                        </div>
-                        <div id="allocation-result" class="result-box" style="display: none;"></div>
-                    </div>
-                </div>
-
-                <!-- Chat Tests -->
-                <div class="test-section">
-                    <div class="section-header" onclick="toggleSection(this)">
-                        <h3><span class="section-icon">💬</span> Chat Tests</h3>
-                        <span class="collapse-indicator">▼</span>
-                    </div>
-                    <div class="section-content">
-                        <div class="message-input-area">
-                            <textarea id="chat-message"
-                                placeholder="Enter your message here...">Hello! Can you help me test this chatbot?</textarea>
-                        </div>
-                        <div class="button-grid">
-                            <button class="test-button" onclick="testChat('gpt-3.5-turbo-0125')">Test GPT-3.5</button>
-                            <button class="test-button" onclick="testChat('gpt-4-0125-preview')">Test GPT-4</button>
-                            <button class="test-button" onclick="testChat('gpt-5-2025-08-07')">Test GPT-5</button>
-                            <button class="test-button" onclick="testChat('claude-3-haiku-20240307')">Test Claude
-                                3</button>
-                            <button class="test-button" onclick="testChat('claude-3-5-haiku-20241022')">Test Claude
-                                3.5</button>
-                            <button class="test-button" onclick="testChat('claude-sonnet-4-20250514')">Test Claude
-                                4</button>
-                        </div>
-                        <div id="chat-result" style="display: none;">
-                            <div class="response-display">
-                                <h4>Response</h4>
-                                <div id="chat-response" class="response-content"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Image Generation Tests -->
-                <div class="test-section">
-                    <div class="section-header" onclick="toggleSection(this)">
-                        <h3><span class="section-icon">🖼️</span> Image Generation Tests</h3>
-                        <span class="collapse-indicator">▼</span>
-                    </div>
-                    <div class="section-content">
-                        <div class="message-input-area">
-                            <textarea id="image-prompt"
-                                placeholder="Enter image generation prompt...">Generate an image of a sunset over mountains</textarea>
-                        </div>
-                        <div class="button-grid">
-                            <button class="test-button" onclick="testImageGeneration()">Generate Image</button>
-                            <button class="test-button secondary" onclick="testImageError()">Test Error
-                                Handling</button>
-                            <button class="test-button secondary" onclick="testImageRetry()">Test Retry Logic</button>
-                            <button class="test-button" onclick="testBlobConversion()">Test Blob → Base64</button>
-                        </div>
-                        <div id="image-result" style="display: none;">
-                            <div class="response-display">
-                                <h4>Image Generation Result</h4>
-                                <div id="image-status"></div>
-                                <div id="image-preview" class="image-preview"></div>
-                                <div id="image-info" class="image-info"></div>
-                                <div class="button-grid" style="margin-top: 1rem;">
-                                    <button class="test-button success" onclick="testImageDownload()">Test
-                                        Download</button>
-                                    <button class="test-button" onclick="testGitHubUpload()">Verify GitHub
-                                        Upload</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Save/Load Tests -->
-                <div class="test-section">
-                    <div class="section-header" onclick="toggleSection(this)">
-                        <h3><span class="section-icon">💾</span> Save/Load Tests</h3>
-                        <span class="collapse-indicator">▼</span>
-                    </div>
-                    <div class="section-content">
-                        <div class="button-grid">
-                            <button class="test-button" onclick="testAutoSave()">Test Auto-Save</button>
-                            <button class="test-button" onclick="testManualSave()">Test Manual Save</button>
-                            <button class="test-button" onclick="testTaskRetrieval()">Test Task Retrieval</button>
-                            <button class="test-button" onclick="testFinalCompilation()">Test Final Compilation</button>
-                        </div>
-                        <div id="save-result" class="result-box" style="display: none;"></div>
-                        <div id="chatlog-preview" style="display: none; margin-top: 1rem;">
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                <h4 style="margin: 0; color: #60a5fa;">Chatlog Preview</h4>
-                                <button class="copy-button" onclick="copyChatlog()">📋 Copy JSON</button>
-                            </div>
-                            <div id="chatlog-json" class="json-display"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Idle Detection Tests -->
-                <div class="test-section">
-                    <div class="section-header" onclick="toggleSection(this)">
-                        <h3><span class="section-icon">⏱️</span> Idle Detection Tests (Accelerated)</h3>
-                        <span class="collapse-indicator">▼</span>
-                    </div>
-                    <div class="section-content">
-                        <div class="idle-timer-display" id="idle-display">
-                            Idle for: <span id="idle-time">0s</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="idle-progress" style="width: 0%;"></div>
-                        </div>
-                        <div class="button-grid" style="margin-top: 1rem;">
-                            <button class="test-button" onclick="startIdleTest()">Start Idle Timer (1min test)</button>
-                            <button class="test-button secondary" onclick="triggerIdleWarning()">Trigger Warning
-                                (25s)</button>
-                            <button class="test-button secondary" onclick="triggerIdleRelease()">Trigger Release
-                                (30s)</button>
-                            <button class="test-button danger" onclick="stopIdleTest()">Stop Timer</button>
-                        </div>
-                        <div id="idle-result" class="result-box" style="display: none;"></div>
-                    </div>
-                </div>
-
-                <!-- Final Task Tests -->
-                <div class="test-section">
-                    <div class="section-header" onclick="toggleSection(this)">
-                        <h3><span class="section-icon">🏁</span> Final Task Tests</h3>
-                        <span class="collapse-indicator">▼</span>
-                    </div>
-                    <div class="section-content">
-                        <div class="button-grid">
-                            <button class="test-button" onclick="testCompleteStudy()">Simulate Complete Study</button>
-                            <button class="test-button" onclick="testFinalDownload()">Test Download</button>
-                            <button class="test-button" onclick="testSanitization()">Test Data Sanitization</button>
-                            <button class="test-button" onclick="verifyGitHubFinished()">Verify GitHub
-                                /finished</button>
-                        </div>
-                        <div id="final-result" class="result-box" style="display: none;"></div>
-                        <div id="final-data-preview" style="display: none; margin-top: 1rem;">
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                <h4 style="margin: 0; color: #60a5fa;">Final Data Preview</h4>
-                                <button class="copy-button" onclick="copyFinalData()">📋 Copy JSON</button>
-                            </div>
-                            <div id="final-data-json" class="json-display"></div>
-                        </div>
-                    </div>
+                <div class="button-grid">
+                    <button class="test-button secondary" onclick="generateTestId()">🎲 Generate Test ID</button>
+                    <button class="test-button secondary" onclick="resetTest()">🔄 Reset All</button>
+                    <button class="test-button success" onclick="quickStart()">🚀 Quick Start</button>
+                    <button class="test-button" onclick="window.open('https://github.com/YOUR_USERNAME/Chatbot-Node-Storage', '_blank')">📊 View GitHub Repo</button>
                 </div>
             </div>
+        </div>
 
-            <!-- Right sidebar for logs -->
-            <div class="test-sidebar">
-                <div class="sidebar-header">
-                    <h3><span class="section-icon">📊</span> Test Log (Real-time)</h3>
+        <!-- Allocation Tests -->
+        <div class="test-section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h3><span class="section-icon">🔐</span> Allocation Tests</h3>
+                <span class="collapse-indicator">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="button-grid">
+                    <button class="test-button" onclick="testAllocationClaim()">Claim Allocation</button>
+                    <button class="test-button" onclick="testAllocationStatus()">Check Status</button>
+                    <button class="test-button danger" onclick="testAllocationRelease()">Release Allocation</button>
+                    <button class="test-button" onclick="testAllocationConfirm()">Confirm Allocation</button>
                 </div>
-                <div class="sidebar-controls">
-                    <button class="copy-button" onclick="copyLog()" style="flex: 1;">📋 Copy</button>
-                    <button class="copy-button" onclick="clearLog()" style="flex: 1;">🗑️ Clear</button>
+                <div id="allocation-result" class="result-box" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Chat Tests -->
+        <div class="test-section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h3><span class="section-icon">💬</span> Chat Tests</h3>
+                <span class="collapse-indicator">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="message-input-area">
+                    <textarea id="chat-message" placeholder="Enter your message here...">Hello! Can you help me test this chatbot?</textarea>
                 </div>
-                <div class="sidebar-log" id="test-log">
-                    <div class="log-entry">
-                        <span class="log-time">--:--:--</span>
-                        <span class="log-icon">ℹ️</span>
-                        <span class="log-message">Test suite initialized. Configure participant ID and start
-                            testing.</span>
+                <div class="button-grid">
+                    <button class="test-button" onclick="testChat('gpt-3.5-turbo-0125')">Test GPT-3.5</button>
+                    <button class="test-button" onclick="testChat('gpt-4-0125-preview')">Test GPT-4</button>
+                    <button class="test-button" onclick="testChat('gpt-5-2025-08-07')">Test GPT-5</button>
+                    <button class="test-button" onclick="testChat('claude-3-haiku-20240307')">Test Claude 3</button>
+                    <button class="test-button" onclick="testChat('claude-3-5-haiku-20241022')">Test Claude 3.5</button>
+                    <button class="test-button" onclick="testChat('claude-sonnet-4-20250514')">Test Claude 4</button>
+                </div>
+                <div id="chat-result" style="display: none;">
+                    <div class="response-display">
+                        <h4>Response</h4>
+                        <div id="chat-response" class="response-content"></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <script src="/test/test.js"></script>
-</body>
+        <!-- Image Generation Tests -->
+        <div class="test-section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h3><span class="section-icon">🖼️</span> Image Generation Tests</h3>
+                <span class="collapse-indicator">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="message-input-area">
+                    <textarea id="image-prompt" placeholder="Enter image generation prompt...">Generate an image of a sunset over mountains</textarea>
+                </div>
+                <div class="button-grid">
+                    <button class="test-button" onclick="testImageGeneration()">Generate Image</button>
+                    <button class="test-button secondary" onclick="testImageError()">Test Error Handling</button>
+                    <button class="test-button secondary" onclick="testImageRetry()">Test Retry Logic</button>
+                    <button class="test-button" onclick="testBlobConversion()">Test Blob → Base64</button>
+                </div>
+                <div id="image-result" style="display: none;">
+                    <div class="response-display">
+                        <h4>Image Generation Result</h4>
+                        <div id="image-status"></div>
+                        <div id="image-preview" class="image-preview"></div>
+                        <div id="image-info" class="image-info"></div>
+                        <div class="button-grid" style="margin-top: 1rem;">
+                            <button class="test-button success" onclick="testImageDownload()">Test Download</button>
+                            <button class="test-button" onclick="testGitHubUpload()">Verify GitHub Upload</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
+        <!-- Save/Load Tests -->
+        <div class="test-section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h3><span class="section-icon">💾</span> Save/Load Tests</h3>
+                <span class="collapse-indicator">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="button-grid">
+                    <button class="test-button" onclick="testAutoSave()">Test Auto-Save</button>
+                    <button class="test-button" onclick="testManualSave()">Test Manual Save</button>
+                    <button class="test-button" onclick="testTaskRetrieval()">Test Task Retrieval</button>
+                    <button class="test-button" onclick="testFinalCompilation()">Test Final Compilation</button>
+                </div>
+                <div id="save-result" class="result-box" style="display: none;"></div>
+                <div id="chatlog-preview" style="display: none; margin-top: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <h4 style="margin: 0; color: #60a5fa;">Chatlog Preview</h4>
+                        <button class="copy-button" onclick="copyChatlog()">📋 Copy JSON</button>
+                    </div>
+                    <div id="chatlog-json" class="json-display"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Idle Detection Tests -->
+        <div class="test-section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h3><span class="section-icon">⏱️</span> Idle Detection Tests (Accelerated)</h3>
+                <span class="collapse-indicator">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="idle-timer-display" id="idle-display">
+                    Idle for: <span id="idle-time">0s</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="idle-progress" style="width: 0%;"></div>
+                </div>
+                <div class="button-grid" style="margin-top: 1rem;">
+                    <button class="test-button" onclick="startIdleTest()">Start Idle Timer (1min test)</button>
+                    <button class="test-button secondary" onclick="triggerIdleWarning()">Trigger Warning (25s)</button>
+                    <button class="test-button secondary" onclick="triggerIdleRelease()">Trigger Release (30s)</button>
+                    <button class="test-button danger" onclick="stopIdleTest()">Stop Timer</button>
+                </div>
+                <div id="idle-result" class="result-box" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Final Task Tests -->
+        <div class="test-section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h3><span class="section-icon">🏁</span> Final Task Tests</h3>
+                <span class="collapse-indicator">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="button-grid">
+                    <button class="test-button" onclick="testCompleteStudy()">Simulate Complete Study</button>
+                    <button class="test-button" onclick="testFinalDownload()">Test Download</button>
+                    <button class="test-button" onclick="testSanitization()">Test Data Sanitization</button>
+                    <button class="test-button" onclick="verifyGitHubFinished()">Verify GitHub /finished</button>
+                </div>
+                <div id="final-result" class="result-box" style="display: none;"></div>
+                <div id="final-data-preview" style="display: none; margin-top: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <h4 style="margin: 0; color: #60a5fa;">Final Data Preview</h4>
+                        <button class="copy-button" onclick="copyFinalData()">📋 Copy JSON</button>
+                    </div>
+                    <div id="final-data-json" class="json-display"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="test-section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h3><span class="section-icon">📊</span> Test Log (Real-time)</h3>
+                <span class="collapse-indicator">▼</span>
+            </div>
+            <div class="section-content">
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-bottom: 1rem;">
+                    <button class="copy-button" onclick="copyLog()">📋 Copy Log</button>
+                    <button class="copy-button" onclick="clearLog()">🗑️ Clear Log</button>
+                </div>
+                <div id="test-log" class="result-box">
+                    <div class="log-entry">
+                        <span class="log-time">--:--:--</span>
+                        <span class="log-icon">ℹ️</span>
+                        <span class="log-message">Test suite initialized. Configure participant ID and start testing.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/test/test.js"></script>
+</body>
 </html>
