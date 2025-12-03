@@ -9,7 +9,8 @@ let testState = {
     allocationId: null,
     chatHistory: [],
     generatedImages: [],
-    currentDataCache: null // Cache for retrieved data
+    currentDataCache: null,
+    currentTask: 'image-generation' // Track current task for saves
 };
 
 // Initialize
@@ -117,7 +118,8 @@ function resetTest() {
         allocationId: null,
         chatHistory: [],
         generatedImages: [],
-        currentDataCache: null
+        currentDataCache: null,
+        currentTask: 'image-generation'
     };
     
     clearLog();
@@ -140,6 +142,14 @@ async function quickStart() {
 function toggleSection(headerElement) {
     const section = headerElement.parentElement;
     section.classList.toggle('collapsed');
+}
+
+/**
+ * Set current task context (for proper save routing)
+ */
+function setCurrentTask(taskName) {
+    testState.currentTask = taskName;
+    log('info', `Task context set to: ${taskName}`);
 }
 
 // ===================================================================
@@ -291,7 +301,7 @@ async function testChat(model) {
                 messages,
                 model,
                 sessionId: testState.allocationId || 'test-session',
-                conversationId: `test_${Date.now()}`
+                conversationId: `${testState.currentTask}_${Date.now()}`
             })
         });
         
@@ -330,7 +340,13 @@ async function testChat(model) {
             }
         }
         
-        testState.chatHistory.push({ model, message, response: fullResponse });
+        testState.chatHistory.push({ 
+            model, 
+            message, 
+            response: fullResponse,
+            task: testState.currentTask,
+            timestamp: new Date().toISOString()
+        });
         
     } catch (error) {
         log('error', `Chat failed: ${error.message}`);
@@ -481,20 +497,24 @@ async function testManualSave() {
     const pid = getParticipantId();
     if (!pid) return;
     
-    log('start', 'Testing manual save');
+    log('start', `Testing manual save (task: ${testState.currentTask})`);
+    
+    // Filter chat history for current task
+    const taskChats = testState.chatHistory.filter(chat => chat.task === testState.currentTask);
     
     const taskData = {
         conversations: {
             [`test_${Date.now()}`]: {
-                messages: testState.chatHistory.map((chat, i) => ({
+                messages: taskChats.map((chat, i) => ({
                     msg_id: i + 1,
                     sender: 'User',
-                    content: chat.message
+                    content: chat.message,
+                    timestamp: chat.timestamp
                 }))
             }
         },
         behaviorMetrics: {
-            messageCount: testState.chatHistory.length
+            messageCount: taskChats.length
         },
         savedAt: new Date().toISOString(),
         savedVia: 'manual'
@@ -506,7 +526,7 @@ async function testManualSave() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 participantId: pid,
-                taskName: 'image-generation',
+                taskName: testState.currentTask, // ✅ FIXED: Now uses current task
                 sessionId: testState.allocationId,
                 modelConfig: {
                     displayedModel: 'GPT-4',
@@ -522,7 +542,8 @@ async function testManualSave() {
             throw new Error(result.error || `HTTP ${response.status}`);
         }
         
-        log('success', 'Manual save successful');
+        log('success', `Manual save successful for ${testState.currentTask}`);
+        log('info', `Saved ${taskChats.length} messages`);
         
     } catch (error) {
         log('error', `Manual save failed: ${error.message}`);
@@ -533,20 +554,24 @@ async function testAutoSave() {
     const pid = getParticipantId();
     if (!pid) return;
     
-    log('start', 'Testing auto-save');
+    log('start', `Testing auto-save (task: ${testState.currentTask})`);
+    
+    // Filter chat history for current task
+    const taskChats = testState.chatHistory.filter(chat => chat.task === testState.currentTask);
     
     const taskData = {
         conversations: {
             [`test_${Date.now()}`]: {
-                messages: testState.chatHistory.map((chat, i) => ({
+                messages: taskChats.map((chat, i) => ({
                     msg_id: i + 1,
                     sender: 'User',
-                    content: chat.message
+                    content: chat.message,
+                    timestamp: chat.timestamp
                 }))
             }
         },
         behaviorMetrics: {
-            messageCount: testState.chatHistory.length
+            messageCount: taskChats.length
         },
         savedAt: new Date().toISOString(),
         savedVia: 'auto'
@@ -558,7 +583,7 @@ async function testAutoSave() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 participantId: pid,
-                taskName: 'image-generation',
+                taskName: testState.currentTask, // ✅ FIXED: Now uses current task
                 sessionId: testState.allocationId,
                 modelConfig: {
                     displayedModel: 'GPT-4',
@@ -574,7 +599,8 @@ async function testAutoSave() {
             throw new Error(result.error || `HTTP ${response.status}`);
         }
         
-        log('success', 'Auto-save successful');
+        log('success', `Auto-save successful for ${testState.currentTask}`);
+        log('info', `Saved ${taskChats.length} messages`);
         
     } catch (error) {
         log('error', `Auto-save failed: ${error.message}`);
@@ -691,11 +717,10 @@ async function testCompleteTask() {
     log('info', 'This simulates clicking the Complete Task button');
     
     try {
-        // Step 1: Save current task data
-        log('info', 'Step 1: Saving task data');
+        // Save current task data
+        log('info', `Saving task: ${testState.currentTask}`);
         await testManualSave();
         
-        // Step 2: Show completion (no actual navigation in test)
         log('success', 'Task completion flow successful');
         log('info', 'In production: User would see completion page');
         
@@ -792,10 +817,20 @@ async function testFinishStudy() {
 
 async function automateFullStudy() {
     log('start', '🤖 Starting automated full study simulation');
-    log('info', 'This will simulate a complete participant journey');
+    log('info', 'This will test all 6 models across all tasks');
     
     const pid = getParticipantId();
     if (!pid) return;
+    
+    // Array of all 6 models to test
+    const allModels = [
+        'gpt-3.5-turbo-0125',
+        'gpt-4-0125-preview',
+        'gpt-5-2025-08-07',
+        'claude-3-haiku-20240307',
+        'claude-3-5-haiku-20241022',
+        'claude-sonnet-4-20250514'
+    ];
     
     try {
         // Step 1: Claim allocation
@@ -805,6 +840,7 @@ async function automateFullStudy() {
         
         // Step 2: Image generation task
         log('info', '=== STEP 2: Image Generation Task ===');
+        setCurrentTask('image-generation');
         
         // Generate first image
         log('info', 'Chat 1: Generating sunset image');
@@ -824,58 +860,85 @@ async function automateFullStudy() {
         await testImageGeneration();
         await sleep(2000);
         
-        // Save task
+        // Save image-generation task
         log('info', 'Saving image-generation task');
         await testManualSave();
         await sleep(1000);
         
-        // Step 3: Outreach message task
+        // Step 3: Outreach message task (test models 1-3)
         log('info', '=== STEP 3: Outreach Message Task ===');
+        setCurrentTask('outreach-msg');
         
-        // Chat 1
-        log('info', 'Chat 1: Writing outreach message');
+        // Chat 1 - Model 1 (GPT-3.5)
+        log('info', `Chat 1: Testing ${allModels[0]}`);
         document.getElementById('chat-message').value = 'Write a professional outreach message for a collaboration';
-        await testChat('gpt-4-0125-preview');
+        await testChat(allModels[0]);
         await sleep(2000);
         
-        // Chat 2 (new chat)
-        log('info', 'Chat 2: Refining message');
+        // Chat 2 - Model 2 (GPT-4)
+        log('info', `Chat 2: Testing ${allModels[1]}`);
         document.getElementById('chat-message').value = 'Make it more casual and friendly';
-        await testChat('gpt-4-0125-preview');
+        await testChat(allModels[1]);
         await sleep(2000);
         
-        // Step 4: Acronym building task
+        // Chat 3 - Model 3 (GPT-5)
+        log('info', `Chat 3: Testing ${allModels[2]}`);
+        document.getElementById('chat-message').value = 'Add a creative opening line';
+        await testChat(allModels[2]);
+        await sleep(2000);
+        
+        // Save outreach-msg task
+        log('info', 'Saving outreach-msg task');
+        await testManualSave();
+        await sleep(1000);
+        
+        // Step 4: Acronym building task (test models 4-6)
         log('info', '=== STEP 4: Acronym Building Task ===');
+        setCurrentTask('acro-build');
         
-        // Chat 1
-        log('info', 'Chat 1: Creating acronym');
+        // Chat 1 - Model 4 (Claude 3)
+        log('info', `Chat 1: Testing ${allModels[3]}`);
         document.getElementById('chat-message').value = 'Create a funny acronym for STUDY';
-        await testChat('gpt-4-0125-preview');
+        await testChat(allModels[3]);
         await sleep(2000);
         
-        // Chat 2 (new chat)
-        log('info', 'Chat 2: Creating another acronym');
+        // Chat 2 - Model 5 (Claude 3.5)
+        log('info', `Chat 2: Testing ${allModels[4]}`);
         document.getElementById('chat-message').value = 'Create an acronym for RESEARCH';
-        await testChat('gpt-4-0125-preview');
+        await testChat(allModels[4]);
+        await sleep(2000);
+        
+        // Chat 3 - Model 6 (Claude 4)
+        log('info', `Chat 3: Testing ${allModels[5]}`);
+        document.getElementById('chat-message').value = 'Create a professional acronym for SCIENCE';
+        await testChat(allModels[5]);
         await sleep(2000);
         
         // Edit message simulation
-        log('info', 'Chat 2: Editing and retrying');
-        document.getElementById('chat-message').value = 'Create a professional acronym for RESEARCH';
-        await testChat('gpt-4-0125-preview');
+        log('info', `Chat 3: Editing and retrying with ${allModels[5]}`);
+        document.getElementById('chat-message').value = 'Create a creative acronym for SCIENCE';
+        await testChat(allModels[5]);
         await sleep(2000);
+        
+        // Save acro-build task
+        log('info', 'Saving acro-build task');
+        await testManualSave();
+        await sleep(1000);
         
         // Step 5: Complete all tasks
         log('info', '=== STEP 5: Completing tasks ===');
         
+        setCurrentTask('image-generation');
         log('info', 'Completing image-generation task');
         await testCompleteTask();
         await sleep(1000);
         
+        setCurrentTask('outreach-msg');
         log('info', 'Completing outreach-msg task');
         await testCompleteTask();
         await sleep(1000);
         
+        setCurrentTask('acro-build');
         log('info', 'Completing acro-build task (final)');
         await testCompleteTask();
         await sleep(1000);
@@ -885,9 +948,10 @@ async function automateFullStudy() {
         await testFinishStudy();
         
         log('success', '🎉 Automated full study simulation complete!');
-        log('info', 'Check logs above for any errors or issues');
+        log('info', '✅ All 6 models tested across 3 tasks');
+        log('info', 'Check logs above for any errors');
         
-        showResult('final-result', 'Full study automation succeeded! Check logs for details.', true);
+        showResult('final-result', 'Full study automation succeeded! All 6 models tested. Check logs for details.', true);
         
     } catch (error) {
         log('error', `Automation failed: ${error.message}`);
