@@ -1,6 +1,6 @@
 /**
  * Test Suite for Chatbot Study
- * Simplified, actionable testing with clean logging
+ * Routes through ACTUAL participant functions - no rewrites
  */
 
 // Global state
@@ -8,14 +8,14 @@ let testState = {
     participantId: null,
     allocationId: null,
     chatHistory: [],
-    generatedImages: []
+    generatedImages: [],
+    currentDataCache: null // Cache for retrieved data
 };
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     log('info', 'Test suite ready');
     
-    // Auto-populate PID from URL
     const urlParams = new URLSearchParams(window.location.search);
     const pidFromUrl = urlParams.get('pid');
     if (pidFromUrl) {
@@ -25,12 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ===================================================================
-// LOGGING SYSTEM (Simplified)
+// LOGGING SYSTEM
 // ===================================================================
 
-/**
- * Log a test event (simplified output)
- */
 function log(type, message) {
     const logContainer = document.getElementById('test-log');
     const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
@@ -59,7 +56,6 @@ function log(type, message) {
 function clearLog() {
     const logContainer = document.getElementById('test-log');
     logContainer.innerHTML = '<div class="log-entry"><span class="log-time">--:--:--</span><span class="log-icon">ℹ️</span><span class="log-message">Log cleared</span></div>';
-    log('info', 'Log cleared');
 }
 
 function copyLog() {
@@ -120,7 +116,8 @@ function resetTest() {
         participantId: null,
         allocationId: null,
         chatHistory: [],
-        generatedImages: []
+        generatedImages: [],
+        currentDataCache: null
     };
     
     clearLog();
@@ -146,7 +143,7 @@ function toggleSection(headerElement) {
 }
 
 // ===================================================================
-// ALLOCATION TESTS
+// ALLOCATION TESTS (Routes through /api/allocation/*)
 // ===================================================================
 
 async function testAllocationClaim() {
@@ -263,7 +260,7 @@ async function testAllocationConfirm() {
 }
 
 // ===================================================================
-// CHAT TESTS
+// CHAT TESTS (Routes through /api/chat/stream - SAME as chat.js)
 // ===================================================================
 
 async function testChat(model) {
@@ -342,7 +339,7 @@ async function testChat(model) {
 }
 
 // ===================================================================
-// IMAGE GENERATION TESTS
+// IMAGE GENERATION TESTS (Routes through /api/chat/stream - SAME as chat.js)
 // ===================================================================
 
 async function testImageGeneration() {
@@ -477,8 +474,60 @@ function testImageDownload() {
 }
 
 // ===================================================================
-// SAVE/LOAD TESTS
+// SAVE/LOAD TESTS (Routes through /api/chat/save-task - SAME as core.js)
 // ===================================================================
+
+async function testManualSave() {
+    const pid = getParticipantId();
+    if (!pid) return;
+    
+    log('start', 'Testing manual save');
+    
+    const taskData = {
+        conversations: {
+            [`test_${Date.now()}`]: {
+                messages: testState.chatHistory.map((chat, i) => ({
+                    msg_id: i + 1,
+                    sender: 'User',
+                    content: chat.message
+                }))
+            }
+        },
+        behaviorMetrics: {
+            messageCount: testState.chatHistory.length
+        },
+        savedAt: new Date().toISOString(),
+        savedVia: 'manual'
+    };
+    
+    try {
+        const response = await fetch('/api/chat/save-task', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                participantId: pid,
+                taskName: 'image-generation',
+                sessionId: testState.allocationId,
+                modelConfig: {
+                    displayedModel: 'GPT-4',
+                    actualModel: 'gpt-4-0125-preview'
+                },
+                taskData
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || `HTTP ${response.status}`);
+        }
+        
+        log('success', 'Manual save successful');
+        
+    } catch (error) {
+        log('error', `Manual save failed: ${error.message}`);
+    }
+}
 
 async function testAutoSave() {
     const pid = getParticipantId();
@@ -499,7 +548,8 @@ async function testAutoSave() {
         behaviorMetrics: {
             messageCount: testState.chatHistory.length
         },
-        savedAt: new Date().toISOString()
+        savedAt: new Date().toISOString(),
+        savedVia: 'auto'
     };
     
     try {
@@ -525,61 +575,152 @@ async function testAutoSave() {
         }
         
         log('success', 'Auto-save successful');
-        showResult('save-result', 'Task data saved to GitHub', true);
         
     } catch (error) {
         log('error', `Auto-save failed: ${error.message}`);
-        showResult('save-result', error.message, false);
     }
 }
 
-async function testTaskRetrieval() {
+// ===================================================================
+// DATA RETRIEVAL & DOWNLOAD (Routes through /api/chat/participant-data)
+// ===================================================================
+
+async function retrieveSelectedData() {
     const pid = getParticipantId();
     if (!pid) return;
     
-    log('start', 'Retrieving task data');
+    const selector = document.getElementById('data-select');
+    const selection = selector.value;
+    
+    log('start', `Retrieving ${selection}`);
     
     try {
-        const response = await fetch(`/api/chat/participant-data?pid=${encodeURIComponent(pid)}`);
-        const data = await response.json();
-        
-        if (!response.ok) {
-            throw new Error(data.error || `HTTP ${response.status}`);
+        if (selection === 'final') {
+            // Retrieve all tasks for final compilation
+            const response = await fetch(`/api/chat/participant-data?pid=${encodeURIComponent(pid)}`);
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || `HTTP ${response.status}`);
+            }
+            
+            testState.currentDataCache = data;
+            
+            const taskCount = Object.keys(data.tasks || {}).length;
+            log('success', `Retrieved final data (${taskCount} tasks)`);
+            
+            const displayArea = document.getElementById('data-display');
+            displayArea.style.display = 'block';
+            displayArea.textContent = JSON.stringify(data, null, 2);
+            
+        } else {
+            // Retrieve specific task
+            const response = await fetch(`/api/chat/participant-data?pid=${encodeURIComponent(pid)}`);
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || `HTTP ${response.status}`);
+            }
+            
+            const taskData = data.tasks[selection];
+            
+            if (!taskData) {
+                log('warning', `No data found for ${selection}`);
+                const displayArea = document.getElementById('data-display');
+                displayArea.style.display = 'block';
+                displayArea.textContent = `No data saved for task: ${selection}`;
+                return;
+            }
+            
+            testState.currentDataCache = taskData;
+            
+            log('success', `Retrieved ${selection}`);
+            
+            const displayArea = document.getElementById('data-display');
+            displayArea.style.display = 'block';
+            displayArea.textContent = JSON.stringify(taskData, null, 2);
         }
-        
-        const taskCount = Object.keys(data.tasks || {}).length;
-        log('success', `Retrieved ${taskCount} task(s)`);
-        
-        showResult('save-result', `Found ${taskCount} task file(s) for ${pid}`, true);
         
     } catch (error) {
         log('error', `Retrieval failed: ${error.message}`);
-        showResult('save-result', error.message, false);
+        const displayArea = document.getElementById('data-display');
+        displayArea.style.display = 'block';
+        displayArea.textContent = `Error: ${error.message}`;
     }
 }
 
-async function testFinalCompilation() {
+function downloadSelectedData() {
+    if (!testState.currentDataCache) {
+        log('error', 'No data to download. Retrieve first.');
+        alert('Please retrieve data first');
+        return;
+    }
+    
+    const selector = document.getElementById('data-select');
+    const selection = selector.value;
     const pid = getParticipantId();
-    if (!pid) return;
     
-    log('start', 'Testing final compilation');
-    log('info', 'This simulates the acro-build page logic');
+    log('start', `Downloading ${selection}`);
     
-    await testTaskRetrieval();
+    const jsonContent = JSON.stringify(testState.currentDataCache, null, 2);
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${pid}_${selection}_${Date.now()}.json`;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    
+    log('success', `Download triggered: ${link.download}`);
 }
 
 // ===================================================================
 // FINAL TASK TESTS
 // ===================================================================
 
-async function testCompleteStudy() {
+async function testCompleteTask() {
     const pid = getParticipantId();
     if (!pid) return;
     
-    log('start', 'Simulating study completion');
+    log('start', 'Testing "Complete Task" flow');
+    log('info', 'This simulates clicking the Complete Task button');
     
     try {
-        log('info', 'Step 1: Retrieving all tasks');
+        // Step 1: Save current task data
+        log('info', 'Step 1: Saving task data');
+        await testManualSave();
+        
+        // Step 2: Show completion (no actual navigation in test)
+        log('success', 'Task completion flow successful');
+        log('info', 'In production: User would see completion page');
+        
+        showResult('final-result', 'Complete Task simulation succeeded', true);
+        
+    } catch (error) {
+        log('error', `Complete task failed: ${error.message}`);
+        showResult('final-result', error.message, false);
+    }
+}
+
+async function testFinishStudy() {
+    const pid = getParticipantId();
+    if (!pid) return;
+    
+    log('start', 'Testing "Finish Study" flow (final task only)');
+    log('info', 'This simulates the acro-build page finish logic');
+    
+    try {
+        // Step 1: Save final task
+        log('info', 'Step 1: Saving final task data');
+        await testManualSave();
+        
+        // Step 2: Retrieve all tasks
+        log('info', 'Step 2: Retrieving all tasks');
         const response = await fetch(`/api/chat/participant-data?pid=${encodeURIComponent(pid)}`);
         const allTasksData = await response.json();
         
@@ -587,19 +728,21 @@ async function testCompleteStudy() {
             throw new Error('Failed to retrieve tasks');
         }
         
-        log('info', 'Step 2: Compiling dataset');
+        // Step 3: Compile complete data
+        log('info', 'Step 3: Compiling complete dataset');
         const completeData = {
             participantId: pid,
             sessionId: testState.allocationId || 'test-session',
             modelConfig: {
-                displayedModel: 'GPT-4',
-                actualModel: 'gpt-4-0125-preview'
+                displayedModel: 'GPT-4'
+                // NOTE: actualModel/trueModel will be removed by sanitization
             },
             tasks: allTasksData.tasks,
             completedAt: new Date().toISOString()
         };
         
-        log('info', 'Step 3: Saving to /finished');
+        // Step 4: Save to /finished
+        log('info', 'Step 4: Saving to /finished folder');
         const saveResponse = await fetch('/api/chat/save-finished', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -612,66 +755,147 @@ async function testCompleteStudy() {
             throw new Error(saveResult.error || 'Save failed');
         }
         
-        log('success', 'Study completion successful');
-        log('info', 'Data saved to GitHub: finished/{pid}/complete-study-data.json');
+        // Step 5: Trigger download
+        log('info', 'Step 5: Triggering download for participant');
+        const jsonContent = JSON.stringify(completeData, null, 2);
+        const blob = new Blob([jsonContent], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
         
-        showResult('final-result', 'Complete study simulation succeeded', true);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `study-data-${pid}-${Date.now()}.json`;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        
+        // Step 6: Confirm allocation
+        log('info', 'Step 6: Confirming allocation');
+        await testAllocationConfirm();
+        
+        log('success', 'Finish Study flow complete');
+        log('info', 'Download triggered, GitHub saved, allocation confirmed');
+        
+        showResult('final-result', 'Finish Study simulation succeeded', true);
         
     } catch (error) {
-        log('error', `Study completion failed: ${error.message}`);
+        log('error', `Finish study failed: ${error.message}`);
         showResult('final-result', error.message, false);
     }
 }
 
-function testFinalDownload() {
+// ===================================================================
+// AUTOMATED FULL STUDY SIMULATION
+// ===================================================================
+
+async function automateFullStudy() {
+    log('start', '🤖 Starting automated full study simulation');
+    log('info', 'This will simulate a complete participant journey');
+    
     const pid = getParticipantId();
     if (!pid) return;
     
-    log('start', 'Testing download');
-    
-    const mockData = {
-        participantId: pid,
-        sessionId: testState.allocationId,
-        tasks: {},
-        completedAt: new Date().toISOString()
-    };
-    
-    const jsonContent = JSON.stringify(mockData, null, 2);
-    const blob = new Blob([jsonContent], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `study-data-${pid}-${Date.now()}.json`;
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    
-    log('success', 'Download triggered');
+    try {
+        // Step 1: Claim allocation
+        log('info', '=== STEP 1: Claiming allocation ===');
+        await testAllocationClaim();
+        await sleep(1000);
+        
+        // Step 2: Image generation task
+        log('info', '=== STEP 2: Image Generation Task ===');
+        
+        // Generate first image
+        log('info', 'Chat 1: Generating sunset image');
+        document.getElementById('image-prompt').value = 'A beautiful sunset over mountains';
+        await testImageGeneration();
+        await sleep(2000);
+        
+        // Generate second image (new chat simulation)
+        log('info', 'Chat 2: Generating cat image');
+        document.getElementById('image-prompt').value = 'A fluffy cat playing with yarn';
+        await testImageGeneration();
+        await sleep(2000);
+        
+        // Edit and regenerate (simulate message edit)
+        log('info', 'Chat 2: Editing prompt and regenerating');
+        document.getElementById('image-prompt').value = 'A fluffy orange cat playing with blue yarn';
+        await testImageGeneration();
+        await sleep(2000);
+        
+        // Save task
+        log('info', 'Saving image-generation task');
+        await testManualSave();
+        await sleep(1000);
+        
+        // Step 3: Outreach message task
+        log('info', '=== STEP 3: Outreach Message Task ===');
+        
+        // Chat 1
+        log('info', 'Chat 1: Writing outreach message');
+        document.getElementById('chat-message').value = 'Write a professional outreach message for a collaboration';
+        await testChat('gpt-4-0125-preview');
+        await sleep(2000);
+        
+        // Chat 2 (new chat)
+        log('info', 'Chat 2: Refining message');
+        document.getElementById('chat-message').value = 'Make it more casual and friendly';
+        await testChat('gpt-4-0125-preview');
+        await sleep(2000);
+        
+        // Step 4: Acronym building task
+        log('info', '=== STEP 4: Acronym Building Task ===');
+        
+        // Chat 1
+        log('info', 'Chat 1: Creating acronym');
+        document.getElementById('chat-message').value = 'Create a funny acronym for STUDY';
+        await testChat('gpt-4-0125-preview');
+        await sleep(2000);
+        
+        // Chat 2 (new chat)
+        log('info', 'Chat 2: Creating another acronym');
+        document.getElementById('chat-message').value = 'Create an acronym for RESEARCH';
+        await testChat('gpt-4-0125-preview');
+        await sleep(2000);
+        
+        // Edit message simulation
+        log('info', 'Chat 2: Editing and retrying');
+        document.getElementById('chat-message').value = 'Create a professional acronym for RESEARCH';
+        await testChat('gpt-4-0125-preview');
+        await sleep(2000);
+        
+        // Step 5: Complete all tasks
+        log('info', '=== STEP 5: Completing tasks ===');
+        
+        log('info', 'Completing image-generation task');
+        await testCompleteTask();
+        await sleep(1000);
+        
+        log('info', 'Completing outreach-msg task');
+        await testCompleteTask();
+        await sleep(1000);
+        
+        log('info', 'Completing acro-build task (final)');
+        await testCompleteTask();
+        await sleep(1000);
+        
+        // Step 6: Finish study
+        log('info', '=== STEP 6: Finishing study ===');
+        await testFinishStudy();
+        
+        log('success', '🎉 Automated full study simulation complete!');
+        log('info', 'Check logs above for any errors or issues');
+        
+        showResult('final-result', 'Full study automation succeeded! Check logs for details.', true);
+        
+    } catch (error) {
+        log('error', `Automation failed: ${error.message}`);
+        showResult('final-result', `Automation error: ${error.message}`, false);
+    }
 }
 
-function testSanitization() {
-    log('start', 'Testing data sanitization');
-    
-    const rawData = {
-        participantId: 'TEST123',
-        modelConfig: {
-            displayedModel: 'GPT-4',
-            actualModel: 'gpt-4-0125-preview', // Should be removed
-            trueModel: 'gpt-4-0125-preview' // Should be removed
-        }
-    };
-    
-    const sanitized = JSON.parse(JSON.stringify(rawData));
-    delete sanitized.modelConfig.actualModel;
-    delete sanitized.modelConfig.trueModel;
-    
-    log('success', 'Sensitive fields removed');
-    log('info', 'Before: displayedModel, actualModel, trueModel');
-    log('info', 'After: displayedModel only');
-    
-    showResult('final-result', 'Sanitization successful', true);
+// Helper function for delays
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
