@@ -442,14 +442,34 @@ async function testChat(model) {
 
 async function testImageGeneration() {
     const prompt = document.getElementById('image-prompt').value.trim();
+    const errorSimulation = document.getElementById('error-simulation').value;
 
     if (!prompt) {
-        log('error', 'No prompt provided');
+        log('error', 'No image prompt provided');
         alert('Please enter an image prompt first');
         return;
     }
 
-    log('test', 'Starting image generation');
+    // Check for error simulation
+    let finalPrompt = prompt;
+    if (errorSimulation !== 'none') {
+        log('warning', `Error simulation: ${errorSimulation}`);
+
+        switch (errorSimulation) {
+            case 'content-policy':
+                finalPrompt = 'Generate an image of explicit violence';
+                log('test', 'Using content policy violation prompt');
+                break;
+            case 'dalle-500':
+                log('test', 'Cannot simulate 500 - occurs naturally sometimes');
+                break;
+            case 'dalle-timeout':
+                log('test', 'Cannot simulate timeout - occurs naturally sometimes');
+                break;
+        }
+    }
+
+    log('test', 'Starting image generation', { prompt: finalPrompt.substring(0, 80) });
 
     const resultDiv = document.getElementById('image-result');
     const statusDiv = document.getElementById('image-status');
@@ -461,12 +481,19 @@ async function testImageGeneration() {
     previewDiv.innerHTML = '';
     infoDiv.innerHTML = '';
 
+    let imageMetadata = null;
+    let imageContent = null;
+
     try {
+        const messages = [{ sender: 'User', content: finalPrompt }];
+
+        log('network', 'POST /api/chat/stream');
+
         const response = await fetch('/api/chat/stream', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                messages: [{ sender: 'User', content: prompt }],
+                messages,
                 model: 'gpt-4-0125-preview',
                 sessionId: testState.allocationId || 'test-session',
                 conversationId: `image-generation_${Date.now()}`,
@@ -475,19 +502,20 @@ async function testImageGeneration() {
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
         log('network', 'Stream connected');
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
-        let filename = null;
-        let sizeKB = null;
 
         while (true) {
             const { done, value } = await reader.read();
-            if (done) break;
+            if (done) {
+                log('network', 'Stream closed');
+                break;
+            }
 
             const chunk = decoder.decode(value, { stream: true });
             const lines = chunk.split('\n');
@@ -497,37 +525,71 @@ async function testImageGeneration() {
                     try {
                         const data = JSON.parse(line.slice(6));
 
-                        if (data.type === 'image_request_detected') {
-                            log('image', 'Request detected');
-                            statusDiv.innerHTML = '<span class="status-badge pending">Processing...</span>';
+                        switch (data.type) {
+                            case 'image_request_detected':
+                                log('image', 'Server detected image request');
+                                statusDiv.innerHTML = '<span class="status-badge pending">Processing...</span>';
+                                break;
 
-                        } else if (data.type === 'image_generated') {
-                            filename = data.filename;
-                            sizeKB = data.sizeKB;
+                            case 'image_generated':
+                                // Metadata received
+                                imageMetadata = data;
+                                log('image', 'Image metadata received', {
+                                    filename: data.imageFilename,
+                                    sizeKB: data.imageSizeKB
+                                });
+                                statusDiv.innerHTML = '<span class="status-badge pending">Downloading...</span>';
+                                break;
 
-                            log('success', 'Image generated', { filename, sizeKB });
+                            case 'content':
+                                // Content with image markdown
+                                imageContent = data.content;
 
-                            statusDiv.innerHTML = '<span class="status-badge success">Generated!</span>';
-                            previewDiv.innerHTML = `<div style="padding: 2rem; text-align: center; background: rgba(16,185,129,0.1); border-radius: 8px;">
-                                <div style="font-size: 3rem; margin-bottom: 1rem;">✅</div>
-                                <div style="font-size: 1.25rem; font-weight: 600;">Image Generated Successfully</div>
-                                <div style="margin-top: 1rem; color: #6b7280;">Check GitHub for the actual image</div>
-                            </div>`;
+                                // Extract base64 from markdown if present
+                                const imageMatch = data.content.match(/!\[.*?\]\((data:image\/[^)]+)\)/);
 
-                            infoDiv.innerHTML = `
-                                <div class="info-badge">Filename: ${filename}</div>
-                                <div class="info-badge">Size: ${sizeKB} KB</div>
-                                <div class="info-badge">Location: GitHub /images/${testState.participantId || 'test-session'}/${filename}</div>
-                            `;
+                                if (imageMatch) {
+                                    const base64Data = imageMatch[1];
 
-                        } else if (data.type === 'content') {
-                            log('data', `Message: ${data.content}`);
+                                    log('success', 'Image received', {
+                                        filename: imageMetadata?.imageFilename || 'unknown',
+                                        sizeKB: imageMetadata?.imageSizeKB || 'unknown'
+                                    });
 
-                        } else if (data.type === 'done') {
-                            log('success', `Complete: ${data.finishReason}`);
+                                    statusDiv.innerHTML = '<span class="status-badge success">Image Generated!</span>';
 
-                        } else if (data.type === 'error') {
-                            throw new Error(data.error);
+                                    previewDiv.innerHTML = `<img src="${base64Data}" alt="Generated image" style="max-width: 100%; border-radius: 8px;">`;
+
+                                    infoDiv.innerHTML = `
+                                        <div class="info-badge">File: ${imageMetadata?.imageFilename || 'N/A'}</div>
+                                        <div class="info-badge">Size: ${imageMetadata?.imageSizeKB || 'N/A'} KB</div>
+                                        <div class="info-badge">Format: Base64 (permanent)</div>
+                                    `;
+
+                                    testState.generatedImages.push({
+                                        imageData: base64Data,
+                                        imageFilename: imageMetadata?.imageFilename || `test-${Date.now()}.png`,
+                                        imageSizeKB: imageMetadata?.imageSizeKB
+                                    });
+                                } else {
+                                    // Text message (possibly error)
+                                    const preview = data.content.substring(0, 150);
+                                    log('data', `Message: ${preview}${data.content.length > 150 ? '...' : ''}`);
+
+                                    if (data.content.includes('error') || data.content.includes('apologize') || data.content.includes('cannot')) {
+                                        log('warning', 'Error message detected in response');
+                                        statusDiv.innerHTML = '<span class="status-badge error">Generation failed</span>';
+                                        previewDiv.innerHTML = `<div style="padding: 1rem; background: rgba(239,68,68,0.1); border-radius: 8px; color: #ef4444;">${data.content}</div>`;
+                                    }
+                                }
+                                break;
+
+                            case 'error':
+                                throw new Error(data.error);
+
+                            case 'done':
+                                log('success', `Complete: ${data.finishReason}`);
+                                break;
                         }
 
                     } catch (parseError) {
