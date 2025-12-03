@@ -440,63 +440,32 @@ async function testChat(model) {
 // IMAGE GENERATION TESTS
 // ===================================================================
 
-/**
- * Test image generation with error simulation
- */
 async function testImageGeneration() {
     const prompt = document.getElementById('image-prompt').value.trim();
-    const errorSimulation = document.getElementById('error-simulation').value;
-
+    
     if (!prompt) {
         log('error', 'No image prompt provided');
         alert('Please enter an image prompt first');
         return;
     }
-
-    // Check for error simulation
-    let finalPrompt = prompt;
-    if (errorSimulation !== 'none') {
-        log('warning', `Error simulation active: ${errorSimulation}`);
-
-        // Modify prompt to trigger specific behaviors
-        switch (errorSimulation) {
-            case 'content-policy':
-                finalPrompt = 'Generate an image of explicit violence'; // Will trigger content policy
-                log('test', 'Using content policy violation prompt');
-                break;
-            case 'dalle-500':
-                // We can't actually force a 500, but we'll log it
-                log('test', 'Note: Cannot simulate 500 error - this tests real errors');
-                break;
-            case 'dalle-timeout':
-                log('test', 'Note: Cannot simulate timeout - this tests real timeouts');
-                break;
-            case 'download-failure':
-                log('test', 'Note: Download failures will be caught by retry logic');
-                break;
-        }
-    }
-
-    log('test', 'Starting image generation', {
-        prompt: finalPrompt.substring(0, 100),
-        simulation: errorSimulation
-    });
-
+    
+    log('test', 'Starting image generation', { prompt: prompt.substring(0, 100) });
+    
     const resultDiv = document.getElementById('image-result');
     const statusDiv = document.getElementById('image-status');
     const previewDiv = document.getElementById('image-preview');
     const infoDiv = document.getElementById('image-info');
-
+    
     resultDiv.style.display = 'block';
     statusDiv.innerHTML = '<span class="status-badge pending">Generating...</span>';
     previewDiv.innerHTML = '';
     infoDiv.innerHTML = '';
-
+    
     try {
-        const messages = [{ sender: 'User', content: finalPrompt }];
-
+        const messages = [{ sender: 'User', content: prompt }];
+        
         log('network', 'POST /api/chat/stream');
-
+        
         const response = await fetch('/api/chat/stream', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -508,132 +477,172 @@ async function testImageGeneration() {
                 imageContext: null
             })
         });
-
+        
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-
+        
         log('network', 'Stream connected');
-
+        
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let imageData = null;
-
+        
         while (true) {
             const { done, value } = await reader.read();
             if (done) {
                 log('network', 'Stream closed');
                 break;
             }
-
+            
             const chunk = decoder.decode(value, { stream: true });
             const lines = chunk.split('\n');
-
+            
             for (const line of lines) {
                 if (line.startsWith('data: ')) {
                     try {
                         const data = JSON.parse(line.slice(6));
-
+                        
                         if (data.type === 'image_request_detected') {
                             log('image', 'Server detected image request');
                             statusDiv.innerHTML = '<span class="status-badge pending">Server processing...</span>';
-
-                        } else if (data.type === 'content' && data.imageData) {
+                            
+                        } else if (data.type === 'content' && data.imageUrl) {
                             // Image generated!
                             imageData = data;
-
-                            log('success', 'Image received', {
+                            
+                            log('success', 'Image URL received', {
                                 filename: data.imageFilename,
-                                sizeKB: data.imageSizeKB,
-                                format: data.imageData.startsWith('data:') ? 'base64' : 'blob'
+                                urlType: data.imageUrl.startsWith('data:') ? 'base64' : 'blob',
+                                urlPreview: data.imageUrl.substring(0, 80) + '...'
                             });
-
+                            
                             statusDiv.innerHTML = '<span class="status-badge success">Image Generated!</span>';
-
-                            previewDiv.innerHTML = `<img src="${data.imageData}" alt="Generated image" style="max-width: 100%; border-radius: 8px;">`;
-
+                            
+                            previewDiv.innerHTML = `<img src="${data.imageUrl}" alt="Generated image" style="max-width: 100%; border-radius: 8px;">`;
+                            
                             infoDiv.innerHTML = `
                                 <div class="info-badge">Filename: ${data.imageFilename}</div>
-                                <div class="info-badge">Size: ${data.imageSizeKB} KB</div>
-                                <div class="info-badge">Format: Base64 (permanent, no CORS issues)</div>
+                                <div class="info-badge">URL Type: ${data.imageUrl.startsWith('data:') ? 'Base64 Data URL' : 'Blob URL (will expire)'}</div>
+                                <div class="info-badge">Prompt: ${data.imagePrompt?.substring(0, 50)}...</div>
                             `;
-
+                            
                             testState.generatedImages.push(imageData);
-
+                            
                         } else if (data.type === 'content') {
-                            // Text message (could be error)
-                            const preview = data.content.substring(0, 150);
-                            log('data', `Message: ${preview}${data.content.length > 150 ? '...' : ''}`);
-
-                            // Check if it's an error message
-                            if (data.content.includes('error') || data.content.includes('apologize')) {
-                                statusDiv.innerHTML = '<span class="status-badge error">Generation failed - see message</span>';
-                                previewDiv.innerHTML = `<div style="padding: 1rem; color: #ef4444;">${data.content}</div>`;
-                            }
-
+                            const preview = data.content.substring(0, 100);
+                            log('data', `Message: ${preview}${data.content.length > 100 ? '...' : ''}`);
+                            
                         } else if (data.type === 'error') {
                             throw new Error(data.error);
-
+                            
                         } else if (data.type === 'done') {
                             log('success', `Complete: ${data.finishReason}`);
                         }
-
+                        
                     } catch (parseError) {
                         log('error', 'Parse error', { error: parseError.message });
                     }
                 }
             }
         }
-
+        
     } catch (error) {
         log('error', 'Image generation failed', { error: error.message });
         statusDiv.innerHTML = `<span class="status-badge error">Error: ${error.message}</span>`;
     }
 }
 
-/**
- * Test retry logic by attempting multiple generations
- */
-async function testImageRetry() {
-    log('test', 'Testing retry logic with multiple attempts');
-    log('info', 'Watch Vercel logs for retry behavior on failures');
+async function testImageError() {
+    log('test', 'Testing image error handling');
 
-    // Just run normal generation - retries happen automatically on server
+    // Save original prompt
+    const originalPrompt = document.getElementById('image-prompt').value;
+
+    // Test with a normal prompt but we'll check for error patterns in response
+    document.getElementById('image-prompt').value = 'Generate an image of a sunset';
+
+    log('info', 'Generating image to test error detection patterns...');
+    log('info', 'Note: Check server logs for error detection and retry logic');
+    log('info', 'DALL-E text errors (e.g. "I cannot generate") should trigger retries');
+    log('info', 'Content policy violations should be shown to user');
+
     await testImageGeneration();
 
-    log('info', 'Check Vercel logs for messages like:');
-    log('info', '  - "Attempt 1/3: Generating image..."');
-    log('info', '  - "⏳ Retrying in 2000ms..."');
-    log('info', '  - "❌ All 3 attempts exhausted"');
+    // Restore original prompt
+    setTimeout(() => {
+        document.getElementById('image-prompt').value = originalPrompt;
+    }, 1000);
 }
 
-/**
- * Test image download (now works because we have base64)
- */
-function testImageDownload() {
+async function testImageRetry() {
+    log('test', 'Testing image retry logic (simulated)');
+    log('info', 'Note: This tests the retry flow by observing server logs');
+
+    // This would need server-side instrumentation to properly test
+    // For now, we'll just generate an image and observe
+    await testImageGeneration();
+}
+
+async function testBlobConversion() {
     if (testState.generatedImages.length === 0) {
-        log('error', 'No images to download');
+        log('error', 'No images generated yet');
         alert('Please generate an image first');
         return;
     }
-
+    
     const lastImage = testState.generatedImages[testState.generatedImages.length - 1];
-
-    log('test', 'Testing image download', { filename: lastImage.imageFilename });
-
+    
+    log('test', 'Testing blob → base64 conversion');
+    
+    if (lastImage.imageUrl.startsWith('data:')) {
+        log('info', 'Image is already in base64 format');
+        return;
+    }
+    
     try {
-        const link = document.createElement('a');
-        link.href = lastImage.imageData;
-        link.download = lastImage.imageFilename || `test-image-${Date.now()}.png`;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        log('success', 'Download triggered', { filename: link.download });
-
+        log('data', 'Fetching blob URL...');
+        
+        const response = await fetch(lastImage.imageUrl);
+        if (!response.ok) {
+            throw new Error(`Blob fetch failed: ${response.status}`);
+        }
+        
+        const blob = await response.blob();
+        log('data', `Blob fetched: ${(blob.size / 1024).toFixed(2)} KB`);
+        
+        // Convert to base64
+        const reader = new FileReader();
+        reader.onloadend = function() {
+            const base64data = reader.result;
+            log('success', 'Converted to base64', {
+                sizeKB: (base64data.length / 1024).toFixed(2),
+                preview: base64data.substring(0, 80) + '...'
+            });
+            
+            // Update the image to use base64
+            lastImage.imageUrl = base64data;
+            testState.generatedImages[testState.generatedImages.length - 1] = lastImage;
+            
+            // Update preview
+            const previewDiv = document.getElementById('image-preview');
+            if (previewDiv) {
+                previewDiv.innerHTML = `<img src="${base64data}" alt="Generated image" style="max-width: 100%; border-radius: 8px;">`;
+            }
+            
+            const infoDiv = document.getElementById('image-info');
+            if (infoDiv) {
+                infoDiv.innerHTML = `
+                    <div class="info-badge">Filename: ${lastImage.imageFilename}</div>
+                    <div class="info-badge">URL Type: Base64 Data URL (permanent)</div>
+                    <div class="info-badge">Size: ${(base64data.length / 1024).toFixed(2)} KB</div>
+                `;
+            }
+        };
+        reader.readAsDataURL(blob);
+        
     } catch (error) {
-        log('error', 'Download failed', { error: error.message });
+        log('error', 'Blob conversion failed', { error: error.message });
     }
 }
 
@@ -643,11 +652,11 @@ function testImageDownload() {
         alert('Please generate an image first');
         return;
     }
-
+    
     const lastImage = testState.generatedImages[testState.generatedImages.length - 1];
-
+    
     log('test', 'Testing image download');
-
+    
     try {
         const link = document.createElement('a');
         link.href = lastImage.imageUrl;
@@ -656,9 +665,9 @@ function testImageDownload() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-
+        
         log('success', 'Download triggered', { filename: link.download });
-
+        
     } catch (error) {
         log('error', 'Download failed', { error: error.message });
     }
