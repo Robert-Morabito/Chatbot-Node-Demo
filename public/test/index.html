@@ -513,10 +513,23 @@
                         <textarea id="image-prompt"
                             placeholder="Image prompt...">A sunset over mountains with vivid colors</textarea>
                     </div>
+
+                    <!-- Error Testing Dropdown -->
+                    <div class="config-item" style="margin-top: 1rem;">
+                        <label for="error-simulation">Error Simulation (for testing)</label>
+                        <select id="error-simulation">
+                            <option value="none">No Error (Normal)</option>
+                            <option value="500">500 Internal Server Error</option>
+                            <option value="content_policy">Content Policy Violation</option>
+                            <option value="rate_limit">429 Rate Limit</option>
+                            <option value="bad_request">400 Bad Request</option>
+                            <option value="timeout">Timeout</option>
+                        </select>
+                    </div>
+
                     <div class="button-grid">
                         <button class="test-button" onclick="testImageGeneration()">Generate</button>
-                        <button class="test-button secondary" onclick="testImageError()">Test Error</button>
-                        <button class="test-button secondary" onclick="testImageRetry()">Test Retry</button>
+                        <button class="test-button secondary" onclick="testImageRetry()">Test Retry Logic</button>
                     </div>
                     <div id="image-result" style="display: none;">
                         <div id="image-preview" class="image-preview"></div>

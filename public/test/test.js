@@ -399,9 +399,15 @@ async function testImageGeneration() {
     try {
         const messages = [{ sender: 'User', content: prompt }];
 
+        // Get error simulation setting
+        const errorSimulation = document.getElementById('error-simulation')?.value || 'none';
+
         const response = await fetch('/api/chat/stream', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Test-Error': errorSimulation // Special header for testing
+            },
             body: JSON.stringify({
                 messages,
                 model: 'gpt-4-0125-preview',
@@ -534,8 +540,30 @@ async function testImageError() {
 }
 
 async function testImageRetry() {
-    log('info', 'Testing retry logic (observe server logs)');
-    await testImageGeneration();
+    log('start', 'Testing retry logic with multiple error scenarios');
+
+    const scenarios = [
+        { name: '500 Error', value: '500' },
+        { name: 'Rate Limit', value: 'rate_limit' },
+        { name: 'Timeout', value: 'timeout' }
+    ];
+
+    for (const scenario of scenarios) {
+        log('info', `Testing: ${scenario.name}`);
+
+        // Set error simulation
+        document.getElementById('error-simulation').value = scenario.value;
+
+        // Run test
+        await testImageGeneration();
+
+        // Wait between tests
+        await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+
+    // Reset to normal
+    document.getElementById('error-simulation').value = 'none';
+    log('success', 'Retry testing complete');
 }
 
 function testImageDownload() {
