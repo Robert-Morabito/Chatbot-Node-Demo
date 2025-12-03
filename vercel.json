@@ -33,8 +33,9 @@
       "src": "/acro-build/(.*\\.(js|css))$",
       "dest": "/acro-build/$1"
     },
+
     {
-      "src": "/outreach-msg/(.*\\.(js|css))$",
+      "src": "/test/(.*\\.(js|css))$",
       "dest": "/test/$1"
     },
 
@@ -62,14 +63,13 @@
       "dest": "/acro-build/index.html"
     },
     {
-      "src":"/test/(.*)",
+      "src": "/test(/.*)?",
       "dest": "/test/index.html"
     },
     {
       "src": "/",
       "dest": "/index.html"
     },
-
     {
       "src": "/(.*)",
       "dest": "/index.html"
