@@ -15,36 +15,67 @@ let testState = {
     idleStartTime: null
 };
 
-// Capture unhandled errors without console interception
-window.addEventListener('unhandledrejection', function (event) {
-    const logContainer = document.getElementById('test-log');
-    if (logContainer) {
-        const timestamp = new Date().toLocaleTimeString();
-        const entry = document.createElement('div');
-        entry.className = 'log-entry';
-        entry.innerHTML = `
-            <span class="log-time">${timestamp}</span>
-            <span class="log-icon">❌</span>
-            <span class="log-message">Unhandled Promise Rejection: ${event.reason?.message || event.reason}</span>
-        `;
-        logContainer.appendChild(entry);
-        logContainer.scrollTop = logContainer.scrollHeight;
-    }
+// ===================================================================
+// INTERCEPT CONSOLE FOR TEST LOGGING
+// ===================================================================
+
+(function interceptConsole() {
+    const originalConsole = {
+        log: console.log,
+        error: console.error,
+        warn: console.warn,
+        info: console.info
+    };
+
+    console.error = function (...args) {
+        originalConsole.error.apply(console, args);
+
+        // Log to test UI
+        const message = args.map(arg =>
+            typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+        ).join(' ');
+
+        log('error', `Console Error: ${message}`);
+    };
+
+    console.warn = function (...args) {
+        originalConsole.warn.apply(console, args);
+
+        const message = args.map(arg =>
+            typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+        ).join(' ');
+
+        log('warning', `Console Warning: ${message}`);
+    };
+
+    // Intercept unhandled promise rejections
+    window.addEventListener('unhandledrejection', function (event) {
+        log('error', `Unhandled Promise Rejection: ${event.reason?.message || event.reason}`);
+        console.error('Unhandled rejection:', event.reason);
+    });
+
+    // Intercept global errors
+    window.addEventListener('error', function (event) {
+        log('error', `Global Error: ${event.message} at ${event.filename}:${event.lineno}`);
+    });
+})();
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', () => {
+    log('info', 'Test suite initialized');
+    // ... rest of initialization
 });
 
-window.addEventListener('error', function (event) {
-    const logContainer = document.getElementById('test-log');
-    if (logContainer) {
-        const timestamp = new Date().toLocaleTimeString();
-        const entry = document.createElement('div');
-        entry.className = 'log-entry';
-        entry.innerHTML = `
-            <span class="log-time">${timestamp}</span>
-            <span class="log-icon">❌</span>
-            <span class="log-message">Global Error: ${event.message} at ${event.filename}:${event.lineno}</span>
-        `;
-        logContainer.appendChild(entry);
-        logContainer.scrollTop = logContainer.scrollHeight;
+// Initialize on load
+document.addEventListener('DOMContentLoaded', () => {
+    log('info', 'Test suite initialized');
+
+    // Auto-populate participant ID if in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const pidFromUrl = urlParams.get('pid');
+    if (pidFromUrl) {
+        document.getElementById('participant-id').value = pidFromUrl;
+        log('info', `Participant ID loaded from URL: ${pidFromUrl}`);
     }
 });
 
@@ -449,7 +480,7 @@ async function testImageGeneration() {
         return;
     }
 
-    log('test', 'Starting image generation', { prompt: prompt.substring(0, 100) });
+    log('test', 'Testing image generation', { prompt });
 
     const resultDiv = document.getElementById('image-result');
     const statusDiv = document.getElementById('image-status');
@@ -471,7 +502,7 @@ async function testImageGeneration() {
             { sender: 'User', content: prompt }
         ];
 
-        log('network', 'Sending request to /api/chat/stream');
+        log('network', 'Sending image generation request...');
 
         const response = await fetch('/api/chat/stream', {
             method: 'POST',
@@ -489,17 +520,16 @@ async function testImageGeneration() {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        log('network', 'Stream connected, waiting for data...');
+        log('network', 'SSE stream connected, waiting for response...');
 
         // Handle SSE stream
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
-        let receivedChunks = 0;
 
         while (true) {
             const { done, value } = await reader.read();
             if (done) {
-                log('network', 'Stream closed');
+                log('network', 'SSE stream closed');
                 break;
             }
 
@@ -511,93 +541,83 @@ async function testImageGeneration() {
                     try {
                         const data = JSON.parse(line.slice(6));
 
-                        switch (data.type) {
-                            case 'image_request_detected':
-                                log('image', 'Server detected image generation request');
-                                statusDiv.innerHTML = '<span class="status-badge pending">Server processing...</span>';
-                                break;
+                        if (data.type === 'image_request_detected') {
+                            log('image', 'Image request detected by server');
+                            statusDiv.innerHTML = '<span class="status-badge pending">Processing request...</span>';
 
-                            case 'image_metadata':
-                                imageMetadata = data;
-                                totalChunks = data.totalChunks;
-                                imageChunks = new Array(totalChunks);
+                        } else if (data.type === 'image_metadata') {
+                            // Store metadata
+                            imageMetadata = data;
+                            totalChunks = data.totalChunks;
+                            imageChunks = new Array(totalChunks);
 
-                                log('image', `Metadata received: ${data.filename}`, {
-                                    sizeKB: data.sizeKB.toFixed(2),
-                                    chunks: totalChunks
-                                });
-                                statusDiv.innerHTML = `<span class="status-badge pending">Downloading (0/${totalChunks})...</span>`;
-                                break;
+                            log('image', `Image metadata received: ${data.filename} (${data.sizeKB.toFixed(2)} KB, ${totalChunks} chunks)`);
+                            statusDiv.innerHTML = `<span class="status-badge pending">Downloading image (0/${totalChunks} chunks)...</span>`;
 
-                            case 'image_chunk':
-                                imageChunks[data.chunkIndex] = data.data;
-                                receivedChunks++;
+                        } else if (data.type === 'image_chunk') {
+                            // Store chunk
+                            imageChunks[data.chunkIndex] = data.data;
 
-                                const progress = ((data.chunkIndex + 1) / data.totalChunks * 100).toFixed(0);
-                                statusDiv.innerHTML = `<span class="status-badge pending">Downloading (${data.chunkIndex + 1}/${data.totalChunks} - ${progress}%)...</span>`;
+                            const progress = ((data.chunkIndex + 1) / data.totalChunks * 100).toFixed(0);
+                            statusDiv.innerHTML = `<span class="status-badge pending">Downloading image (${data.chunkIndex + 1}/${data.totalChunks} chunks - ${progress}%)...</span>`;
 
-                                // Log every 10 chunks or first/last
-                                if (data.chunkIndex === 0 || data.chunkIndex === data.totalChunks - 1 || data.chunkIndex % 10 === 0) {
-                                    log('data', `Chunk ${data.chunkIndex + 1}/${data.totalChunks} received`);
-                                }
-                                break;
+                            if (data.chunkIndex % 5 === 0) { // Log every 5 chunks
+                                log('data', `Received chunk ${data.chunkIndex + 1}/${data.totalChunks}`);
+                            }
 
-                            case 'image_complete':
-                                log('image', 'All chunks received, assembling...');
+                        } else if (data.type === 'image_complete') {
+                            // Assemble chunks
+                            log('image', 'All chunks received, assembling image...');
 
-                                // Assemble chunks
-                                const completeDataUrl = imageChunks.join('');
+                            const completeDataUrl = imageChunks.join('');
 
-                                statusDiv.innerHTML = '<span class="status-badge success">Image Generated!</span>';
+                            statusDiv.innerHTML = '<span class="status-badge success">Image Generated!</span>';
 
-                                previewDiv.innerHTML = `<img src="${completeDataUrl}" alt="Generated image">`;
+                            previewDiv.innerHTML = `
+                                <img src="${completeDataUrl}" alt="Generated image">
+                            `;
 
-                                infoDiv.innerHTML = `
-                                    <div class="info-badge">File: ${imageMetadata.filename}</div>
-                                    <div class="info-badge">Size: ${imageMetadata.sizeKB.toFixed(2)} KB</div>
-                                    <div class="info-badge">Chunks: ${totalChunks}</div>
-                                `;
+                            infoDiv.innerHTML = `
+                                <div class="info-badge">Filename: ${imageMetadata.filename}</div>
+                                <div class="info-badge">Size: ${imageMetadata.sizeKB.toFixed(2)} KB</div>
+                                <div class="info-badge">Chunks: ${totalChunks}</div>
+                                <div class="info-badge">Enhanced Prompt: ${imageMetadata.imagePrompt?.substring(0, 50)}...</div>
+                            `;
 
-                                log('success', 'Image assembled and displayed', {
-                                    filename: imageMetadata.filename,
-                                    totalChunks: totalChunks
-                                });
+                            log('success', 'Image generated and assembled successfully', {
+                                filename: imageMetadata.filename,
+                                sizeKB: imageMetadata.sizeKB,
+                                totalChunks: totalChunks
+                            });
 
-                                testState.generatedImages.push({
-                                    dataUrl: completeDataUrl,
-                                    metadata: imageMetadata
-                                });
-                                break;
+                            testState.generatedImages.push({
+                                dataUrl: completeDataUrl,
+                                metadata: imageMetadata
+                            });
 
-                            case 'content':
-                                // Only log text messages (not the markdown with base64)
-                                const contentPreview = data.content.substring(0, 100);
-                                if (!contentPreview.includes('data:image')) {
-                                    log('data', `Message: ${contentPreview}${data.content.length > 100 ? '...' : ''}`);
-                                }
-                                break;
+                        } else if (data.type === 'content') {
+                            log('data', `Server message: ${data.content.substring(0, 100)}${data.content.length > 100 ? '...' : ''}`);
 
-                            case 'error':
-                                throw new Error(data.error);
+                        } else if (data.type === 'error') {
+                            throw new Error(data.error);
 
-                            case 'done':
-                                log('success', `Complete: ${data.finishReason}`);
-                                break;
+                        } else if (data.type === 'done') {
+                            log('success', `Generation complete: ${data.finishReason}`);
                         }
 
                     } catch (parseError) {
-                        log('error', 'Parse error in SSE stream', {
-                            error: parseError.message,
-                            linePreview: line.substring(0, 100)
-                        });
+                        log('error', 'Failed to parse SSE message', parseError.message);
+                        console.error('Parse error:', parseError);
+                        console.error('Problematic line:', line.substring(0, 200));
                     }
                 }
             }
         }
 
     } catch (error) {
-        log('error', 'Image generation failed', { error: error.message });
+        log('error', 'Image generation failed', error.message);
         statusDiv.innerHTML = `<span class="status-badge error">Error: ${error.message}</span>`;
+        console.error('Full error:', error);
     }
 }
 
