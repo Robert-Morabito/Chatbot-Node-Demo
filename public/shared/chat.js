@@ -891,9 +891,9 @@ class TaskChat {
     }
 
     /**
-     * Strip data URLs from conversations and replace with filenames
-     * This prevents 413 errors from huge base64 strings
-     */
+ * Strip data URLs from conversations and replace with filenames
+ * This prevents 413 errors from huge base64 strings
+ */
     stripDataUrlsFromConversations() {
         const cleaned = {};
 
@@ -901,34 +901,30 @@ class TaskChat {
             cleaned[convId] = {
                 ...conversation,
                 messages: conversation.messages.map(msg => {
-                    // If message has an image with data URL, replace with filename
-                    if (msg.content && msg.content.includes('data:image')) {
-                        // Extract filename from markdown if it exists
-                        const filenameMatch = msg.content.match(/!\[.*?\]\(([^)]+)\)/);
-                        if (filenameMatch) {
-                            const originalUrl = filenameMatch[1];
-                            // If it's a data URL and we have a filename stored, use that
-                            if (originalUrl.startsWith('data:image')) {
-                                // Look for imageFilename in message metadata (if available)
-                                // For now, we'll keep the data URL in content but note the issue
-                                // The filename should already be in GitHub from the upload
+                    const cleanedMsg = { ...msg };
 
-                                // Extract participant ID and construct filename reference
-                                // This is a fallback - ideally we track this better
-                                const pid = this.core.participantId;
-                                const convIndex = Array.from(this.conversations.keys()).indexOf(convId) + 1;
-                                const msgIndex = conversation.messages.indexOf(msg) + 1;
-                                const filename = `${pid}_chat${convIndex}_msg${msgIndex}.png`;
+                    // If message content has a data URL image, replace with filename
+                    if (cleanedMsg.content && cleanedMsg.content.includes('data:image')) {
+                        const pid = this.core.participantId;
+                        const convIndex = Array.from(this.conversations.keys()).indexOf(convId) + 1;
+                        const msgIndex = conversation.messages.indexOf(msg) + 1;
+                        const filename = `${pid}_chat${convIndex}_msg${msgIndex}.png`;
 
-                                // Replace data URL with filename reference
-                                return {
-                                    ...msg,
-                                    content: msg.content.replace(/!\[.*?\]\(data:image[^)]+\)/, `![Generated Image](${filename})`)
-                                };
-                            }
-                        }
+                        // Replace data URL with filename reference
+                        cleanedMsg.content = cleanedMsg.content.replace(
+                            /!\[Generated Image\]\(data:image[^)]+\)/g,
+                            `![Generated Image](${filename})`
+                        );
                     }
-                    return msg;
+
+                    // ✅ REMOVE imageUrl field entirely (it's just for display, not storage)
+                    delete cleanedMsg.imageUrl;
+
+                    // ✅ REMOVE any other large fields we don't need
+                    delete cleanedMsg.imageData;
+                    delete cleanedMsg.base64;
+
+                    return cleanedMsg;
                 })
             };
         }
