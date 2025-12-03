@@ -9,6 +9,56 @@
 import { OpenAIHandler } from '../../handlers/openaiHandler.js';
 import { ClaudeHandler } from '../../handlers/claudeHandler.js';
 
+/**
+ * Download blob image and convert to base64 data URL
+ * @param {string} blobUrl - DALL-E blob URL
+ * @param {string} prompt - Original prompt for logging
+ * @returns {Promise<Object>} Image data with base64 URL
+ */
+async function downloadAndConvertToBase64(blobUrl, prompt) {
+    console.log('🖼️ Downloading image blob...');
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
+    try {
+        const response = await fetch(blobUrl, {
+            signal: controller.signal,
+            headers: { 'User-Agent': 'ChatBot-Study/1.0' }
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            throw new Error(`Failed to download blob: ${response.status}`);
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const base64 = buffer.toString('base64');
+        const dataUrl = `data:image/png;base64,${base64}`;
+
+        const sizeKB = (buffer.length / 1024).toFixed(2);
+        console.log(`✅ Image converted to base64 (${sizeKB} KB)`);
+        console.log(`📝 Prompt: "${prompt.substring(0, 80)}${prompt.length > 80 ? '...' : ''}"`);
+
+        return {
+            dataUrl,
+            base64,
+            size: buffer.length,
+            sizeKB,
+            format: 'base64'
+        };
+
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            throw new Error('Image download timeout (30s)');
+        }
+        throw error;
+    }
+}
+
 // Supported model configurations
 const VALID_MODELS = {
     openai: ['gpt-3.5-turbo-0125', 'gpt-4-0125-preview', 'gpt-5-2025-08-07'],
@@ -202,26 +252,39 @@ async function generateImage(userMessage, model, imageContext, intent, res) {
 
         // Step 2: Generate image with DALL-E
         const imageHandler = new OpenAIHandler(process.env.OPENAI_API_KEY);
+        console.log('🎨 Requesting image from DALL-E...');
+        console.log(`📝 Enhanced prompt: "${enhancedPrompt.substring(0, 100)}${enhancedPrompt.length > 100 ? '...' : ''}"`);
+
         const imageResult = await imageHandler.generateImage(enhancedPrompt);
 
         if (!imageResult?.success || !imageResult?.url) {
             throw new Error('Image generation failed or returned no URL');
         }
 
-        // Step 3: Send response to client
+        console.log('✅ DALL-E returned blob URL');
+
+        // Step 2.5: Download and convert blob to base64 (BLOCKING - critical!)
+        console.log('🔄 Converting blob to base64 data URL...');
+        const imageData = await downloadAndConvertToBase64(imageResult.url, userMessage);
+
+        // Step 3: Send response to client with base64 data URL
         const responseMessage = intent === 'modify_image'
-            ? `I've modified the image based on your request:\n\n![Generated Image](${imageResult.url})`
-            : `I've generated an image for you:\n\n![Generated Image](${imageResult.url})`;
+            ? `I've modified the image based on your request:\n\n![Generated Image](${imageData.dataUrl})`
+            : `I've generated an image for you:\n\n![Generated Image](${imageData.dataUrl})`;
 
         const responseData = {
             type: 'content',
             content: responseMessage,
             fullContent: responseMessage,
-            imageUrl: imageResult.url,
+            imageUrl: imageData.dataUrl,  // ✅ Now base64 data URL, not blob
+            imageFormat: 'base64',
+            imageSize: imageData.sizeKB,
             imagePrompt: enhancedPrompt,
             originalPrompt: userMessage,
             revisedPrompt: imageResult.revisedPrompt
         };
+
+        console.log(`✅ Image response sent (${imageData.sizeKB} KB base64)`);
 
         res.write(`data: ${JSON.stringify(responseData)}\n\n`);
         res.write(`data: ${JSON.stringify({ type: 'done', finishReason: 'image_generated' })}\n\n`);
