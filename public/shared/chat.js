@@ -187,7 +187,6 @@ class TaskChat {
                 const level = model.capabilities[cap];
                 return `
                                 <div class="mini-capability-row">
-                                    <div class="mini-capability-label">${cap.charAt(0).toUpperCase() + cap.slice(1, 3)}</div>
                                     <div class="mini-capability-icons">
                                         ${Array(4).fill(0).map((_, i) =>
                     `<span class="mini-capability-icon ${iconType} ${i < level ? 'lit' : ''}">${iconMap[iconType]}</span>`

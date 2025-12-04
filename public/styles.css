@@ -33,7 +33,7 @@
     --shadow-light: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 
     /* Layout Variables for Dynamic Sizing */
-    --sidebar-width: 320px;
+    --sidebar-width: 280px;
     --sidebar-collapsed-width: 60px;
     --header-height: clamp(60px, 8vh, 80px);
     --input-area-height: clamp(80px, 12vh, 120px);
