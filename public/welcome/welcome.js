@@ -235,6 +235,16 @@ class WelcomePage {
         // Initial validation
         validateInput();
 
+        // Set up click handler for continue button
+        if (continueBtn) {
+            continueBtn.onclick = () => {
+                if (continueBtn.dataset.canSubmit === 'true' && !continueBtn.disabled) {
+                    this.handleProlificSubmission();
+                }
+            };
+            console.log('✅ Continue button click handler attached');
+        }
+
         // Focus the input
         setTimeout(() => {
             input.focus();
