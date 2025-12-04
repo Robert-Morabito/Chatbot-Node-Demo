@@ -32,6 +32,7 @@ class StudyCore {
             STUDY_FULL: 'study_full',
             SERVER_ERROR: 'server_error',
             SAVE_ERROR: 'save_error',
+            PAYLOAD_TOO_LARGE: 'payload_too_large',
             UNKNOWN: 'unknown'
         };
 
@@ -396,6 +397,9 @@ class StudyCore {
         if (error.status >= 500) {
             return this.errorTypes.SERVER_ERROR;
         }
+        if (error.status === 413) {
+            return this.errorTypes.PAYLOAD_TOO_LARGE;
+        }
         return this.errorTypes.UNKNOWN;
     }
 
@@ -448,6 +452,12 @@ class StudyCore {
                 instruction: 'Please wait a moment and try again.',
                 recoverable: true
             },
+            [this.errorTypes.PAYLOAD_TOO_LARGE]: {
+                title: 'Request Too Large',
+                message: 'The conversation has become too large to process (likely due to multiple images).',
+                instruction: 'Please start a new chat to continue. Your previous conversations are still saved.',
+                recoverable: false
+            },
             [this.errorTypes.UNKNOWN]: {
                 title: 'Unexpected Error',
                 message: 'An unexpected error occurred.',
@@ -462,93 +472,102 @@ class StudyCore {
     /**
      * Show error page/modal
      * @param {Error} error - Error object
+     * @param {Function} retryCallback - Optional callback for retry action
      */
-    showError(error) {
+    showError(error, retryCallback = null) {
         const errorType = this.classifyError(error);
         const errorInfo = this.getErrorInfo(errorType);
 
         console.error('📛 Showing error:', { errorType, error: error.message });
 
+        // Store retry callback globally for button handler
+        window.__errorRetryCallback = retryCallback;
+
         // Create error overlay
         const overlay = document.createElement('div');
         overlay.id = 'error-overlay';
         overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100000;
-        `;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100000;
+    `;
 
         overlay.innerHTML = `
+        <div style="
+            background: #1f2937;
+            border: 2px solid #ef4444;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        ">
             <div style="
-                background: #1f2937;
-                border: 2px solid #ef4444;
-                border-radius: 12px;
-                max-width: 500px;
-                width: 90%;
-                overflow: hidden;
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                background: linear-gradient(135deg, #ef4444, #dc2626);
+                color: white;
+                padding: 1.5rem;
+                text-align: center;
             ">
+                <h2 style="margin: 0; font-size: 1.25rem;">⚠️ ${errorInfo.title}</h2>
+            </div>
+            <div style="padding: 2rem; color: #f3f4f6;">
+                <p style="margin: 0 0 1rem 0; font-size: 1.1rem;">${errorInfo.message}</p>
+                <p style="margin: 0 0 1.5rem 0; color: #9ca3af; font-style: italic;">${errorInfo.instruction}</p>
                 <div style="
-                    background: linear-gradient(135deg, #ef4444, #dc2626);
-                    color: white;
-                    padding: 1.5rem;
-                    text-align: center;
+                    background: rgba(239, 68, 68, 0.1);
+                    border: 1px solid rgba(239, 68, 68, 0.3);
+                    border-radius: 6px;
+                    padding: 1rem;
+                    font-family: monospace;
+                    font-size: 0.875rem;
                 ">
-                    <h2 style="margin: 0; font-size: 1.25rem;">⚠️ ${errorInfo.title}</h2>
+                    <strong>Error Code:</strong> ${errorType.toUpperCase()}_${Date.now().toString().slice(-6)}<br>
+                    <strong>Participant:</strong> ${this.participantId || 'Unknown'}<br>
+                    <strong>Task:</strong> ${this.taskName}
                 </div>
-                <div style="padding: 2rem; color: #f3f4f6;">
-                    <p style="margin: 0 0 1rem 0; font-size: 1.1rem;">${errorInfo.message}</p>
-                    <p style="margin: 0 0 1.5rem 0; color: #9ca3af; font-style: italic;">${errorInfo.instruction}</p>
-                    <div style="
-                        background: rgba(239, 68, 68, 0.1);
-                        border: 1px solid rgba(239, 68, 68, 0.3);
-                        border-radius: 6px;
-                        padding: 1rem;
-                        font-family: monospace;
-                        font-size: 0.875rem;
-                    ">
-                        <strong>Error Code:</strong> ${errorType.toUpperCase()}_${Date.now().toString().slice(-6)}<br>
-                        <strong>Participant:</strong> ${this.participantId || 'Unknown'}<br>
-                        <strong>Task:</strong> ${this.taskName}
-                    </div>
-                </div>
-                <div style="
-                    background: #374151;
-                    padding: 1rem 2rem;
-                    display: flex;
-                    justify-content: center;
-                    gap: 1rem;
-                ">
-                    ${errorInfo.recoverable ? `
-                        <button onclick="document.getElementById('error-overlay').remove()" style="
-                            background: #ef4444;
-                            color: white;
-                            border: none;
-                            padding: 0.75rem 1.5rem;
-                            border-radius: 6px;
-                            font-weight: 500;
-                            cursor: pointer;
-                        ">Close and Retry</button>
-                    ` : ''}
-                    <button onclick="window.close(); document.getElementById('error-overlay').remove();" style="
-                        background: transparent;
-                        color: #9ca3af;
-                        border: 1px solid #6b7280;
+            </div>
+            <div style="
+                background: #374151;
+                padding: 1rem 2rem;
+                display: flex;
+                justify-content: center;
+                gap: 1rem;
+            ">
+                ${errorInfo.recoverable ? `
+                    <button onclick="
+                        if (window.__errorRetryCallback) {
+                            window.__errorRetryCallback();
+                        }
+                        document.getElementById('error-overlay').remove();
+                    " style="
+                        background: #ef4444;
+                        color: white;
+                        border: none;
                         padding: 0.75rem 1.5rem;
                         border-radius: 6px;
                         font-weight: 500;
                         cursor: pointer;
-                    ">Close</button>
-                </div>
+                    ">Try Again</button>
+                ` : ''}
+                <button onclick="document.getElementById('error-overlay').remove();" style="
+                    background: transparent;
+                    color: #9ca3af;
+                    border: 1px solid #6b7280;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 6px;
+                    font-weight: 500;
+                    cursor: pointer;
+                ">Close</button>
             </div>
-        `;
+        </div>
+    `;
 
         document.body.appendChild(overlay);
     }

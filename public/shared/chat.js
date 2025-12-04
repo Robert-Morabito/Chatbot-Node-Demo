@@ -28,6 +28,8 @@ class TaskChat {
             conversationHasImage: false
         };
 
+        this.lastUserMessage = null;
+
         // Session timing
         this.sessionStartTime = Date.now();
         this.timerInterval = null;
@@ -322,6 +324,8 @@ class TaskChat {
         this.currentChatlog.push(userMsg);
         this.renderMessage(userMsg);
 
+        this.lastUserMessage = message;
+
         // ✅ CALCULATE AFTER user message is added (bot's image will be next)
         const chatNumber = Array.from(this.conversations.keys()).indexOf(this.currentConversationId) + 1;
         const messageNumber = this.currentChatlog.length + 1; // Bot's response will be next
@@ -359,8 +363,19 @@ class TaskChat {
      */
     async getLLMResponse(chatNumber = 1, messageNumber = 1) {
         try {
+            // Strip image data URLs to prevent 413 errors
+            const messagesForApi = this.currentChatlog.map(msg => {
+                if (msg.content && msg.content.includes('data:image')) {
+                    // Replace data URLs with filename references
+                    return {
+                        ...msg,
+                        content: msg.content.replace(/!\[Generated Image\]\(data:image[^)]+\)/g, '[IMAGE]')
+                    };
+                }
+                return msg;
+            });
             const requestData = {
-                messages: this.currentChatlog,
+                messages: messagesForApi,
                 model: this.core.config.trueModel,
                 sessionId: this.core.allocation?.id,
                 conversationId: this.currentConversationId,
@@ -387,7 +402,13 @@ class TaskChat {
         } catch (error) {
             console.error('❌ LLM response failed:', error.message);
             this.hideAllIndicators();
-            this.core.showError(error);
+            // Pass retry callback so user can retry last message
+            this.core.showError(error, () => {
+                if (this.lastUserMessage) {
+                    document.getElementById('message-input').value = this.lastUserMessage;
+                    this.sendMessage();
+                }
+            });
         }
     }
 
