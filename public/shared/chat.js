@@ -49,7 +49,11 @@ class TaskChat {
                 totalKeystrokes: 0,
                 typingStartTime: null,
                 typingDurations: []
-            }
+            },
+            messageTimes: [],
+            timeBetweenMessages: [],     // NEW: Track deliberation time
+            firstMessageLength: null,     // NEW: Track initial planning
+            conversationDepths: [],       // NEW: Messages per conversation
         };
 
         console.log('💬 TaskChat initialized for:', taskConfig.name);
@@ -169,6 +173,11 @@ class TaskChat {
             currentConv.messages = [...this.currentChatlog];
             currentConv.imageContext = { ...this.imageContext };
             currentConv.lastMessageAt = new Date();
+            // NEW: Track conversation depth (strategy indicator)
+            const userMessages = currentConv.messages.filter(m => m.sender === 'User').length;
+            if (userMessages > 0) {
+                this.behaviorMetrics.conversationDepths.push(userMessages);
+            }
         }
     }
 
@@ -274,9 +283,6 @@ class TaskChat {
     /**
      * Send a message
      */
-    /**
- * Send a message
- */
     sendMessage() {
         const messageInput = document.getElementById('message-input');
         const message = messageInput.value.trim();
@@ -293,6 +299,19 @@ class TaskChat {
         this.behaviorMetrics.messageLengths.push(message.length);
         this.behaviorMetrics.messageCount++;
         this.behaviorMetrics.messageTimes.push(new Date().toISOString());
+
+        // NEW: Track time between messages (deliberation)
+        const now = Date.now();
+        if (this.behaviorMetrics.lastMessageTime) {
+            const timeDiff = (now - this.behaviorMetrics.lastMessageTime) / 1000; // seconds
+            this.behaviorMetrics.timeBetweenMessages.push(timeDiff);
+        }
+        this.behaviorMetrics.lastMessageTime = now;
+
+        // NEW: Track first message length (initial planning)
+        if (this.behaviorMetrics.firstMessageLength === null) {
+            this.behaviorMetrics.firstMessageLength = message.length;
+        }
 
         // Remove welcome message if present
         const welcomeMsg = document.querySelector('.welcome-message');
@@ -865,6 +884,19 @@ class TaskChat {
             messageTimes: metrics.messageTimes,
             conversationSwitches: metrics.conversationSwitches,
             totalKeystrokes: metrics.typingPatterns.totalKeystrokes,
+            conversationSwitches: metrics.conversationSwitches,
+            totalKeystrokes: metrics.typingPatterns.totalKeystrokes,
+
+            // NEW: High-value Pygmalion metrics
+            averageTimeBetweenMessages: metrics.timeBetweenMessages.length > 0
+                ? metrics.timeBetweenMessages.reduce((a, b) => a + b, 0) / metrics.timeBetweenMessages.length
+                : 0,
+            firstMessageLength: metrics.firstMessageLength,
+            averageConversationDepth: metrics.conversationDepths.length > 0
+                ? metrics.conversationDepths.reduce((a, b) => a + b, 0) / metrics.conversationDepths.length
+                : 0,
+
+            sessionDuration: Date.now() - this.sessionStartTime,
             sessionDuration: Date.now() - this.sessionStartTime,
             keystrokesPerMessage: metrics.messageCount > 0
                 ? metrics.typingPatterns.totalKeystrokes / metrics.messageCount
