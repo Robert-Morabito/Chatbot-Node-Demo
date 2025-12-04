@@ -167,17 +167,8 @@ class WelcomePage {
             continueBtn.innerHTML = 'Continue <svg class="nav-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>';
             continueBtn.disabled = true; // Disabled by default
 
-            // Use mousedown instead of click to prevent focus issues
-            continueBtn.onmousedown = (e) => {
-                e.preventDefault(); // Prevent focus loss
-                if (continueBtn.dataset.canSubmit === 'true') {
-                    this.handleProlificSubmission();
-                }
-            };
-
-            // Also keep click as fallback
             continueBtn.onclick = () => {
-                if (continueBtn.dataset.canSubmit === 'true') {
+                if (continueBtn.dataset.canSubmit === 'true' && !continueBtn.disabled) {
                     this.handleProlificSubmission();
                 }
             };
@@ -697,7 +688,7 @@ class WelcomePage {
         </div>
     `;
     }
-    
+
     // ===================================================================
     // EVENT LISTENERS
     // ===================================================================
