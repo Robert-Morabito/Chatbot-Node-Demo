@@ -617,6 +617,8 @@ function generateImageFilename(participantId, imageContext) {
     const chatNumber = imageContext?.chatNumber || 1;
     const messageNumber = imageContext?.messageNumber || 1;
 
+    console.log(`📝 Generating filename: ${participantId}_chat${chatNumber}_msg${messageNumber}.png`);
+
     return `${participantId}_chat${chatNumber}_msg${messageNumber}.png`;
 }
 

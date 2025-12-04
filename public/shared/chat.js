@@ -274,6 +274,9 @@ class TaskChat {
     /**
      * Send a message
      */
+    /**
+ * Send a message
+ */
     sendMessage() {
         const messageInput = document.getElementById('message-input');
         const message = messageInput.value.trim();
@@ -295,14 +298,14 @@ class TaskChat {
         const welcomeMsg = document.querySelector('.welcome-message');
         if (welcomeMsg) welcomeMsg.remove();
 
-
         // Create and render user message
         const userMsg = this.createMessage('User', message);
         this.currentChatlog.push(userMsg);
         this.renderMessage(userMsg);
 
+        // ✅ CALCULATE AFTER user message is added (bot's image will be next)
         const chatNumber = Array.from(this.conversations.keys()).indexOf(this.currentConversationId) + 1;
-        const messageNumber = this.currentChatlog.length + 1;
+        const messageNumber = this.currentChatlog.length + 1; // Bot's response will be next
 
         // Clear input
         messageInput.value = '';
@@ -315,8 +318,8 @@ class TaskChat {
         this.core.markUnsavedChanges();
         this.showIndicator('typing');
 
-        // Get LLM response
-        setTimeout(() => this.getLLMResponse(), 500);
+        // Get LLM response with correct numbers
+        setTimeout(() => this.getLLMResponse(chatNumber, messageNumber), 500);
     }
 
     /**
@@ -1060,8 +1063,8 @@ class TaskChat {
     }
 
     /**
-     * Show image in modal with download button
-     */
+ * Show image in modal with download button
+ */
     showImageModal(imageSrc, altText) {
         const existingModal = document.querySelector('.image-modal-overlay');
         if (existingModal) existingModal.remove();
@@ -1136,17 +1139,8 @@ class TaskChat {
 
         downloadBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-
-            // ✅ Find the message with this image to get its filename
-            let imageFilename = null;
-            for (const msg of this.currentChatlog) {
-                if (msg.content && msg.content.includes(imageSrc.substring(0, 100))) {
-                    imageFilename = msg.imageFilename;
-                    break;
-                }
-            }
-
-            this.downloadImage(imageSrc, imageFilename);
+            // ✅ Find the actual filename from the message that contains this image
+            this.downloadImage(imageSrc);
         });
 
         imageContainer.appendChild(img);
@@ -1165,26 +1159,47 @@ class TaskChat {
     }
 
     /**
-     * Download image with proper filename
+     * Download image with proper filename from chatlog
      */
     downloadImage(imageSrc) {
         try {
-            const link = document.createElement('a');
-            link.href = imageSrc;
+            // ✅ Find the message that contains this image to get the filename
+            let filename = null;
 
-            if (imageFilename) {
-                link.download = imageFilename;
-            } else {
-                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
-                link.download = `generated-image-${timestamp}.png`;
+            for (const msg of this.currentChatlog) {
+                if (msg.content && msg.content.includes(imageSrc.substring(0, 100))) {
+                    // Extract filename from markdown: ![Generated Image](filename.png)
+                    const match = msg.content.match(/!\[Generated Image\]\(([^)]+)\)/);
+                    if (match) {
+                        filename = match[1];
+                        // If it's still a data URL in memory (before save), generate the filename
+                        if (filename.startsWith('data:image')) {
+                            // Calculate the filename
+                            const pid = this.core.participantId;
+                            const convIndex = Array.from(this.conversations.keys()).indexOf(this.currentConversationId) + 1;
+                            const msgIndex = this.currentChatlog.indexOf(msg) + 1;
+                            filename = `${pid}_chat${convIndex}_msg${msgIndex}.png`;
+                        }
+                        break;
+                    }
+                }
             }
 
+            // Fallback if we can't find it
+            if (!filename) {
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+                filename = `generated-image-${timestamp}.png`;
+            }
+
+            const link = document.createElement('a');
+            link.href = imageSrc;
+            link.download = filename;
             link.style.display = 'none';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
 
-            this.showNotification('Image saved successfully!', 'info');
+            this.showNotification(`Image saved as ${filename}`, 'info');
         } catch (error) {
             console.error('Download failed:', error);
             this.showNotification('Download failed. Please try right-click > Save As', 'warning');
