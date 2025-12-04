@@ -25,7 +25,6 @@ class TaskChat {
         // Image context (for image-gen task)
         this.imageContext = {
             lastPrompt: null,
-            lastImageUrl: null,
             conversationHasImage: false
         };
 
@@ -119,7 +118,6 @@ class TaskChat {
             lastMessageAt: new Date(),
             imageContext: {
                 lastPrompt: null,
-                lastImageUrl: null,
                 conversationHasImage: false
             }
         };
@@ -153,7 +151,6 @@ class TaskChat {
             this.currentChatlog = [...conversation.messages];
             this.imageContext = conversation.imageContext || {
                 lastPrompt: null,
-                lastImageUrl: null,
                 conversationHasImage: false
             };
             this.renderConversation();
@@ -488,7 +485,6 @@ class TaskChat {
 
         this.imageContext = {
             lastPrompt: data.imagePrompt,
-            lastImageUrl: data.imageUrl,
             conversationHasImage: true,
             messageCount: messageCount + 1, // Next message
             conversationCount: conversationCount
@@ -873,8 +869,8 @@ class TaskChat {
     // ===================================================================
 
     /**
- * Get data for export/save
- */
+     * Get data for export/save
+     */
     getExportData() {
         // Save current conversation state first
         this.saveCurrentConversationState();
@@ -891,6 +887,10 @@ class TaskChat {
     }
 
     /**
+     * Strip data URLs from conversations and replace with filenames
+     * This prevents 413 errors from huge base64 strings
+     */
+    /**
  * Strip data URLs from conversations and replace with filenames
  * This prevents 413 errors from huge base64 strings
  */
@@ -898,33 +898,29 @@ class TaskChat {
         const cleaned = {};
 
         for (const [convId, conversation] of this.conversations.entries()) {
+            // Keep imageContext but remove any data URLs from it
+            const cleanedImageContext = conversation.imageContext ? {
+                lastPrompt: conversation.imageContext.lastPrompt,  // ✅ Keep text prompt
+                conversationHasImage: conversation.imageContext.conversationHasImage
+            } : null;
+
             cleaned[convId] = {
                 ...conversation,
+                imageContext: cleanedImageContext,
                 messages: conversation.messages.map(msg => {
-                    const cleanedMsg = { ...msg };
-
-                    // If message content has a data URL image, replace with filename
-                    if (cleanedMsg.content && cleanedMsg.content.includes('data:image')) {
+                    // Replace data URLs with filenames in message content
+                    if (msg.content && msg.content.includes('data:image')) {
                         const pid = this.core.participantId;
                         const convIndex = Array.from(this.conversations.keys()).indexOf(convId) + 1;
                         const msgIndex = conversation.messages.indexOf(msg) + 1;
                         const filename = `${pid}_chat${convIndex}_msg${msgIndex}.png`;
 
-                        // Replace data URL with filename reference
-                        cleanedMsg.content = cleanedMsg.content.replace(
-                            /!\[Generated Image\]\(data:image[^)]+\)/g,
-                            `![Generated Image](${filename})`
-                        );
+                        return {
+                            ...msg,
+                            content: msg.content.replace(/!\[Generated Image\]\(data:image[^)]+\)/g, `![Generated Image](${filename})`)
+                        };
                     }
-
-                    // ✅ REMOVE imageUrl field entirely (it's just for display, not storage)
-                    delete cleanedMsg.imageUrl;
-
-                    // ✅ REMOVE any other large fields we don't need
-                    delete cleanedMsg.imageData;
-                    delete cleanedMsg.base64;
-
-                    return cleanedMsg;
+                    return msg;
                 })
             };
         }
