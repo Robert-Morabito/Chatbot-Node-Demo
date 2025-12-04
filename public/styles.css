@@ -372,6 +372,22 @@ body.light-theme {
     border-bottom-color: var(--border-light);
 }
 
+.header-models {
+    display: flex;
+    align-items: center;
+    margin-right: auto;
+}
+
+.header .comparison-models {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.header .bot-name {
+    margin: 0 auto;
+}
+
 .mobile-sidebar-toggle {
     display: none;
     background: none;
@@ -1455,6 +1471,15 @@ body.light-theme {
 
     .error-button {
         width: 100%;
+    }
+
+    .header-models {
+        display: none;
+        /* Hide on mobile to save space */
+    }
+
+    .header .bot-name {
+        margin: 0 auto;
     }
 }
 
@@ -5246,6 +5271,7 @@ body.light-theme {
         opacity: 0;
         transform: translateY(-30px) scale(0.95);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -5258,19 +5284,19 @@ body.light-theme {
         width: 95%;
         margin: 10px;
     }
-    
+
     .survey-reminder-header {
         padding: 1.25rem;
     }
-    
+
     .survey-reminder-body {
         padding: 1.5rem 1.25rem;
     }
-    
+
     .survey-reminder-body p {
         font-size: 1rem;
     }
-    
+
     .survey-reminder-button {
         width: 100%;
         min-width: auto;

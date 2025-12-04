@@ -61,6 +61,7 @@ class TaskChat {
         console.log('💬 TaskChat initialized for:', taskConfig.name);
     }
 
+
     // ===================================================================
     // INITIALIZATION
     // ===================================================================
@@ -75,6 +76,7 @@ class TaskChat {
         this.createNewConversation();
         this.setupTextareaAutoResize();
         this.updateUI();
+        this.populateMiniModelCards();
 
         // Start auto-save
         this.core.startAutoSave(() => this.getExportData(), 60000);
@@ -84,6 +86,10 @@ class TaskChat {
 
         console.log('✅ Chat interface initialized');
     }
+
+    // ===================================================================
+    // MINI MODEL COMPARE
+    // ===================================================================
 
     /**
      * Update UI elements with config data
@@ -103,6 +109,99 @@ class TaskChat {
 
         // Update page title
         document.title = `${this.taskConfig.name} - ${this.core.config.displayName}`;
+    }
+
+    /**
+     * Get model data for display (matches welcome page structure)
+     */
+    getModelData() {
+        return {
+            'openai': [
+                {
+                    name: 'GPT-3.5',
+                    year: '2022',
+                    capabilities: { reasoning: 1, speed: 3, creativity: 2 }
+                },
+                {
+                    name: 'GPT-4',
+                    year: '2023',
+                    capabilities: { reasoning: 2, speed: 3, creativity: 3 }
+                },
+                {
+                    name: 'GPT-5',
+                    year: '2025',
+                    capabilities: { reasoning: 4, speed: 3, creativity: 4 }
+                }
+            ],
+            'claude': [
+                {
+                    name: 'Claude 3',
+                    year: '2024',
+                    capabilities: { reasoning: 1, speed: 4, creativity: 2 }
+                },
+                {
+                    name: 'Claude 3.5',
+                    year: '2024',
+                    capabilities: { reasoning: 2, speed: 4, creativity: 3 }
+                },
+                {
+                    name: 'Claude 4',
+                    year: '2025',
+                    capabilities: { reasoning: 4, speed: 2, creativity: 4 }
+                }
+            ]
+        };
+    }
+
+    /**
+     * Populate mini model comparison cards in header
+     */
+    populateMiniModelCards() {
+        const container = document.getElementById('header-model-comparison');
+        if (!container) return;
+
+        const displayName = this.core.config.displayName;
+        const family = displayName.toLowerCase().includes('claude') ? 'claude' : 'openai';
+        const models = this.getModelData()[family];
+
+        const iconMap = {
+            bulb: '💡',
+            bolt: '⚡',
+            brush: '🎨'
+        };
+        const capabilityTypes = ['reasoning', 'speed', 'creativity'];
+        const iconTypes = ['bulb', 'bolt', 'brush'];
+
+        container.innerHTML = models.map(model => {
+            const isCurrent = model.name === displayName;
+
+            return `
+                <div class="mini-model-card ${isCurrent ? 'current' : ''}">
+                    <div class="mini-model-info">
+                        <div class="mini-model-name">${model.name}</div>
+                        <div class="mini-model-year">${model.year}</div>
+                    </div>
+                    <div class="mini-capabilities">
+                        ${capabilityTypes.map((cap, idx) => {
+                const iconType = iconTypes[idx];
+                const level = model.capabilities[cap];
+                return `
+                                <div class="mini-capability-row">
+                                    <div class="mini-capability-label">${cap.charAt(0).toUpperCase() + cap.slice(1, 3)}</div>
+                                    <div class="mini-capability-icons">
+                                        ${Array(4).fill(0).map((_, i) =>
+                    `<span class="mini-capability-icon ${iconType} ${i < level ? 'lit' : ''}">${iconMap[iconType]}</span>`
+                ).join('')}
+                                    </div>
+                                </div>
+                            `;
+            }).join('')}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        console.log('✅ Mini model cards populated');
     }
 
     // ===================================================================

@@ -50,16 +50,25 @@
         <!-- Main Chat Area -->
         <div class="main-content">
             <!-- Header Section -->
+            <!-- Header Section -->
             <div class="header">
                 <button id="mobile-sidebar-toggle" class="mobile-sidebar-toggle">☰</button>
+
+                <!-- Mini Model Comparison Cards -->
+                <div class="header-models">
+                    <div id="header-model-comparison" class="comparison-models"></div>
+                </div>
+
                 <h1 id="bot-name" class="bot-name">Acronym Building Task</h1>
 
                 <!-- User info -->
                 <div class="header-actions">
                     <div class="user-info-stack">
                         <div class="participant-display" id="participant-display">
-                            <span style="font-size: 12px; color: var(--text-secondary-dark); margin-right: 8px;">ID:</span>
-                            <span style="font-family: monospace; font-weight: bold;" id="header-participant-id">------</span>
+                            <span
+                                style="font-size: 12px; color: var(--text-secondary-dark); margin-right: 8px;">ID:</span>
+                            <span style="font-family: monospace; font-weight: bold;"
+                                id="header-participant-id">------</span>
                         </div>
                         <div class="session-timer" id="session-timer">
                             <span class="timer-text" id="timer-display">00:00:00</span>
@@ -93,7 +102,8 @@
     <div id="finish-confirmation-modal" class="modal-backdrop" style="display: none;">
         <div class="finish-confirmation-dialog">
             <h3>Finish Study?</h3>
-            <p>This will complete your final task and the entire study. Your complete dataset will be downloaded for you to upload to Tally.</p>
+            <p>This will complete your final task and the entire study. Your complete dataset will be downloaded for you
+                to upload to Tally.</p>
             <p class="finish-warning">You won't be able to return after completing.</p>
             <div class="finish-buttons">
                 <button id="finish-cancel-btn" class="finish-button finish-cancel">Cancel</button>
