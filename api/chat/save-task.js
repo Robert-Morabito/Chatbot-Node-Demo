@@ -40,7 +40,6 @@ export default async function handler(req, res) {
             participantId,
             taskName,
             sessionId,
-            modelConfig,
             ...taskData,
             savedAt: savedAt || new Date().toISOString(),
             savedVia: savedVia || 'api'
