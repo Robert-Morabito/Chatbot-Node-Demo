@@ -54,15 +54,17 @@ class StudyCore {
 
         if (pid) {
             console.log('✅ Participant ID from query param:', pid);
+            this.participantId = pid; // ✅ SET IT
             return pid;
         }
 
         // Try path-based (/task-name/PROLIFIC_ID)
         const pathParts = window.location.pathname.split('/').filter(p => p);
         if (pathParts.length >= 2) {
-            pid = pathParts[pathParts.length - 1]; // Last segment
+            pid = pathParts[pathParts.length - 1];
             if (pid && pid.length === 24) {
                 console.log('✅ Participant ID from path:', pid);
+                this.participantId = pid; // ✅ SET IT
                 return pid;
             }
         }
@@ -525,7 +527,7 @@ class StudyCore {
                     gap: 1rem;
                 ">
                     ${errorInfo.recoverable ? `
-                        <button onclick="location.reload()" style="
+                        <button onclick="document.getElementById('error-overlay').remove()" style="
                             background: #ef4444;
                             color: white;
                             border: none;
@@ -533,7 +535,7 @@ class StudyCore {
                             border-radius: 6px;
                             font-weight: 500;
                             cursor: pointer;
-                        ">Try Again</button>
+                        ">Close and Retry</button>
                     ` : ''}
                     <button onclick="window.close(); document.getElementById('error-overlay').remove();" style="
                         background: transparent;
