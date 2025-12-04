@@ -107,8 +107,6 @@ async function completeFinalTask(core, chat) {
             participantId: core.participantId,
             sessionId: core.allocation.id,
             modelConfig: {
-                displayedModel: core.config.givenModel,
-                actualModel: core.config.trueModel,
                 allocationId: core.allocation.id
             },
             tasks: allTasksData.tasks,
