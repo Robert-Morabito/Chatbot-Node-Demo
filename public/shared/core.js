@@ -48,24 +48,26 @@ class StudyCore {
      * @returns {string|null} Participant ID or null if not found
      */
     extractParticipantIdFromUrl() {
-        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        // Try query parameter first (?pid=...)
+        const urlParams = new URLSearchParams(window.location.search);
+        let pid = urlParams.get('pid');
 
-        // URL structure: /task-name/prolificid
-        // pathParts[0] = task-name, pathParts[1] = prolificid
+        if (pid) {
+            console.log('✅ Participant ID from query param:', pid);
+            return pid;
+        }
+
+        // Try path-based (/task-name/PROLIFIC_ID)
+        const pathParts = window.location.pathname.split('/').filter(p => p);
         if (pathParts.length >= 2) {
-            const pid = pathParts[1];
-
-            // Validate format (24 alphanumeric characters for Prolific)
-            if (this.validateProlificId(pid)) {
-                console.log('✅ Participant ID extracted from URL:', pid);
-                this.participantId = pid;
+            pid = pathParts[pathParts.length - 1]; // Last segment
+            if (pid && pid.length === 24) {
+                console.log('✅ Participant ID from path:', pid);
                 return pid;
-            } else {
-                console.warn('⚠️ Invalid participant ID format in URL:', pid);
             }
         }
 
-        console.warn('⚠️ No participant ID found in URL path');
+        console.log('⚠️ No participant ID in URL');
         return null;
     }
 
@@ -228,7 +230,7 @@ class StudyCore {
                 participant: this.participantId,
                 dataSize: JSON.stringify(taskData).length
             });
-            
+
             // Count images in data (for logging)
             const imageCount = JSON.stringify(taskData).match(/data:image/g)?.length || 0;
             if (imageCount > 0) {
