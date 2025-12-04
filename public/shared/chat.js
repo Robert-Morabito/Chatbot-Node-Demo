@@ -294,11 +294,15 @@ class TaskChat {
         // Remove welcome message if present
         const welcomeMsg = document.querySelector('.welcome-message');
         if (welcomeMsg) welcomeMsg.remove();
+        
 
         // Create and render user message
         const userMsg = this.createMessage('User', message);
         this.currentChatlog.push(userMsg);
         this.renderMessage(userMsg);
+
+        const chatNumber = Array.from(this.conversations.keys()).indexOf(this.currentConversationId) + 1;
+        const messageNumber = this.currentChatlog.length + 1;
 
         // Clear input
         messageInput.value = '';
@@ -306,10 +310,6 @@ class TaskChat {
 
         // Update conversation title
         this.updateConversationTitle(message);
-
-        // ✅ Calculate proper chat and message numbers for image naming
-        const chatNumber = Array.from(this.conversations.keys()).indexOf(this.currentConversationId) + 1;
-        const messageNumber = this.currentChatlog.length + 1;
 
         // Mark unsaved and show typing
         this.core.markUnsavedChanges();
