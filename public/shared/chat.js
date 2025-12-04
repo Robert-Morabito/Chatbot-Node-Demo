@@ -294,7 +294,7 @@ class TaskChat {
         // Remove welcome message if present
         const welcomeMsg = document.querySelector('.welcome-message');
         if (welcomeMsg) welcomeMsg.remove();
-        
+
 
         // Create and render user message
         const userMsg = this.createMessage('User', message);
@@ -435,6 +435,11 @@ class TaskChat {
                                     this.hideAllIndicators();
                                     botMsg = this.createMessage('Bot', data.fullContent);
                                     botMsgId = botMsg.msg_id;
+
+                                    if (data.imageFilename) {
+                                        botMsg.imageFilename = data.imageFilename;
+                                    }
+
                                     this.currentChatlog.push(botMsg);
                                     this.renderMessage(botMsg);
 
@@ -890,10 +895,6 @@ class TaskChat {
      * Strip data URLs from conversations and replace with filenames
      * This prevents 413 errors from huge base64 strings
      */
-    /**
- * Strip data URLs from conversations and replace with filenames
- * This prevents 413 errors from huge base64 strings
- */
     stripDataUrlsFromConversations() {
         const cleaned = {};
 
@@ -910,10 +911,13 @@ class TaskChat {
                 messages: conversation.messages.map(msg => {
                     // Replace data URLs with filenames in message content
                     if (msg.content && msg.content.includes('data:image')) {
-                        const pid = this.core.participantId;
-                        const convIndex = Array.from(this.conversations.keys()).indexOf(convId) + 1;
-                        const msgIndex = conversation.messages.indexOf(msg) + 1;
-                        const filename = `${pid}_chat${convIndex}_msg${msgIndex}.png`;
+                        // ✅ Use the stored filename if available, otherwise calculate it
+                        const filename = msg.imageFilename || (() => {
+                            const pid = this.core.participantId;
+                            const convIndex = Array.from(this.conversations.keys()).indexOf(convId) + 1;
+                            const msgIndex = conversation.messages.indexOf(msg) + 1;
+                            return `${pid}_chat${convIndex}_msg${msgIndex}.png`;
+                        })();
 
                         return {
                             ...msg,
@@ -1132,7 +1136,17 @@ class TaskChat {
 
         downloadBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            this.downloadImage(imageSrc);
+
+            // ✅ Find the message with this image to get its filename
+            let imageFilename = null;
+            for (const msg of this.currentChatlog) {
+                if (msg.content && msg.content.includes(imageSrc.substring(0, 100))) {
+                    imageFilename = msg.imageFilename;
+                    break;
+                }
+            }
+
+            this.downloadImage(imageSrc, imageFilename);
         });
 
         imageContainer.appendChild(img);
@@ -1158,9 +1172,12 @@ class TaskChat {
             const link = document.createElement('a');
             link.href = imageSrc;
 
-            // Generate filename with timestamp
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
-            link.download = `generated-image-${timestamp}.png`;
+            if (imageFilename) {
+                link.download = imageFilename;
+            } else {
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+                link.download = `generated-image-${timestamp}.png`;
+            }
 
             link.style.display = 'none';
             document.body.appendChild(link);
