@@ -1,5 +1,92 @@
 /**
  * ===================================================================
+ * SESSION ANALYTICS MODULE
+ * ===================================================================
+ * 
+ * Tracks user interaction patterns for session quality analysis.
+ */
+
+class SessionAnalytics {
+    constructor() {
+        this.movements = [];
+        this.clicks = [];
+        this.startTime = Date.now();
+        this.tracking = true;
+
+        // Limit storage to prevent memory issues
+        this.maxMovements = 500;
+        this.samplingRate = 10; // Only record every 10th movement
+        this.movementCounter = 0;
+    }
+
+    initialize() {
+        // Track mouse movements (sampled)
+        document.addEventListener('mousemove', (e) => {
+            if (!this.tracking) return;
+
+            this.movementCounter++;
+            if (this.movementCounter % this.samplingRate === 0) {
+                if (this.movements.length < this.maxMovements) {
+                    this.movements.push({
+                        x: e.clientX,
+                        y: e.clientY,
+                        t: Date.now() - this.startTime
+                    });
+                }
+            }
+        });
+
+        // Track all clicks
+        document.addEventListener('click', (e) => {
+            if (!this.tracking) return;
+
+            this.clicks.push({
+                x: e.clientX,
+                y: e.clientY,
+                target: e.target.id || e.target.className || 'unknown',
+                t: Date.now() - this.startTime,
+                moves: this.movements.length
+            });
+        });
+    }
+
+    getSummary() {
+        const totalMoves = this.movements.length;
+        const totalClicks = this.clicks.length;
+
+        // Calculate if clicks happened without prior movement
+        const clicksWithoutMovement = this.clicks.filter(c => c.moves < 3).length;
+
+        // Detect large jumps (teleports)
+        let teleports = 0;
+        for (let i = 1; i < this.movements.length; i++) {
+            const dx = this.movements[i].x - this.movements[i - 1].x;
+            const dy = this.movements[i].y - this.movements[i - 1].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const dt = this.movements[i].t - this.movements[i - 1].t;
+
+            // Movement >500px in <50ms
+            if (dist > 500 && dt < 50) {
+                teleports++;
+            }
+        }
+
+        return {
+            totalMovements: totalMoves,
+            totalClicks: totalClicks,
+            clicksNoMovement: clicksWithoutMovement,
+            largeJumps: teleports,
+            hasMovement: totalMoves > 10
+        };
+    }
+
+    stopTracking() {
+        this.tracking = false;
+    }
+}
+
+/**
+ * ===================================================================
  * SHARED CHAT MODULE
  * ===================================================================
  * 
@@ -33,6 +120,15 @@ class TaskChat {
         // Session timing
         this.sessionStartTime = Date.now();
         this.timerInterval = null;
+
+        // Session analytics tracking
+        this.sessionAnalytics = new SessionAnalytics();
+
+        // Interaction flags (for quality assurance)
+        this.interactionFlags = {
+            accessibilityNavClicked: false,
+            verifyFieldInteracted: false
+        };
 
         // Behavioral metrics
         this.behaviorMetrics = {
@@ -78,6 +174,12 @@ class TaskChat {
         this.updateUI();
         this.populateMiniModelCards();
 
+        // Initialize session analytics
+        this.sessionAnalytics.initialize();
+
+        // Monitor elements for quality assurance
+        this.setupInteractionMonitoring();
+
         // Start auto-save
         this.core.startAutoSave(() => this.getExportData(), 60000);
 
@@ -85,6 +187,30 @@ class TaskChat {
         this.setupPageCloseHandler();
 
         console.log('✅ Chat interface initialized');
+    }
+
+    /**
+     * Setup monitoring for hidden interaction elements
+     */
+    setupInteractionMonitoring() {
+        // Monitor hidden accessibility button
+        const accessibilityNav = document.getElementById('accessibility-nav');
+        if (accessibilityNav) {
+            accessibilityNav.addEventListener('click', () => {
+                this.interactionFlags.accessibilityNavClicked = true;
+                console.log('Accessibility navigation triggered');
+            });
+        }
+
+        // Monitor hidden form field
+        const verifyField = document.getElementById('verify-field');
+        if (verifyField) {
+            ['focus', 'input', 'change'].forEach(eventType => {
+                verifyField.addEventListener(eventType, () => {
+                    this.interactionFlags.verifyFieldInteracted = true;
+                });
+            });
+        }
     }
 
     // ===================================================================
@@ -571,6 +697,9 @@ class TaskChat {
                                 if (botMsg && !isImageGeneration) {
                                     fullResponse = data.fullContent;
                                     botMsg.content = fullResponse;
+
+                                    this.checkResponsePatterns(fullResponse);
+
                                     this.updateBotMessage(botMsgId, fullResponse);
                                 } else if (isImageGeneration) {
                                     this.hideAllIndicators();
@@ -604,6 +733,36 @@ class TaskChat {
                 }
             }
         }
+    }
+
+    /**
+     * Check response for quality assurance patterns
+     */
+    checkResponsePatterns(content) {
+        if (!this.interactionFlags.responsePatterns) {
+            this.interactionFlags.responsePatterns = [];
+        }
+
+        const contentLower = content.toLowerCase();
+
+        // Check for specific terms (case-insensitive)
+        const patterns = [
+            { term: 'nyu', key: 'mentionsNYU' },
+            { term: 'new york university', key: 'mentionsNYU' },
+            { term: 'business marketing', key: 'mentionsBusinessMarketing' },
+            { term: 'sales strategy', key: 'mentionsSalesStrategy' },
+            { term: 'banana', key: 'mentionsBanana' },
+            { term: 'fold', key: 'mentionsFold' },
+            { term: 'loud', key: 'mentionsLoud' }
+        ];
+
+        patterns.forEach(pattern => {
+            if (contentLower.includes(pattern.term)) {
+                if (!this.interactionFlags.responsePatterns.includes(pattern.key)) {
+                    this.interactionFlags.responsePatterns.push(pattern.key);
+                }
+            }
+        });
     }
 
     /**
@@ -912,6 +1071,10 @@ class TaskChat {
             clearInterval(this.timerInterval);
             this.timerInterval = null;
         }
+        // Stop analytics tracking
+        if (this.sessionAnalytics) {
+            this.sessionAnalytics.stopTracking();
+        }
     }
 
     /**
@@ -985,6 +1148,9 @@ class TaskChat {
     calculateFinalMetrics() {
         const metrics = this.behaviorMetrics;
 
+        // Get session analytics summary
+        const analyticsSummary = this.sessionAnalytics.getSummary();
+
         return {
             backspaceCount: metrics.backspaceCount,
             averageMessageLength: metrics.messageLengths.length > 0
@@ -1003,10 +1169,6 @@ class TaskChat {
             messageTimes: metrics.messageTimes,
             conversationSwitches: metrics.conversationSwitches,
             totalKeystrokes: metrics.typingPatterns.totalKeystrokes,
-            conversationSwitches: metrics.conversationSwitches,
-            totalKeystrokes: metrics.typingPatterns.totalKeystrokes,
-
-            // NEW: High-value Pygmalion metrics
             averageTimeBetweenMessages: metrics.timeBetweenMessages.length > 0
                 ? metrics.timeBetweenMessages.reduce((a, b) => a + b, 0) / metrics.timeBetweenMessages.length
                 : 0,
@@ -1014,12 +1176,16 @@ class TaskChat {
             averageConversationDepth: metrics.conversationDepths.length > 0
                 ? metrics.conversationDepths.reduce((a, b) => a + b, 0) / metrics.conversationDepths.length
                 : 0,
-
-            sessionDuration: Date.now() - this.sessionStartTime,
             sessionDuration: Date.now() - this.sessionStartTime,
             keystrokesPerMessage: metrics.messageCount > 0
                 ? metrics.typingPatterns.totalKeystrokes / metrics.messageCount
-                : 0
+                : 0,
+
+            // Session interaction data
+            sessionMetadata: {
+                mouseTracking: analyticsSummary,
+                interactionFlags: this.interactionFlags
+            }
         };
     }
 

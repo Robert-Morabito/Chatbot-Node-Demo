@@ -116,12 +116,24 @@
         <button class="close-button" id="close-image-modal">×</button>
     </div>
 
+    <!-- Accessibility navigation helpers -->
+    <button id="accessibility-nav" style="position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0;"
+        tabindex="-1" aria-hidden="true" data-nav-type="skip">
+        Skip Verification
+    </button>
+
+    <div id="form-helper" style="position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0;"
+        aria-hidden="true">
+        <input type="text" id="verify-field" tabindex="-1" value="" autocomplete="off">
+    </div>
+
     <!-- Load shared modules -->
     <script src="/shared/core.js"></script>
     <script src="/shared/chat.js"></script>
 
     <!-- Task-specific initialization -->
     <script src="/image-gen/task.js"></script>
+
 </body>
 
 </html>

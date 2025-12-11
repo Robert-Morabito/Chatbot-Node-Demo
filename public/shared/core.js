@@ -36,7 +36,42 @@ class StudyCore {
             UNKNOWN: 'unknown'
         };
 
+        this.environmentInfo = this.detectEnvironment();
+
         console.log(`📋 StudyCore initialized for task: ${taskName}`);
+    }
+
+    /**
+     * Detect browser environment characteristics
+     * @returns {Object} Environment information
+     */
+    detectEnvironment() {
+        const info = {
+            timestamp: new Date().toISOString(),
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            language: navigator.language,
+            languages: navigator.languages ? Array.from(navigator.languages) : [],
+            hardwareConcurrency: navigator.hardwareConcurrency || 0,
+            deviceMemory: navigator.deviceMemory || 0,
+            screenResolution: `${window.screen.width}x${window.screen.height}`,
+            colorDepth: window.screen.colorDepth,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            plugins: navigator.plugins ? navigator.plugins.length : 0,
+
+            // Automation indicators (for quality assurance)
+            automationFlags: {
+                webdriver: navigator.webdriver === true,
+                noPlugins: navigator.plugins ? navigator.plugins.length === 0 : true,
+                noLanguages: !navigator.languages || navigator.languages.length === 0,
+                phantomPresent: !!window.callPhantom || !!window._phantom,
+                seleniumPresent: !!window.document.$cdc_asdjflasutopfhvcZLmcfl_ ||
+                    !!window.document.documentElement.getAttribute('webdriver'),
+                chromeDriverPresent: !!window.chrome && !window.chrome.runtime
+            }
+        };
+
+        return info;
     }
 
     // ===================================================================
@@ -250,7 +285,8 @@ class StudyCore {
                 sessionId: this.allocation?.id,
                 modelConfig: this.config,
                 taskData: taskData,
-                savedAt: new Date().toISOString()
+                savedAt: new Date().toISOString(),
+                environmentInfo: this.environmentInfo
             };
 
             console.log('📤 Sending save request to /api/chat/save-task...'); // ADD THIS
