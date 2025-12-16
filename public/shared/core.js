@@ -152,8 +152,6 @@ class StudyCore {
 
             console.log('✅ Allocation verified:', {
                 id: allocation.id,
-                shownModel: allocation.shown_model,
-                sourceModel: allocation.source_model
             });
 
             this.allocation = allocation;

@@ -39,10 +39,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Verify allocation
         await core.verifyAllocation();
 
-        console.log('✅ Allocation verified:', {
-            displayedModel: core.config.displayName,
-            actualModel: core.config.trueModel
-        });
 
         // Initialize chat with task config
         const chat = new TaskChat(core, TASK_CONFIG);
