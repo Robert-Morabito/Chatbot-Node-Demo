@@ -984,6 +984,242 @@ async function testFinishStudy() {
         showResult('final-result', error.message, false);
     }
 }
+// ===================================================================
+// METRICS VERIFICATION SYSTEM
+// ===================================================================
+
+/**
+ * Start real-time metrics monitoring
+ */
+function startMetricsMonitor() {
+    // Update every second
+    setInterval(() => {
+        if (window.taskChat && window.studyCore) {
+            updateMetricsDisplay();
+        }
+    }, 1000);
+
+    log('info', 'Metrics monitor started');
+}
+
+/**
+ * Update all metric displays
+ */
+function updateMetricsDisplay() {
+    try {
+        // Get current metrics from taskChat
+        const behaviorMetrics = window.taskChat.behaviorMetrics;
+        const sessionAnalytics = window.taskChat.sessionAnalytics?.getSummary() || {};
+        const interactionFlags = window.taskChat.interactionFlags || {};
+        const environmentInfo = window.studyCore.environmentInfo || {};
+
+        // === Mouse Tracking ===
+        updateElement('metric-mouse-movements', sessionAnalytics.totalMovements || 0);
+        updateElement('metric-mouse-clicks', sessionAnalytics.totalClicks || 0);
+        updateElement('metric-clicks-no-move', sessionAnalytics.clicksNoMovement || 0);
+        updateElement('metric-teleports', sessionAnalytics.largeJumps || 0);
+
+        const mouseStatus = sessionAnalytics.hasMovement ? '✅ Active' : '⏳ No movement yet';
+        updateElement('metric-mouse-status', mouseStatus,
+            sessionAnalytics.hasMovement ? 'success' : 'warning');
+
+        // === Keyboard Tracking ===
+        updateElement('metric-keystrokes', behaviorMetrics.typingPatterns?.totalKeystrokes || 0);
+        updateElement('metric-backspaces', behaviorMetrics.backspaceCount || 0);
+        updateElement('metric-messages', behaviorMetrics.messageCount || 0);
+
+        const keystrokesPerMsg = behaviorMetrics.messageCount > 0
+            ? (behaviorMetrics.typingPatterns?.totalKeystrokes || 0) / behaviorMetrics.messageCount
+            : 0;
+        updateElement('metric-keystrokes-per-msg', keystrokesPerMsg.toFixed(2));
+
+        const keyboardStatus = behaviorMetrics.typingPatterns?.totalKeystrokes > 0
+            ? '✅ Active' : '⏳ No typing yet';
+        updateElement('metric-keyboard-status', keyboardStatus,
+            behaviorMetrics.typingPatterns?.totalKeystrokes > 0 ? 'success' : 'warning');
+
+        // === Timing & Behavior ===
+        const sessionDuration = Date.now() - window.taskChat.sessionStartTime;
+        updateElement('metric-session-duration', formatDuration(sessionDuration));
+        updateElement('metric-edits', behaviorMetrics.editCount || 0);
+        updateElement('metric-conv-switches', behaviorMetrics.conversationSwitches || 0);
+
+        const avgDepth = behaviorMetrics.conversationDepths?.length > 0
+            ? behaviorMetrics.conversationDepths.reduce((a, b) => a + b, 0) / behaviorMetrics.conversationDepths.length
+            : 0;
+        updateElement('metric-conv-depth', avgDepth.toFixed(2));
+
+        // === Honeypot Detection ===
+        const buttonClicked = interactionFlags.accessibilityNavClicked || false;
+        updateElement('metric-honeypot-button',
+            buttonClicked ? '🚨 YES (BOT!)' : '✅ No',
+            buttonClicked ? 'error' : 'success'
+        );
+
+        const fieldInteracted = interactionFlags.verifyFieldInteracted || false;
+        updateElement('metric-honeypot-field',
+            fieldInteracted ? '🚨 YES (BOT!)' : '✅ No',
+            fieldInteracted ? 'error' : 'success'
+        );
+
+        // === LLM Injection Patterns ===
+        const patterns = interactionFlags.responsePatterns || [];
+        updateElement('metric-patterns', patterns.length > 0 ? patterns.join(', ') : 'None');
+
+        updatePatternCheck('metric-pattern-nyu', patterns.includes('mentionsNYU'));
+        updatePatternCheck('metric-pattern-marketing', patterns.includes('mentionsBusinessMarketing'));
+        updatePatternCheck('metric-pattern-sales', patterns.includes('mentionsSalesStrategy'));
+        updatePatternCheck('metric-pattern-banana', patterns.includes('mentionsBanana'));
+        updatePatternCheck('metric-pattern-fold', patterns.includes('mentionsFold'));
+        updatePatternCheck('metric-pattern-loud', patterns.includes('mentionsLoud'));
+
+        // === Environment Detection ===
+        const automationFlags = environmentInfo.automationFlags || {};
+        const webdriverDetected = automationFlags.webdriver || false;
+        updateElement('metric-webdriver',
+            webdriverDetected ? '🚨 DETECTED (BOT!)' : '✅ Not Detected',
+            webdriverDetected ? 'error' : 'success'
+        );
+        updateElement('metric-plugins', environmentInfo.plugins || 0);
+        updateElement('metric-languages',
+            environmentInfo.languages?.length || 0
+        );
+
+    } catch (error) {
+        console.error('Metrics display update failed:', error);
+    }
+}
+
+/**
+ * Update a metric element with optional styling
+ */
+function updateElement(id, value, styleClass = null) {
+    const element = document.getElementById(id);
+    if (!element) return;
+
+    element.textContent = value;
+
+    // Remove existing style classes
+    element.classList.remove('success', 'warning', 'error');
+
+    // Add new style class if provided
+    if (styleClass) {
+        element.classList.add(styleClass);
+    }
+}
+
+/**
+ * Update pattern check display
+ */
+function updatePatternCheck(id, detected) {
+    updateElement(id, detected ? '✅ Detected' : '❌', detected ? 'success' : null);
+}
+
+/**
+ * Format duration in HH:MM:SS
+ */
+function formatDuration(milliseconds) {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+/**
+ * Manual refresh of metrics
+ */
+function refreshMetrics() {
+    log('info', 'Manually refreshing metrics...');
+    updateMetricsDisplay();
+    log('success', 'Metrics refreshed');
+}
+
+/**
+ * Export current metrics as JSON
+ */
+function exportMetrics() {
+    if (!window.taskChat || !window.studyCore) {
+        log('error', 'Task chat not initialized yet');
+        alert('Please navigate to a task page first (e.g., /outreach-msg?pid=TEST123)');
+        return;
+    }
+
+    try {
+        const metrics = window.taskChat.calculateFinalMetrics();
+        const exportData = {
+            timestamp: new Date().toISOString(),
+            participantId: window.studyCore.participantId,
+            metrics: metrics,
+            environmentInfo: window.studyCore.environmentInfo
+        };
+
+        const jsonStr = JSON.stringify(exportData, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `metrics-test-${Date.now()}.json`;
+        link.click();
+
+        URL.revokeObjectURL(url);
+
+        log('success', 'Metrics exported successfully');
+    } catch (error) {
+        log('error', `Export failed: ${error.message}`);
+    }
+}
+
+/**
+ * Test honeypot by clicking hidden elements
+ */
+function testHoneypot() {
+    log('start', 'Testing honeypot elements...');
+
+    // Try to click hidden button
+    const hiddenBtn = document.getElementById('accessibility-nav');
+    if (hiddenBtn) {
+        hiddenBtn.click();
+        log('info', 'Clicked hidden button (should trigger flag)');
+    } else {
+        log('warning', 'Hidden button not found - wrong page?');
+    }
+
+    // Try to interact with hidden field
+    const hiddenField = document.getElementById('verify-field');
+    if (hiddenField) {
+        hiddenField.focus();
+        hiddenField.value = 'test';
+        hiddenField.dispatchEvent(new Event('input'));
+        log('info', 'Interacted with hidden field (should trigger flag)');
+    } else {
+        log('warning', 'Hidden field not found - wrong page?');
+    }
+
+    setTimeout(() => {
+        updateMetricsDisplay();
+        log('success', 'Honeypot test complete - check metrics above');
+    }, 100);
+}
+
+// Start monitoring when a task page is loaded
+if (window.location.pathname.includes('/outreach-msg') ||
+    window.location.pathname.includes('/image-gen') ||
+    window.location.pathname.includes('/acro-build')) {
+
+    // Wait for taskChat to be initialized
+    const checkInterval = setInterval(() => {
+        if (window.taskChat && window.studyCore) {
+            startMetricsMonitor();
+            clearInterval(checkInterval);
+        }
+    }, 500);
+
+    // Stop checking after 10 seconds
+    setTimeout(() => clearInterval(checkInterval), 10000);
+}
 
 // ===================================================================
 // AUTOMATED FULL STUDY SIMULATION
