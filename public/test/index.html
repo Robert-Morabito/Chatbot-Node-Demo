@@ -145,7 +145,6 @@
             margin: 0 0 0.25rem 0;
             font-size: 2rem;
             color: white;
-            background: linear-gradient(135deg, #3b82f6, #60a5fa);
         }
 
         .test-header p {
@@ -197,7 +196,7 @@
 
         .section-content {
             padding: 1.25rem;
-            max-height: 1000px;
+            max-height: 2000px;
             overflow: hidden;
             transition: max-height 0.3s ease, padding 0.3s ease;
         }
@@ -384,6 +383,78 @@
             border: 1px solid rgba(59, 130, 246, 0.3);
             border-radius: 6px;
             font-family: monospace;
+        }
+
+        /* Metrics Monitor Styling */
+        .metrics-monitor {
+            background: rgba(17, 24, 39, 0.6);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .metric-group {
+            background: rgba(31, 41, 55, 0.8);
+            border: 1px solid rgba(75, 85, 99, 0.5);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .metric-group h4 {
+            margin: 0 0 0.75rem 0;
+            color: rgba(249, 250, 251, 0.95);
+            font-size: 0.9375rem;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+            padding-bottom: 0.5rem;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.375rem 0;
+            font-size: 0.8125rem;
+        }
+
+        .metric-label {
+            color: rgba(209, 213, 219, 0.8);
+            font-weight: 500;
+        }
+
+        .metric-value {
+            color: rgba(249, 250, 251, 0.95);
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+
+        .metric-status {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .metric-value.success,
+        .metric-status.success {
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .metric-value.warning,
+        .metric-status.warning {
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .metric-value.error,
+        .metric-status.error {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            font-weight: 700;
         }
 
         /* Responsive */
@@ -587,189 +658,183 @@
                     <div class="button-grid">
                         <button class="test-button" onclick="testCompleteTask()">Complete Task</button>
                         <button class="test-button" onclick="testFinishStudy()">Finish Study</button>
-                        <button class="test-button success" onclick="automateFullStudy()">🤖 Automate Full
-                            Study</button>
+                        <button class="test-button success" onclick="automateFullStudy()">🤖 Automate Full Study</button>
                     </div>
                     <div id="final-result" class="result-box" style="display: none;"></div>
                 </div>
             </div>
-        </div>
 
-        <!-- Metrics Verification Panel -->
-        <div class="test-layout">
-            <!-- Left: Scrollable Test Controls -->
-            <div class="test-controls">
-                <!-- ... existing test controls ... -->
+            <!-- Live Metrics Verification Section -->
+            <div class="test-section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <h3>📊 Live Metrics Verification</h3>
+                    <span class="collapse-indicator">▼</span>
+                </div>
+                <div class="section-content">
+                    <p style="color: #9ca3af; font-size: 0.875rem; margin-bottom: 1rem;">
+                        This panel shows what's being tracked in real-time. Navigate to a task page (e.g., <code>/outreach-msg?pid=TEST123</code>) to see live metrics.
+                    </p>
 
-                <!-- ADD THIS NEW SECTION -->
-                <div class="test-section">
-                    <div class="section-header" onclick="toggleSection(this)">
-                        <h3>📊 Live Metrics Verification</h3>
-                        <span class="collapse-indicator">▼</span>
-                    </div>
-                    <div class="section-content">
-                        <p style="color: var(--text-secondary-dark); font-size: 0.875rem; margin-bottom: 1rem;">
-                            This panel shows what's being tracked in real-time. Interact with the page to see values
-                            update.
-                        </p>
-
-                        <div id="metrics-monitor" class="metrics-monitor">
-                            <div class="metric-group">
-                                <h4>🖱️ Mouse Tracking</h4>
-                                <div class="metric-row">
-                                    <span class="metric-label">Total Movements:</span>
-                                    <span class="metric-value" id="metric-mouse-movements">0</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Total Clicks:</span>
-                                    <span class="metric-value" id="metric-mouse-clicks">0</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Clicks Without Movement:</span>
-                                    <span class="metric-value" id="metric-clicks-no-move">0</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Large Jumps (Teleports):</span>
-                                    <span class="metric-value" id="metric-teleports">0</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Status:</span>
-                                    <span class="metric-status" id="metric-mouse-status">⏳ Waiting...</span>
-                                </div>
+                    <div id="metrics-monitor" class="metrics-monitor">
+                        <div class="metric-group">
+                            <h4>🖱️ Mouse Tracking</h4>
+                            <div class="metric-row">
+                                <span class="metric-label">Total Movements:</span>
+                                <span class="metric-value" id="metric-mouse-movements">0</span>
                             </div>
-
-                            <div class="metric-group">
-                                <h4>⌨️ Keyboard Tracking</h4>
-                                <div class="metric-row">
-                                    <span class="metric-label">Total Keystrokes:</span>
-                                    <span class="metric-value" id="metric-keystrokes">0</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Backspace Count:</span>
-                                    <span class="metric-value" id="metric-backspaces">0</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Message Count:</span>
-                                    <span class="metric-value" id="metric-messages">0</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Keystrokes/Message:</span>
-                                    <span class="metric-value" id="metric-keystrokes-per-msg">0.00</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Status:</span>
-                                    <span class="metric-status" id="metric-keyboard-status">⏳ Waiting...</span>
-                                </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Total Clicks:</span>
+                                <span class="metric-value" id="metric-mouse-clicks">0</span>
                             </div>
-
-                            <div class="metric-group">
-                                <h4>⏱️ Timing & Behavior</h4>
-                                <div class="metric-row">
-                                    <span class="metric-label">Session Duration:</span>
-                                    <span class="metric-value" id="metric-session-duration">00:00:00</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Edit Count:</span>
-                                    <span class="metric-value" id="metric-edits">0</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Conversation Switches:</span>
-                                    <span class="metric-value" id="metric-conv-switches">0</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Avg Conversation Depth:</span>
-                                    <span class="metric-value" id="metric-conv-depth">0.00</span>
-                                </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Clicks Without Movement:</span>
+                                <span class="metric-value" id="metric-clicks-no-move">0</span>
                             </div>
-
-                            <div class="metric-group">
-                                <h4>🎣 Honeypot Detection</h4>
-                                <div class="metric-row">
-                                    <span class="metric-label">Hidden Button Clicked:</span>
-                                    <span class="metric-value" id="metric-honeypot-button">❌ No</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Hidden Field Interacted:</span>
-                                    <span class="metric-value" id="metric-honeypot-field">❌ No</span>
-                                </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Large Jumps (Teleports):</span>
+                                <span class="metric-value" id="metric-teleports">0</span>
                             </div>
-
-                            <div class="metric-group">
-                                <h4>🤖 LLM Injection Triggers</h4>
-                                <div class="metric-row">
-                                    <span class="metric-label">Detected Patterns:</span>
-                                    <span class="metric-value" id="metric-patterns">None</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">NYU Mention:</span>
-                                    <span class="metric-value" id="metric-pattern-nyu">❌</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Business Marketing:</span>
-                                    <span class="metric-value" id="metric-pattern-marketing">❌</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Sales Strategy:</span>
-                                    <span class="metric-value" id="metric-pattern-sales">❌</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Banana:</span>
-                                    <span class="metric-value" id="metric-pattern-banana">❌</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Fold:</span>
-                                    <span class="metric-value" id="metric-pattern-fold">❌</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Loud:</span>
-                                    <span class="metric-value" id="metric-pattern-loud">❌</span>
-                                </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Status:</span>
+                                <span class="metric-status" id="metric-mouse-status">⏳ Waiting...</span>
                             </div>
+                        </div>
 
-                            <div class="metric-group">
-                                <h4>🔍 Environment Detection</h4>
-                                <div class="metric-row">
-                                    <span class="metric-label">WebDriver:</span>
-                                    <span class="metric-value" id="metric-webdriver">❌ Not Detected</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Plugins Count:</span>
-                                    <span class="metric-value" id="metric-plugins">0</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Languages Count:</span>
-                                    <span class="metric-value" id="metric-languages">0</span>
-                                </div>
+                        <div class="metric-group">
+                            <h4>⌨️ Keyboard Tracking</h4>
+                            <div class="metric-row">
+                                <span class="metric-label">Total Keystrokes:</span>
+                                <span class="metric-value" id="metric-keystrokes">0</span>
                             </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Backspace Count:</span>
+                                <span class="metric-value" id="metric-backspaces">0</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Message Count:</span>
+                                <span class="metric-value" id="metric-messages">0</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Keystrokes/Message:</span>
+                                <span class="metric-value" id="metric-keystrokes-per-msg">0.00</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Status:</span>
+                                <span class="metric-status" id="metric-keyboard-status">⏳ Waiting...</span>
+                            </div>
+                        </div>
 
-                            <div class="button-grid" style="margin-top: 1.5rem;">
-                                <button class="test-button" onclick="refreshMetrics()">🔄 Refresh</button>
-                                <button class="test-button secondary" onclick="exportMetrics()">📥 Export JSON</button>
-                                <button class="test-button secondary" onclick="testHoneypot()">🎣 Test Honeypot</button>
+                        <div class="metric-group">
+                            <h4>⏱️ Timing & Behavior</h4>
+                            <div class="metric-row">
+                                <span class="metric-label">Session Duration:</span>
+                                <span class="metric-value" id="metric-session-duration">00:00:00</span>
                             </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Edit Count:</span>
+                                <span class="metric-value" id="metric-edits">0</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Conversation Switches:</span>
+                                <span class="metric-value" id="metric-conv-switches">0</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Avg Conversation Depth:</span>
+                                <span class="metric-value" id="metric-conv-depth">0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="metric-group">
+                            <h4>🎣 Quality Assurance Flags</h4>
+                            <div class="metric-row">
+                                <span class="metric-label">Hidden Button Clicked:</span>
+                                <span class="metric-value" id="metric-honeypot-button">❌ No</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Hidden Field Interacted:</span>
+                                <span class="metric-value" id="metric-honeypot-field">❌ No</span>
+                            </div>
+                        </div>
+
+                        <div class="metric-group">
+                            <h4>🔍 Response Pattern Detection</h4>
+                            <div class="metric-row">
+                                <span class="metric-label">Detected Patterns:</span>
+                                <span class="metric-value" id="metric-patterns">None</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">NYU Mention:</span>
+                                <span class="metric-value" id="metric-pattern-nyu">❌</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Business Marketing:</span>
+                                <span class="metric-value" id="metric-pattern-marketing">❌</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Sales Strategy:</span>
+                                <span class="metric-value" id="metric-pattern-sales">❌</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Banana:</span>
+                                <span class="metric-value" id="metric-pattern-banana">❌</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Fold:</span>
+                                <span class="metric-value" id="metric-pattern-fold">❌</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Loud:</span>
+                                <span class="metric-value" id="metric-pattern-loud">❌</span>
+                            </div>
+                        </div>
+
+                        <div class="metric-group">
+                            <h4>🔍 Environment Detection</h4>
+                            <div class="metric-row">
+                                <span class="metric-label">WebDriver:</span>
+                                <span class="metric-value" id="metric-webdriver">❌ Not Detected</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Plugins Count:</span>
+                                <span class="metric-value" id="metric-plugins">0</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Languages Count:</span>
+                                <span class="metric-value" id="metric-languages">0</span>
+                            </div>
+                        </div>
+
+                        <div class="button-grid" style="margin-top: 1.5rem;">
+                            <button class="test-button" onclick="refreshMetrics()">🔄 Refresh</button>
+                            <button class="test-button secondary" onclick="exportMetrics()">📥 Export JSON</button>
+                            <button class="test-button secondary" onclick="testHoneypot()">🎣 Test Flags</button>
+                            <button class="test-button success" onclick="openTaskPage()">🚀 Open Task Page</button>
                         </div>
                     </div>
                 </div>
             </div>
+
         </div>
-    </div>
-    <!-- Right: Fixed Log Panel -->
-    <div class="log-panel">
-        <div class="log-header">
-            <h3>📊 Test Log</h3>
-            <div class="log-actions">
-                <button class="log-action-btn" onclick="clearLog()">Clear</button>
-                <button class="log-action-btn" onclick="copyLog()">Copy</button>
+
+        <!-- Right: Fixed Log Panel -->
+        <div class="log-panel">
+            <div class="log-header">
+                <h3>📊 Test Log</h3>
+                <div class="log-actions">
+                    <button class="log-action-btn" onclick="clearLog()">Clear</button>
+                    <button class="log-action-btn" onclick="copyLog()">Copy</button>
+                </div>
+            </div>
+            <div class="log-content" id="test-log">
+                <div class="log-entry">
+                    <span class="log-time">--:--:--</span>
+                    <span class="log-icon">ℹ️</span>
+                    <span class="log-message">Test suite initialized</span>
+                </div>
             </div>
         </div>
-        <div class="log-content" id="test-log">
-            <div class="log-entry">
-                <span class="log-time">--:--:--</span>
-                <span class="log-icon">ℹ️</span>
-                <span class="log-message">Test suite initialized</span>
-            </div>
-        </div>
     </div>
+
     <script src="/test/test.js"></script>
 </body>
 
