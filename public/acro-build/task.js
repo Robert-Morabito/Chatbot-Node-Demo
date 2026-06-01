@@ -109,9 +109,7 @@ async function completeFinalTask(core, chat) {
             studyVersion: '2.0'
         };
 
-        // 4. Download for participant
-        console.log('⬇️ Downloading study data...');
-        downloadStudyData(completeData);
+        // 4. Download step skipped in demo mode (no participant submission)
 
         // 5. Save to "finished" folder on GitHub
         console.log('🏁 Saving to finished folder...');
