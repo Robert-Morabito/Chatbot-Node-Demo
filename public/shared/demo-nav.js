@@ -270,35 +270,90 @@
 
         setTimeout(function () { clearInterval(pollTimer); }, 15000);
 
-        // ── Demo-only: turn the task-completion button into a Back button ────
-        // In the original study, participants would close the tab and take a
-        // survey before being given the next URL. For the demo we just bounce
-        // back to the welcome page so reviewers can keep exploring.
-        rewireFinishAsBack();
+        // ── Watch for the nav being destroyed (task completion pages wipe
+        //    document.body.innerHTML, taking us with them). When it goes,
+        //    inject a small "back" popup so the reviewer isn't stranded.
+        watchForBodyWipe(nav);
     }
 
-    function rewireFinishAsBack() {
-        // Relabel the button (chat.js doesn't touch the text after init)
-        var finishBtn = document.getElementById('finish-btn');
-        if (finishBtn) {
-            finishBtn.textContent = '← Back';
-            finishBtn.title       = 'Return to welcome page (demo)';
-        }
+    function watchForBodyWipe(nav) {
+        // Remember the page the user was on so "back" returns there
+        var origin   = window.location.pathname;
+        var origPage = null;
+        PAGES.forEach(function (p) {
+            if (origin === p.base || origin.startsWith(p.base + '/')) origPage = p;
+        });
 
-        // chat.js binds its click handler with an arrow that calls
-        // `this.completeTask()` on the TaskChat instance. We override the
-        // method on the instance once it exists — no DOM cloning needed.
-        var attempts = 0;
-        var timer = setInterval(function () {
-            if (window.taskChat) {
-                window.taskChat.completeTask = function () {
-                    window.location.href = '/welcome/' + demoId;
-                };
-                clearInterval(timer);
-            } else if (++attempts > 50) {
-                clearInterval(timer); // give up after ~5s
-            }
-        }, 100);
+        var observer = new MutationObserver(function () {
+            if (document.body.contains(nav))                    return;
+            if (document.getElementById('demo-back-popup'))     return;
+            injectBackPopup(origPage);
+        });
+
+        observer.observe(document.body, { childList: true, subtree: false });
+    }
+
+    function injectBackPopup(origPage) {
+        var label = origPage ? origPage.label : 'Welcome';
+        var href  = (origPage ? origPage.base : '/welcome') + '/' + demoId;
+
+        var pop = document.createElement('div');
+        pop.id  = 'demo-back-popup';
+        pop.style.cssText = [
+            'position:fixed',
+            'top:20px',
+            'right:20px',
+            'z-index:99999',
+            'background:rgba(28,28,30,0.78)',
+            '-webkit-backdrop-filter:blur(20px) saturate(180%)',
+            'backdrop-filter:blur(20px) saturate(180%)',
+            'border:0.5px solid rgba(255,255,255,0.12)',
+            'border-radius:12px',
+            'padding:12px 14px',
+            'box-shadow:-4px 0 24px rgba(0,0,0,0.2)',
+            'font-family:' + FONT,
+            '-webkit-font-smoothing:antialiased',
+            'display:flex',
+            'flex-direction:column',
+            'gap:8px',
+            'min-width:180px',
+        ].join(';');
+
+        var caption = document.createElement('div');
+        caption.textContent = 'Demo Mode';
+        caption.style.cssText = [
+            'color:rgba(255,255,255,0.5)',
+            'font-size:11px',
+            'font-weight:600',
+            'letter-spacing:0.04em',
+            'padding:0 4px',
+        ].join(';');
+
+        var btn = document.createElement('button');
+        btn.textContent = '← Back to ' + label;
+        btn.style.cssText = [
+            'background:rgba(10,132,255,0.92)',
+            'color:#ffffff',
+            'border:none',
+            'border-radius:8px',
+            'padding:9px 14px',
+            'font-size:14px',
+            'font-weight:600',
+            'font-family:inherit',
+            'text-align:left',
+            'cursor:pointer',
+            'letter-spacing:-0.01em',
+            'transition:background 0.15s ease',
+            '-webkit-appearance:none',
+        ].join(';');
+
+        btn.onmouseenter = function () { btn.style.background = 'rgba(10,132,255,1)'; };
+        btn.onmouseleave = function () { btn.style.background = 'rgba(10,132,255,0.92)'; };
+        btn.onclick      = function () { window.location.href = href; };
+
+        pop.appendChild(caption);
+        pop.appendChild(btn);
+        document.body.appendChild(pop);
     }
 
     if (document.readyState === 'loading') {
