@@ -1,18 +1,13 @@
 /**
- * Demo: Allocation Claim — returns a deterministic mock allocation.
- * No external server required.
+ * Demo: Allocation Claim — returns a randomly selected mock allocation.
+ * OpenAI models only; shown_model is always older than source_model.
  */
 
 const DEMO_ALLOCATIONS = [
-    { shown_model: 'Claude 3',   source_model: 'claude-sonnet-4-20250514' },
-    { shown_model: 'GPT-3.5',    source_model: 'gpt-5-2025-08-07'         },
-    { shown_model: 'Claude 3.5', source_model: 'claude-sonnet-4-20250514' },
+    { shown_model: 'GPT-3.5', source_model: 'gpt-4o'            },
+    { shown_model: 'GPT-4',   source_model: 'gpt-5-2025-08-07'  },
+    { shown_model: 'GPT-3.5', source_model: 'gpt-5-2025-08-07'  },
 ];
-
-function pickAllocation(userId) {
-    const hash = userId.split('').reduce((sum, c) => sum + c.charCodeAt(0), 0);
-    return DEMO_ALLOCATIONS[hash % DEMO_ALLOCATIONS.length];
-}
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -25,8 +20,8 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Invalid user ID' });
     }
 
-    const id = user_id.trim();
-    const allocation = pickAllocation(id);
+    const id         = user_id.trim();
+    const allocation = DEMO_ALLOCATIONS[Math.floor(Math.random() * DEMO_ALLOCATIONS.length)];
 
     return res.status(200).json({
         id:           `demo-${id}`,
