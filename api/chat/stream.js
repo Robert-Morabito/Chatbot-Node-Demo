@@ -21,7 +21,7 @@ import { ClaudeHandler } from '../../handlers/claudeHandler.js';
 // ===================================================================
 
 const VALID_MODELS = {
-    openai: ['gpt-4o-mini', 'gpt-4o', 'gpt-5-2025-08-07'],
+    openai: ['gpt-3.5-turbo-0125', 'gpt-4-1106-preview', 'gpt-5-2025-08-07'],
     claude: ['claude-3-haiku-20240307', 'claude-3-5-haiku-20241022', 'claude-sonnet-4-20250514']
 };
 
@@ -354,7 +354,7 @@ async function classifyImageIntent(userMessage, imageContext) {
         const messages = [{ sender: 'User', content: prompt }];
 
         // Get classification (no system prompt - critical for accuracy)
-        const classification = await classifier.getCompletion(messages, 'gpt-4o-mini', {
+        const classification = await classifier.getCompletion(messages, 'gpt-3.5-turbo-0125', {
             includeSystemPrompt: false
         });
 

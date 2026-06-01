@@ -1,12 +1,18 @@
 /**
- * Demo: Allocation Claim — returns a randomly selected mock allocation.
- * OpenAI models only; shown_model is always older than source_model.
+ * Demo: Allocation Claim — randomly selects one of nine shown/true pairings,
+ * covering every combination of the three GPT generations.
  */
 
 const DEMO_ALLOCATIONS = [
-    { shown_model: 'GPT-3.5', source_model: 'gpt-4o'            },
-    { shown_model: 'GPT-4',   source_model: 'gpt-5-2025-08-07'  },
-    { shown_model: 'GPT-3.5', source_model: 'gpt-5-2025-08-07'  },
+    { shown_model: 'GPT-3.5', source_model: 'gpt-3.5-turbo-0125' },
+    { shown_model: 'GPT-3.5', source_model: 'gpt-4-1106-preview'  },
+    { shown_model: 'GPT-3.5', source_model: 'gpt-5-2025-08-07'   },
+    { shown_model: 'GPT-4',   source_model: 'gpt-3.5-turbo-0125' },
+    { shown_model: 'GPT-4',   source_model: 'gpt-4-1106-preview'  },
+    { shown_model: 'GPT-4',   source_model: 'gpt-5-2025-08-07'   },
+    { shown_model: 'GPT-5',   source_model: 'gpt-3.5-turbo-0125' },
+    { shown_model: 'GPT-5',   source_model: 'gpt-4-1106-preview'  },
+    { shown_model: 'GPT-5',   source_model: 'gpt-5-2025-08-07'   },
 ];
 
 export default async function handler(req, res) {
