@@ -269,6 +269,36 @@
         }, 200);
 
         setTimeout(function () { clearInterval(pollTimer); }, 15000);
+
+        // ── Demo-only: turn the task-completion button into a Back button ────
+        // In the original study, participants would close the tab and take a
+        // survey before being given the next URL. For the demo we just bounce
+        // back to the welcome page so reviewers can keep exploring.
+        rewireFinishAsBack();
+    }
+
+    function rewireFinishAsBack() {
+        // Relabel the button (chat.js doesn't touch the text after init)
+        var finishBtn = document.getElementById('finish-btn');
+        if (finishBtn) {
+            finishBtn.textContent = '← Back';
+            finishBtn.title       = 'Return to welcome page (demo)';
+        }
+
+        // chat.js binds its click handler with an arrow that calls
+        // `this.completeTask()` on the TaskChat instance. We override the
+        // method on the instance once it exists — no DOM cloning needed.
+        var attempts = 0;
+        var timer = setInterval(function () {
+            if (window.taskChat) {
+                window.taskChat.completeTask = function () {
+                    window.location.href = '/welcome/' + demoId;
+                };
+                clearInterval(timer);
+            } else if (++attempts > 50) {
+                clearInterval(timer); // give up after ~5s
+            }
+        }, 100);
     }
 
     if (document.readyState === 'loading') {

@@ -26,8 +26,10 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Invalid user ID' });
     }
 
-    const id         = user_id.trim();
-    const allocation = DEMO_ALLOCATIONS[Math.floor(Math.random() * DEMO_ALLOCATIONS.length)];
+    const id   = user_id.trim();
+    // Deterministic: same demo ID → same pairing across pages.
+    const hash = id.split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+    const allocation = DEMO_ALLOCATIONS[hash % DEMO_ALLOCATIONS.length];
 
     return res.status(200).json({
         id:           `demo-${id}`,
