@@ -47,9 +47,8 @@ export class OpenAIHandler {
      */
     async generateImage(prompt, options = {}) {
         const {
-            model = "dall-e-3",
+            model = "dall-e-2",
             size = "1024x1024",
-            quality = "standard",
             n = 1
         } = options;
 
@@ -59,7 +58,6 @@ export class OpenAIHandler {
                 prompt,
                 n,
                 size,
-                quality
             });
 
             return {
