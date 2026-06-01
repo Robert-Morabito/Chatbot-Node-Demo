@@ -15,7 +15,6 @@
 
 import { OpenAIHandler } from '../../handlers/openaiHandler.js';
 import { ClaudeHandler } from '../../handlers/claudeHandler.js';
-import GitHubStorage from '../../utils/githubStorage.js';
 
 // ===================================================================
 // CONFIGURATION
@@ -561,19 +560,7 @@ async function generateImage(userMessage, model, imageContext, intent, res, req 
 
         const imageData = await downloadAndConvertToBase64(imageResult.url, userMessage, res);
 
-        // Step 4: Generate filename and upload to GitHub immediately
-        const filename = generateImageFilename(participantId, imageContext);
-
-        console.log(`☁️ Uploading to GitHub as: ${filename}`);
-        streamLog(res, `☁️ Uploading to GitHub as: ${filename}`);
-
-        const githubStorage = new GitHubStorage();
-        await githubStorage.uploadImageDirect(participantId, filename, imageData.base64);
-
-        console.log(`✅ Image uploaded to GitHub: ${filename}`);
-        streamLog(res, `✅ Image uploaded to GitHub: ${filename}`);
-
-        // Step 5: Send response with BOTH data URL (for display) and filename (for saving)
+        // Step 4: Send response with data URL for display (demo: no GitHub upload)
         const responseMessage = intent === 'modify_image'
             ? `I've modified the image based on your request:\n\n![Generated Image](${imageData.dataUrl})`
             : `I've generated an image for you:\n\n![Generated Image](${imageData.dataUrl})`;
@@ -582,18 +569,16 @@ async function generateImage(userMessage, model, imageContext, intent, res, req 
             type: 'content',
             content: responseMessage,
             fullContent: responseMessage,
-            imageUrl: imageData.dataUrl,      // ✅ Data URL for display
-            imageFilename: filename,           // ✅ Filename for saving
+            imageUrl: imageData.dataUrl,
             imageFormat: 'png',
             imageSize: imageData.sizeKB,
             imagePrompt: enhancedPrompt,
             originalPrompt: userMessage,
-            revisedPrompt: imageResult.revisedPrompt,
-            githubPath: `images/${participantId}/${filename}`
+            revisedPrompt: imageResult.revisedPrompt
         };
 
-        console.log(`✅ Image response sent with filename: ${filename}`);
-        streamLog(res, `✅ Image response sent with filename: ${filename}`);
+        console.log('✅ Image response sent');
+        streamLog(res, '✅ Image response sent');
 
         res.write(`data: ${JSON.stringify(responseData)}\n\n`);
         res.write(`data: ${JSON.stringify({ type: 'done', finishReason: 'image_generated' })}\n\n`);

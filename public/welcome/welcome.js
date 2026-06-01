@@ -245,6 +245,13 @@ class WelcomePage {
             console.log('✅ Continue button click handler attached');
         }
 
+        // Demo: pre-fill with the session's demo participant ID
+        const demoId = window.__demoParticipantId || sessionStorage.getItem('demo_participant_id');
+        if (demoId) {
+            input.value = demoId;
+            validateInput();
+        }
+
         // Focus the input
         setTimeout(() => {
             input.focus();
