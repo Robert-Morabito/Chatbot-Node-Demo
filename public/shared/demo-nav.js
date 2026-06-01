@@ -35,18 +35,19 @@
         { label: 'Acronym',   base: '/acro-build'   },
     ];
 
-    // Maps source model API IDs to readable display names
     var MODEL_NAMES = {
         'gpt-3.5-turbo-0125': 'GPT-3.5',
-        'gpt-4-1106-preview':  'GPT-4',
+        'gpt-4-turbo':         'GPT-4',
         'gpt-5-2025-08-07':    'GPT-5',
     };
+
+    var FONT = '-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif';
 
     // ── Build UI ──────────────────────────────────────────────────────────────
 
     function build() {
         var cur    = window.location.pathname;
-        var TAB_W  = 22;
+        var TAB_W  = 26;
         var isOpen = false;
 
         // ── Outer container ───────────────────────────────────────────────────
@@ -61,48 +62,53 @@
             'flex-direction:row',
             'align-items:stretch',
             'transform:translateY(-50%) translateX(calc(100% - ' + TAB_W + 'px))',
-            'transition:transform 0.2s cubic-bezier(0.4,0,0.2,1)',
-            'font-family:ui-monospace,SFMono-Regular,Menlo,monospace',
+            'transition:transform 0.28s cubic-bezier(0.32,0.72,0,1)',
+            'font-family:' + FONT,
+            '-webkit-font-smoothing:antialiased',
         ].join(';');
 
         // ── Handle tab (always visible) ───────────────────────────────────────
         var handle = document.createElement('div');
         handle.style.cssText = [
             'width:' + TAB_W + 'px',
-            'background:#161b22',
-            'border:1px solid #30363d',
+            'background:rgba(28,28,30,0.78)',
+            '-webkit-backdrop-filter:blur(20px) saturate(180%)',
+            'backdrop-filter:blur(20px) saturate(180%)',
+            'border:0.5px solid rgba(255,255,255,0.12)',
             'border-right:none',
-            'border-radius:8px 0 0 8px',
+            'border-radius:12px 0 0 12px',
             'display:flex',
             'flex-direction:column',
             'align-items:center',
             'justify-content:center',
-            'gap:6px',
+            'gap:8px',
             'cursor:pointer',
             'flex-shrink:0',
-            'padding:10px 0',
+            'padding:14px 0',
+            'box-shadow:-4px 0 24px rgba(0,0,0,0.18)',
         ].join(';');
 
-        // "demo" written vertically
         var tabText = document.createElement('span');
         tabText.textContent = 'demo';
         tabText.style.cssText = [
-            'color:#8b949e',
-            'font-size:10px',
-            'letter-spacing:0.12em',
+            'color:rgba(255,255,255,0.72)',
+            'font-size:11px',
+            'font-weight:600',
+            'letter-spacing:0.16em',
             'writing-mode:vertical-lr',
             'text-transform:uppercase',
             'user-select:none',
         ].join(';');
 
-        // Arrow indicator
         var arrow = document.createElement('span');
-        arrow.textContent = '◁';
+        arrow.textContent = '‹';
         arrow.style.cssText = [
-            'color:#8b949e',
-            'font-size:9px',
+            'color:rgba(255,255,255,0.42)',
+            'font-size:14px',
             'line-height:1',
+            'font-weight:400',
             'user-select:none',
+            'transition:transform 0.28s cubic-bezier(0.32,0.72,0,1)',
         ].join(';');
 
         handle.appendChild(tabText);
@@ -111,28 +117,31 @@
         // ── Content panel ─────────────────────────────────────────────────────
         var panel = document.createElement('div');
         panel.style.cssText = [
-            'background:#0d1117',
-            'border:1px solid #30363d',
+            'background:rgba(28,28,30,0.78)',
+            '-webkit-backdrop-filter:blur(20px) saturate(180%)',
+            'backdrop-filter:blur(20px) saturate(180%)',
+            'border:0.5px solid rgba(255,255,255,0.12)',
             'border-right:none',
             'border-left:none',
-            'padding:12px 11px',
+            'padding:16px 14px',
             'display:flex',
             'flex-direction:column',
-            'gap:4px',
-            'min-width:150px',
+            'gap:5px',
+            'min-width:172px',
+            'box-shadow:-4px 0 24px rgba(0,0,0,0.18)',
         ].join(';');
 
         // Section label
         var lbl = document.createElement('div');
-        lbl.textContent = 'demo';
+        lbl.textContent = 'Demo Mode';
         lbl.style.cssText = [
-            'color:#8b949e',
-            'font-size:10px',
-            'letter-spacing:0.12em',
-            'text-transform:uppercase',
-            'padding-bottom:8px',
-            'margin-bottom:2px',
-            'border-bottom:1px solid #21262d',
+            'color:rgba(255,255,255,0.5)',
+            'font-size:11px',
+            'font-weight:600',
+            'letter-spacing:0.04em',
+            'padding:0 4px 10px 4px',
+            'margin-bottom:4px',
+            'border-bottom:0.5px solid rgba(255,255,255,0.08)',
         ].join(';');
         panel.appendChild(lbl);
 
@@ -144,29 +153,31 @@
             btn.textContent = page.label;
             btn.style.cssText = [
                 'display:block',
-                'width:auto',
-                'background:' + (active ? '#1f6feb' : 'transparent'),
-                'color:'      + (active ? '#e6edf3'  : '#8b949e'),
-                'border:1px solid ' + (active ? '#388bfd' : 'transparent'),
-                'border-radius:5px',
-                'padding:5px 10px',
-                'font-size:12px',
+                'width:100%',
+                'background:' + (active ? 'rgba(10,132,255,0.92)' : 'transparent'),
+                'color:'      + (active ? '#ffffff'              : 'rgba(255,255,255,0.82)'),
+                'border:none',
+                'border-radius:8px',
+                'padding:8px 12px',
+                'font-size:14px',
+                'font-weight:' + (active ? '600' : '500'),
                 'font-family:inherit',
                 'text-align:left',
                 'white-space:nowrap',
                 'cursor:' + (active ? 'default' : 'pointer'),
+                'letter-spacing:-0.01em',
+                'transition:background 0.15s ease,color 0.15s ease',
+                '-webkit-appearance:none',
             ].join(';');
 
             if (!active) {
                 btn.onmouseenter = function () {
-                    btn.style.background  = '#21262d';
-                    btn.style.color       = '#e6edf3';
-                    btn.style.borderColor = '#30363d';
+                    btn.style.background = 'rgba(255,255,255,0.08)';
+                    btn.style.color      = '#ffffff';
                 };
                 btn.onmouseleave = function () {
-                    btn.style.background  = 'transparent';
-                    btn.style.color       = '#8b949e';
-                    btn.style.borderColor = 'transparent';
+                    btn.style.background = 'transparent';
+                    btn.style.color      = 'rgba(255,255,255,0.82)';
                 };
                 btn.onclick = function () {
                     window.location.href = page.base + '/' + demoId;
@@ -179,23 +190,41 @@
         // ── Model info section ────────────────────────────────────────────────
         var divider = document.createElement('div');
         divider.style.cssText = [
-            'border-top:1px solid #21262d',
-            'margin-top:6px',
-            'padding-top:8px',
+            'border-top:0.5px solid rgba(255,255,255,0.08)',
+            'margin-top:10px',
+            'padding:10px 4px 0 4px',
+            'display:flex',
+            'flex-direction:column',
+            'gap:6px',
         ].join(';');
 
-        var toldRow = document.createElement('div');
-        toldRow.id  = 'demo-nav-told';
-        toldRow.style.cssText = 'color:#8b949e;font-size:11px;padding:2px 0;white-space:nowrap;';
-        toldRow.textContent   = 'Told: —';
+        function makeRow(labelText) {
+            var row = document.createElement('div');
+            row.style.cssText = [
+                'display:flex',
+                'justify-content:space-between',
+                'align-items:baseline',
+                'font-size:13px',
+                'letter-spacing:-0.01em',
+            ].join(';');
 
-        var trueRow = document.createElement('div');
-        trueRow.id  = 'demo-nav-true';
-        trueRow.style.cssText = 'color:#8b949e;font-size:11px;padding:2px 0;white-space:nowrap;';
-        trueRow.textContent   = 'True: —';
+            var k = document.createElement('span');
+            k.textContent = labelText;
+            k.style.cssText = 'color:rgba(255,255,255,0.5);font-weight:500;';
 
-        divider.appendChild(toldRow);
-        divider.appendChild(trueRow);
+            var v = document.createElement('span');
+            v.textContent = '—';
+            v.style.cssText = 'color:rgba(255,255,255,0.92);font-weight:600;';
+
+            row.appendChild(k);
+            row.appendChild(v);
+            return { row: row, value: v };
+        }
+
+        var told = makeRow('Told');
+        var trueR = makeRow('True');
+        divider.appendChild(told.row);
+        divider.appendChild(trueR.row);
         panel.appendChild(divider);
 
         // ── Open / close ──────────────────────────────────────────────────────
@@ -203,13 +232,13 @@
             if (isOpen) return;
             isOpen = true;
             nav.style.transform = 'translateY(-50%) translateX(0)';
-            arrow.textContent   = '▷';
+            arrow.style.transform = 'rotate(180deg)';
         }
         function close() {
             if (!isOpen) return;
             isOpen = false;
             nav.style.transform = 'translateY(-50%) translateX(calc(100% - ' + TAB_W + 'px))';
-            arrow.textContent   = '◁';
+            arrow.style.transform = 'rotate(0deg)';
         }
 
         document.addEventListener('mousemove', function (e) {
@@ -222,7 +251,7 @@
         nav.appendChild(panel);
         document.body.appendChild(nav);
 
-        // ── Poll for allocation config and update model rows ──────────────────
+        // ── Poll for allocation config ────────────────────────────────────────
         function getConfig() {
             if (window.studyCore   && window.studyCore.config)                return window.studyCore.config;
             if (window.welcomePage && window.welcomePage.core && window.welcomePage.core.config)
@@ -230,24 +259,15 @@
             return null;
         }
 
-        function updateModelInfo(config) {
-            var told = config.givenModel || '—';
-            var trueId = config.trueModel || '';
-            var trueDisplay = MODEL_NAMES[trueId] || trueId || '—';
-
-            toldRow.innerHTML = 'Told: <strong style="color:#e6edf3;">' + told + '</strong>';
-            trueRow.innerHTML = 'True: <strong style="color:#e6edf3;">' + trueDisplay + '</strong>';
-        }
-
         var pollTimer = setInterval(function () {
             var config = getConfig();
             if (config && config.givenModel) {
-                updateModelInfo(config);
+                told.value.textContent  = config.givenModel || '—';
+                trueR.value.textContent = MODEL_NAMES[config.trueModel] || config.trueModel || '—';
                 clearInterval(pollTimer);
             }
         }, 200);
 
-        // Stop polling after 15 s regardless
         setTimeout(function () { clearInterval(pollTimer); }, 15000);
     }
 

@@ -5,13 +5,13 @@
 
 const DEMO_ALLOCATIONS = [
     { shown_model: 'GPT-3.5', source_model: 'gpt-3.5-turbo-0125' },
-    { shown_model: 'GPT-3.5', source_model: 'gpt-4-1106-preview'  },
+    { shown_model: 'GPT-3.5', source_model: 'gpt-4-turbo'  },
     { shown_model: 'GPT-3.5', source_model: 'gpt-5-2025-08-07'   },
     { shown_model: 'GPT-4',   source_model: 'gpt-3.5-turbo-0125' },
-    { shown_model: 'GPT-4',   source_model: 'gpt-4-1106-preview'  },
+    { shown_model: 'GPT-4',   source_model: 'gpt-4-turbo'  },
     { shown_model: 'GPT-4',   source_model: 'gpt-5-2025-08-07'   },
     { shown_model: 'GPT-5',   source_model: 'gpt-3.5-turbo-0125' },
-    { shown_model: 'GPT-5',   source_model: 'gpt-4-1106-preview'  },
+    { shown_model: 'GPT-5',   source_model: 'gpt-4-turbo'  },
     { shown_model: 'GPT-5',   source_model: 'gpt-5-2025-08-07'   },
 ];
 

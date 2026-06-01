@@ -21,7 +21,7 @@ import { ClaudeHandler } from '../../handlers/claudeHandler.js';
 // ===================================================================
 
 const VALID_MODELS = {
-    openai: ['gpt-3.5-turbo-0125', 'gpt-4-1106-preview', 'gpt-5-2025-08-07'],
+    openai: ['gpt-3.5-turbo-0125', 'gpt-4-turbo', 'gpt-5-2025-08-07'],
     claude: ['claude-3-haiku-20240307', 'claude-3-5-haiku-20241022', 'claude-sonnet-4-20250514']
 };
 
@@ -547,18 +547,36 @@ async function generateImage(userMessage, model, imageContext, intent, res, req 
 
         const imageResult = await imageHandler.generateImage(enhancedPrompt);
 
-        if (!imageResult?.success || !imageResult?.url) {
-            throw new Error('Image generation failed or returned no URL');
+        if (!imageResult?.success || (!imageResult.url && !imageResult.base64)) {
+            throw new Error('Image generation failed or returned no image');
         }
 
-        console.log('✅ DALL-E returned blob URL');
-        streamLog(res, '✅ DALL-E returned blob URL');
+        // Step 3: Normalise image to base64 + data URL.
+        // Some models (gpt-image-1) return b64_json directly; others (dall-e)
+        // return a URL we need to fetch. Either way, downstream is identical.
+        let imageData;
+        if (imageResult.base64) {
+            console.log('✅ Image returned as base64');
+            streamLog(res, '✅ Image returned as base64');
 
-        // Step 3: Download and convert blob to base64
-        console.log('🔄 Converting blob to base64...');
-        streamLog(res, '🔄 Converting blob to base64...');
+            const buf = Buffer.from(imageResult.base64, 'base64');
+            const sizeKB = (buf.length / 1024).toFixed(2);
 
-        const imageData = await downloadAndConvertToBase64(imageResult.url, userMessage, res);
+            imageData = {
+                dataUrl: `data:image/png;base64,${imageResult.base64}`,
+                base64:  imageResult.base64,
+                size:    buf.length,
+                sizeKB,
+                format:  'base64'
+            };
+
+            console.log(`✅ Image is ${sizeKB} KB`);
+            streamLog(res, `✅ Image is ${sizeKB} KB`);
+        } else {
+            console.log('✅ Image returned as URL, downloading...');
+            streamLog(res, '✅ Image returned as URL, downloading...');
+            imageData = await downloadAndConvertToBase64(imageResult.url, userMessage, res);
+        }
 
         // Step 4: Send response with data URL for display (demo: no GitHub upload)
         const responseMessage = intent === 'modify_image'

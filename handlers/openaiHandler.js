@@ -47,29 +47,29 @@ export class OpenAIHandler {
      */
     async generateImage(prompt, options = {}) {
         const {
-            model = "dall-e-3",
+            model = "gpt-image-1",
             size = "1024x1024",
-            quality = "standard",
             n = 1
         } = options;
 
         try {
-            const response = await this.client.images.generate({
-                model,
-                prompt,
-                n,
-                size,
-                quality
-            });
+            const params = { model, prompt, n, size };
+
+            // dall-e-3 supports a quality flag; gpt-image-1 uses different values
+            // and defaults are fine — leave it off here for forward compatibility.
+            const response = await this.client.images.generate(params);
+
+            const item = response.data[0];
 
             return {
                 success: true,
-                url: response.data[0].url,
-                revisedPrompt: response.data[0].revised_prompt || prompt
+                url:           item.url || null,
+                base64:        item.b64_json || null,
+                revisedPrompt: item.revised_prompt || prompt
             };
 
         } catch (error) {
-            console.error('DALL-E generation failed:', error.message);
+            console.error('Image generation failed:', error.message);
             throw error;
         }
     }
